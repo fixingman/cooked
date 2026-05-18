@@ -1,0 +1,29 @@
+{
+  "name": "Cooked",
+  "short_name": "Cooked",
+  "description": "Your interactive cooking companion. Beautiful recipes, step-by-step guidance.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#FAF7F2",
+  "theme_color": "#FAF7F2",
+  "categories": ["food", "lifestyle"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}
