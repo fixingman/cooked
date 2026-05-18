@@ -23,6 +23,7 @@ export const recipes: Recipe[] = [
     description: "The true Roman carbonara — no cream, just eggs, Pecorino, guanciale and black pepper. The sauce forms as you toss the hot pasta off the heat, creating a glossy, unctuous coating that clings to every strand.",
     chefNotes: "The key is temperature control. If the pan is too hot when you add the egg mixture, you'll get scrambled eggs. Remove from heat completely and toss vigorously.",
     isFeatured: true,
+    thermomixAvailable: true,
     ingredients: [
       { id: "i1", name: "Spaghetti", quantity: 200, unit: "g", group: "Pasta" },
       { id: "i2", name: "Guanciale or pancetta", quantity: 150, unit: "g", group: "Pasta" },
@@ -32,11 +33,17 @@ export const recipes: Recipe[] = [
       { id: "i6", name: "Black pepper, coarsely ground", quantity: 2, unit: "tsp", group: "Sauce" },
     ],
     steps: [
-      { id: "s1", order: 1, shortLabel: "Boil water", instruction: "Bring a large pot of generously salted water to a rolling boil. The water should taste like the sea.", durationSeconds: undefined },
+      { id: "s1", order: 1, shortLabel: "Boil water", instruction: "Bring a large pot of generously salted water to a rolling boil. The water should taste like the sea." },
       { id: "s2", order: 2, shortLabel: "Crisp guanciale", instruction: "Cut the guanciale into 1cm cubes. Cook in a cold skillet over medium heat, stirring occasionally, until the fat renders and the meat is crispy. Remove from heat.", durationSeconds: 480, timerLabel: "Crisp" },
-      { id: "s3", order: 3, shortLabel: "Mix sauce", instruction: "Whisk together the whole eggs plus one extra yolk, Pecorino, Parmesan, and a very generous amount of black pepper in a bowl until combined.", ingredients: ["i3", "i4", "i5", "i6"] },
+      {
+        id: "s3", order: 3, shortLabel: "Mix sauce", instruction: "Whisk together the whole eggs plus one extra yolk, Pecorino, Parmesan, and a very generous amount of black pepper in a bowl until combined.", ingredients: ["i3", "i4", "i5", "i6"],
+        thermomix: { speed: 4, tempC: 37, timeSeconds: 30, instruction: "Add eggs, Pecorino, Parmesan, and black pepper to the bowl. Mix 30 sec / Speed 4 / 37°C. The gentle heat tempers the eggs without scrambling them.", label: "Mix" },
+      },
       { id: "s4", order: 4, shortLabel: "Cook pasta", instruction: "Cook the spaghetti until 2 minutes before al dente. Reserve 200ml of starchy pasta water before draining.", durationSeconds: 840, timerLabel: "Simmer", ingredients: ["i1"] },
-      { id: "s5", order: 5, shortLabel: "Combine & toss", instruction: "Add the hot drained pasta to the guanciale skillet off the heat. Add the egg mixture and a splash of pasta water. Toss energetically — the residual heat will cook the eggs into a creamy sauce." },
+      {
+        id: "s5", order: 5, shortLabel: "Combine & toss", instruction: "Add the hot drained pasta to the guanciale skillet off the heat. Add the egg mixture and a splash of pasta water. Toss energetically — the residual heat will cook the eggs into a creamy sauce.",
+        thermomix: { speed: 1, tempC: 70, timeSeconds: 90, instruction: "Add drained pasta to the Thermomix bowl with the egg mixture and a splash of pasta water. Mix 90 sec / Speed 1 / 70°C using the Reverse Blade function. The controlled heat creates a silky emulsion.", label: "Emulsify" },
+      },
       { id: "s6", order: 6, shortLabel: "Adjust consistency", instruction: "Add more pasta water, a tablespoon at a time, to reach a silky consistency that coats each strand. Season with extra pepper." },
       { id: "s7", order: 7, shortLabel: "Serve immediately", instruction: "Plate immediately into warmed bowls. Finish with more Pecorino, a twist of black pepper, and serve at once." },
     ],
@@ -96,6 +103,7 @@ export const recipes: Recipe[] = [
     reviewCount: 934,
     tags: ["ramen", "soup", "umami", "noodles"],
     dietaryTags: [],
+    thermomixAvailable: true,
     description: "A bowl of proper miso ramen demands patience. The tare, the broth, the chashu — each element built with care and simmered to depth. The result is a bowl that warms from the inside out.",
     chefNotes: "Use white or blended miso for a balanced flavour. Red miso is stronger and saltier — use less. The tare can be made 3 days ahead and refrigerated.",
     ingredients: [
@@ -114,7 +122,10 @@ export const recipes: Recipe[] = [
       { id: "s1", order: 1, shortLabel: "Braise chashu", instruction: "Roll pork belly tightly and tie with kitchen twine. Sear on all sides until golden. Add soy sauce, mirin, and enough water to half-submerge. Cover and braise at low heat.", durationSeconds: 5400, timerLabel: "Braise", ingredients: ["i2", "i3", "i4"] },
       { id: "s2", order: 2, shortLabel: "Prepare tare", instruction: "Whisk the miso paste with 2 tbsp of the braising liquid until smooth. Set aside. This is your flavour base.", ingredients: ["i5"] },
       { id: "s3", order: 3, shortLabel: "Soft-boil eggs", instruction: "Cook eggs in boiling water for exactly 6 minutes. Transfer to iced water. Peel carefully and marinate in the chashu braising liquid for at least 30 minutes.", durationSeconds: 360, timerLabel: "Boil", ingredients: ["i7"] },
-      { id: "s4", order: 4, shortLabel: "Heat broth", instruction: "Bring the stock to a gentle simmer. Whisk in the miso tare, starting with 3 tbsp and adjusting to taste. Do not boil after adding miso.", durationSeconds: 600, timerLabel: "Simmer", ingredients: ["i6"] },
+      {
+        id: "s4", order: 4, shortLabel: "Heat broth", instruction: "Bring the stock to a gentle simmer. Whisk in the miso tare, starting with 3 tbsp and adjusting to taste. Do not boil after adding miso.", durationSeconds: 600, timerLabel: "Simmer", ingredients: ["i6"],
+        thermomix: { speed: 2, tempC: 90, timeSeconds: 600, instruction: "Add stock to the bowl. Heat 10 min / 90°C / Speed 2. Reduce to 70°C, add miso tare through the lid hole, and stir 30 sec / Speed 2. Do not exceed 90°C after adding miso — it destroys the live cultures.", label: "Simmer" },
+      },
       { id: "s5", order: 5, shortLabel: "Cook noodles", instruction: "Cook ramen noodles per packet instructions (usually 2–3 minutes in boiling water). Drain and divide between two warmed bowls.", durationSeconds: 180, timerLabel: "Cook", ingredients: ["i1"] },
       { id: "s6", order: 6, shortLabel: "Slice chashu", instruction: "Remove chashu from braising liquid. Slice into 1cm rounds. Optionally sear in a hot pan briefly for caramelised edges.", ingredients: ["i2"] },
       { id: "s7", order: 7, shortLabel: "Assemble bowls", instruction: "Ladle hot broth over noodles. Top with chashu slices, halved marinated egg, spring onions, nori, and corn. Serve immediately.", ingredients: ["i7", "i8", "i9", "i10"] },
@@ -139,6 +150,7 @@ export const recipes: Recipe[] = [
     reviewCount: 1856,
     tags: ["eggs", "tomato", "spiced", "one-pan"],
     dietaryTags: ["vegetarian", "gluten-free"],
+    thermomixAvailable: true,
     description: "Vibrant, deeply spiced tomato sauce with eggs poached right in the pan. One skillet, minimal washing up, maximum satisfaction. Equally at home at breakfast or lunch.",
     chefNotes: "Don't rush the onion and pepper step — 10 minutes of gentle cooking builds the flavour foundation everything rests on.",
     ingredients: [
@@ -154,10 +166,22 @@ export const recipes: Recipe[] = [
       { id: "i10", name: "Fresh parsley", quantity: 1, unit: "handful" },
     ],
     steps: [
-      { id: "s1", order: 1, shortLabel: "Soften aromatics", instruction: "Heat olive oil in a wide skillet over medium heat. Add onion and red pepper. Cook, stirring occasionally, until soft and beginning to caramelise — about 10 minutes.", durationSeconds: 600, timerLabel: "Soften", ingredients: ["i3", "i4"] },
-      { id: "s2", order: 2, shortLabel: "Add garlic & spices", instruction: "Add garlic, cumin, paprika, and chilli flakes. Stir for 1 minute until fragrant. The pan should smell incredible.", ingredients: ["i5", "i6", "i7", "i8"] },
-      { id: "s3", order: 3, shortLabel: "Add tomatoes", instruction: "Pour in the crushed tomatoes. Season with salt. Simmer for 10 minutes, stirring occasionally, until the sauce thickens and deepens in colour.", durationSeconds: 600, timerLabel: "Simmer", ingredients: ["i2"] },
-      { id: "s4", order: 4, shortLabel: "Poach eggs", instruction: "Make 4 wells in the sauce. Crack an egg into each well. Cover the pan and cook over low heat until the whites are just set but the yolks are still runny — 5 to 7 minutes.", durationSeconds: 360, timerLabel: "Poach", ingredients: ["i1"] },
+      {
+        id: "s1", order: 1, shortLabel: "Soften aromatics", instruction: "Heat olive oil in a wide skillet over medium heat. Add onion and red pepper. Cook, stirring occasionally, until soft and beginning to caramelise — about 10 minutes.", durationSeconds: 600, timerLabel: "Soften", ingredients: ["i3", "i4"],
+        thermomix: { speed: 2, tempC: 120, timeSeconds: 600, instruction: "Add onion and red pepper to the bowl. Chop 5 sec / Speed 5. Scrape down. Add olive oil and cook 10 min / Varoma / Speed 2 with the Simmering Basket instead of the lid to allow steam to escape.", label: "Soften" },
+      },
+      {
+        id: "s2", order: 2, shortLabel: "Add garlic & spices", instruction: "Add garlic, cumin, paprika, and chilli flakes. Stir for 1 minute until fragrant. The pan should smell incredible.", ingredients: ["i5", "i6", "i7", "i8"],
+        thermomix: { speed: 1, tempC: 100, timeSeconds: 60, instruction: "Add garlic, cumin, paprika, and chilli flakes to the bowl. Cook 1 min / 100°C / Speed 1. The confined space intensifies the aroma.", label: "Toast" },
+      },
+      {
+        id: "s3", order: 3, shortLabel: "Add tomatoes", instruction: "Pour in the crushed tomatoes. Season with salt. Simmer for 10 minutes, stirring occasionally, until the sauce thickens and deepens in colour.", durationSeconds: 600, timerLabel: "Simmer", ingredients: ["i2"],
+        thermomix: { speed: 2, tempC: 100, timeSeconds: 600, instruction: "Add crushed tomatoes and season with salt. Cook 10 min / 100°C / Speed 2 with the Simmering Basket on top. The sauce will thicken beautifully.", label: "Simmer" },
+      },
+      {
+        id: "s4", order: 4, shortLabel: "Poach eggs", instruction: "Make 4 wells in the sauce. Crack an egg into each well. Cover the pan and cook over low heat until the whites are just set but the yolks are still runny — 5 to 7 minutes.", durationSeconds: 360, timerLabel: "Poach", ingredients: ["i1"],
+        thermomix: { speed: 1, tempC: 90, timeSeconds: 360, instruction: "Transfer sauce to an oven dish. Alternatively, use the Varoma: pour sauce into the Varoma tray, make 4 wells, add eggs. Steam 6 min / Varoma / Speed 1 over 500ml of simmering water in the bowl.", label: "Poach" },
+      },
       { id: "s5", order: 5, shortLabel: "Finish & serve", instruction: "Scatter feta and fresh parsley over the top. Serve directly from the pan with warm flatbread or crusty bread.", ingredients: ["i9", "i10"] },
     ],
   },
@@ -180,6 +204,7 @@ export const recipes: Recipe[] = [
     reviewCount: 1124,
     tags: ["rice", "vegetarian", "umami", "comfort"],
     dietaryTags: ["vegetarian"],
+    thermomixAvailable: true,
     description: "A proper risotto rewards patience and attention. Ladle by ladle, the starch releases from the Arborio rice, building a naturally creamy, luscious texture without a drop of cream.",
     chefNotes: "Keep the stock warm in a separate saucepan throughout — adding cold stock stops the cooking and tightens the starch. The final mantecatura (beating in butter off the heat) is what makes it glossy.",
     ingredients: [
@@ -194,13 +219,34 @@ export const recipes: Recipe[] = [
       { id: "i9", name: "Thyme sprigs", quantity: 4, unit: "whole" },
     ],
     steps: [
-      { id: "s1", order: 1, shortLabel: "Rehydrate porcini", instruction: "Soak dried porcini in 200ml boiling water for 20 minutes. Strain (reserving the liquid) and roughly chop.", durationSeconds: 1200, timerLabel: "Soak", ingredients: ["i3"] },
-      { id: "s2", order: 2, shortLabel: "Sauté mushrooms", instruction: "Heat olive oil in a wide pan over high heat. Add the fresh mushrooms in a single layer. Don't stir for 2 minutes — let them sear until golden. Add thyme and season.", durationSeconds: 300, timerLabel: "Sear", ingredients: ["i2", "i9"] },
-      { id: "s3", order: 3, shortLabel: "Build base", instruction: "In a heavy-bottomed saucepan, melt butter over medium heat. Sweat shallots until translucent, 5 minutes. Add rice and toast, stirring, for 2 minutes until edges turn translucent.", durationSeconds: 420, timerLabel: "Sweat", ingredients: ["i1", "i6"] },
-      { id: "s4", order: 4, shortLabel: "Add wine", instruction: "Pour in the white wine. Stir constantly until fully absorbed. The alcohol smell will cook off, leaving a lovely acidity.", durationSeconds: 120, timerLabel: "Absorb", ingredients: ["i5"] },
-      { id: "s5", order: 5, shortLabel: "Add stock gradually", instruction: "Add the warm stock one ladle at a time, stirring constantly and waiting for each addition to be fully absorbed before adding the next. Continue for 18–22 minutes until rice is al dente.", durationSeconds: 1200, timerLabel: "Cook", ingredients: ["i4"] },
-      { id: "s6", order: 6, shortLabel: "Fold in mushrooms", instruction: "Stir in the sautéed mushrooms and rehydrated porcini along with their soaking liquid (strained). Cook 2 more minutes." },
-      { id: "s7", order: 7, shortLabel: "Mantecatura", instruction: "Remove from heat. Beat in the cold butter and Parmesan vigorously with a wooden spoon. Cover and rest 2 minutes. The texture should wave gently when you shake the pan (all'onda).", ingredients: ["i7", "i8"] },
+      {
+        id: "s1", order: 1, shortLabel: "Rehydrate porcini", instruction: "Soak dried porcini in 200ml boiling water for 20 minutes. Strain (reserving the liquid) and roughly chop.", durationSeconds: 1200, timerLabel: "Soak", ingredients: ["i3"],
+        thermomix: { speed: 0, tempC: 100, timeSeconds: 1200, instruction: "Add dried porcini and 200g water to the bowl. Heat 5 min / 100°C / Speed 1 to quick-rehydrate. Strain using the Varoma tray, reserving all liquid. Chop rehydrated porcini 3 sec / Speed 4.", label: "Rehydrate" },
+      },
+      {
+        id: "s2", order: 2, shortLabel: "Sauté mushrooms", instruction: "Heat olive oil in a wide pan over high heat. Add the fresh mushrooms in a single layer. Don't stir for 2 minutes — let them sear until golden. Add thyme and season.", durationSeconds: 300, timerLabel: "Sear", ingredients: ["i2", "i9"],
+        thermomix: { speed: 1, tempC: 120, timeSeconds: 300, instruction: "Add fresh mushrooms to a clean bowl. Chop 3 sec / Speed 4. Add olive oil and thyme. Cook 5 min / Varoma / Speed 1 with Simmering Basket on top. Season and set aside.", label: "Sauté" },
+      },
+      {
+        id: "s3", order: 3, shortLabel: "Build base", instruction: "In a heavy-bottomed saucepan, melt butter over medium heat. Sweat shallots until translucent, 5 minutes. Add rice and toast, stirring, for 2 minutes until edges turn translucent.", durationSeconds: 420, timerLabel: "Sweat", ingredients: ["i1", "i6"],
+        thermomix: { speed: 1, tempC: 120, timeSeconds: 420, instruction: "Add shallots to the bowl. Chop 3 sec / Speed 5. Scrape down. Add butter and sweat 3 min / 100°C / Speed 1. Add Arborio rice and toast 2 min / Varoma / Speed 1 — you'll hear a crackling sound.", label: "Toast" },
+      },
+      {
+        id: "s4", order: 4, shortLabel: "Add wine", instruction: "Pour in the white wine. Stir constantly until fully absorbed. The alcohol smell will cook off, leaving a lovely acidity.", durationSeconds: 120, timerLabel: "Absorb", ingredients: ["i5"],
+        thermomix: { speed: 1, tempC: 100, timeSeconds: 120, instruction: "Add white wine through the lid hole. Cook 2 min / 100°C / Speed 1 until absorbed. The butterfly whisk is not needed — the rice moves naturally.", label: "Absorb" },
+      },
+      {
+        id: "s5", order: 5, shortLabel: "Add stock gradually", instruction: "Add the warm stock one ladle at a time, stirring constantly and waiting for each addition to be fully absorbed before adding the next. Continue for 18–22 minutes until rice is al dente.", durationSeconds: 1200, timerLabel: "Cook", ingredients: ["i4"],
+        thermomix: { speed: 1, tempC: 100, timeSeconds: 1200, instruction: "Add all stock and the reserved porcini soaking liquid. Cook 20 min / 100°C / Speed 1. The Thermomix stirs continuously — no need to watch. Check rice at 18 minutes for al dente.", label: "Cook" },
+      },
+      {
+        id: "s6", order: 6, shortLabel: "Fold in mushrooms", instruction: "Stir in the sautéed mushrooms and rehydrated porcini along with their soaking liquid (strained). Cook 2 more minutes.",
+        thermomix: { speed: 1, tempC: 90, timeSeconds: 120, instruction: "Add the sautéed mushrooms and rehydrated porcini to the bowl. Stir gently with the spatula, then cook 2 min / 90°C / Speed 1 to combine.", label: "Fold" },
+      },
+      {
+        id: "s7", order: 7, shortLabel: "Mantecatura", instruction: "Remove from heat. Beat in the cold butter and Parmesan vigorously with a wooden spoon. Cover and rest 2 minutes. The texture should wave gently when you shake the pan (all'onda).", ingredients: ["i7", "i8"],
+        thermomix: { speed: 2, tempC: 0, timeSeconds: 30, instruction: "Add cold butter and Parmesan. Mix 30 sec / Speed 2 without heat. The rapid mixing creates the all'onda wave texture. Rest with the lid on for 2 minutes before serving.", label: "Finish" },
+      },
     ],
   },
   {
@@ -222,6 +268,7 @@ export const recipes: Recipe[] = [
     reviewCount: 2103,
     tags: ["curry", "coconut", "thai", "spicy"],
     dietaryTags: [],
+    thermomixAvailable: true,
     description: "Aromatic green curry paste bloomed in coconut cream, enriched with coconut milk, and brightened with Thai basil and lime. Ready in 40 minutes but tasting like it simmered all day.",
     chefNotes: "Fry the paste in the thick cream skimmed from the top of the coconut milk — this 'cracking' step is what gives Thai curries their depth and aroma.",
     ingredients: [
@@ -236,11 +283,26 @@ export const recipes: Recipe[] = [
       { id: "i9", name: "Jasmine rice, cooked", quantity: 400, unit: "g" },
     ],
     steps: [
-      { id: "s1", order: 1, shortLabel: "Crack coconut cream", instruction: "Open the coconut milk without shaking. Spoon the thick cream from the top into a wok over medium-high heat. Cook until it sizzles and separates — the cream is 'cracked'.", durationSeconds: 300, timerLabel: "Crack", ingredients: ["i3"] },
-      { id: "s2", order: 2, shortLabel: "Fry paste", instruction: "Add the green curry paste to the cracked cream. Fry, stirring constantly, for 2–3 minutes until intensely fragrant and the oil separates from the paste.", durationSeconds: 180, timerLabel: "Fry", ingredients: ["i2"] },
-      { id: "s3", order: 3, shortLabel: "Cook chicken", instruction: "Add the chicken pieces. Toss to coat in the paste and cook until the outside turns opaque — about 3 minutes.", durationSeconds: 180, timerLabel: "Cook", ingredients: ["i1"] },
-      { id: "s4", order: 4, shortLabel: "Add coconut milk", instruction: "Pour in the remaining coconut milk. Add kaffir lime leaves. Bring to a simmer.", ingredients: ["i7"] },
-      { id: "s5", order: 5, shortLabel: "Add vegetables & season", instruction: "Add the aubergine. Season with fish sauce and sugar. Simmer 10 minutes until the chicken is cooked through and the vegetables are tender.", durationSeconds: 600, timerLabel: "Simmer", ingredients: ["i4", "i5", "i8"] },
+      {
+        id: "s1", order: 1, shortLabel: "Crack coconut cream", instruction: "Open the coconut milk without shaking. Spoon the thick cream from the top into a wok over medium-high heat. Cook until it sizzles and separates — the cream is 'cracked'.", durationSeconds: 300, timerLabel: "Crack", ingredients: ["i3"],
+        thermomix: { speed: 2, tempC: 120, timeSeconds: 300, instruction: "Add the thick coconut cream from the top of the tin to the bowl. Cook 5 min / Varoma / Speed 2 without the lid to allow evaporation. The cream will separate and smell nutty — this is 'cracking'.", label: "Crack" },
+      },
+      {
+        id: "s2", order: 2, shortLabel: "Fry paste", instruction: "Add the green curry paste to the cracked cream. Fry, stirring constantly, for 2–3 minutes until intensely fragrant and the oil separates from the paste.", durationSeconds: 180, timerLabel: "Fry", ingredients: ["i2"],
+        thermomix: { speed: 1, tempC: 120, timeSeconds: 180, instruction: "Add green curry paste. Cook 3 min / Varoma / Speed 1 with the Simmering Basket on top. The confined fragrance blooms intensely — the paste should darken slightly and the oil will separate.", label: "Fry" },
+      },
+      {
+        id: "s3", order: 3, shortLabel: "Cook chicken", instruction: "Add the chicken pieces. Toss to coat in the paste and cook until the outside turns opaque — about 3 minutes.", durationSeconds: 180, timerLabel: "Cook", ingredients: ["i1"],
+        thermomix: { speed: 1, tempC: 100, timeSeconds: 180, instruction: "Add sliced chicken. Cook 3 min / 100°C / Speed 1 using the Reverse Blade to keep pieces whole. The chicken should turn opaque throughout.", label: "Cook" },
+      },
+      {
+        id: "s4", order: 4, shortLabel: "Add coconut milk", instruction: "Pour in the remaining coconut milk. Add kaffir lime leaves. Bring to a simmer.", ingredients: ["i7"],
+        thermomix: { speed: 1, tempC: 100, timeSeconds: 120, instruction: "Add remaining coconut milk and kaffir lime leaves through the lid hole. Cook 2 min / 100°C / Speed 1 to bring to a simmer.", label: "Simmer" },
+      },
+      {
+        id: "s5", order: 5, shortLabel: "Add vegetables & season", instruction: "Add the aubergine. Season with fish sauce and sugar. Simmer 10 minutes until the chicken is cooked through and the vegetables are tender.", durationSeconds: 600, timerLabel: "Simmer", ingredients: ["i4", "i5", "i8"],
+        thermomix: { speed: 1, tempC: 100, timeSeconds: 600, instruction: "Add aubergine, fish sauce, and sugar. Cook 10 min / 100°C / Speed 1 / Reverse Blade. The vegetables will be tender and the sauce slightly reduced.", label: "Simmer" },
+      },
       { id: "s6", order: 6, shortLabel: "Finish & serve", instruction: "Remove from heat. Tear in Thai basil leaves. Serve immediately over jasmine rice.", ingredients: ["i6", "i9"] },
     ],
   },
@@ -341,6 +403,7 @@ export const recipes: Recipe[] = [
     reviewCount: 3241,
     tags: ["chocolate", "dessert", "dinner party", "molten"],
     dietaryTags: ["vegetarian"],
+    thermomixAvailable: true,
     description: "A perfectly baked shell with a flowing molten centre. The magic is in timing — 12 minutes precisely. Serve immediately with vanilla ice cream for the hot-cold contrast.",
     chefNotes: "These can be prepared up to the baking step 24 hours ahead and refrigerated. Add 2 minutes to the baking time if going straight from fridge to oven.",
     ingredients: [
@@ -354,9 +417,18 @@ export const recipes: Recipe[] = [
     ],
     steps: [
       { id: "s1", order: 1, shortLabel: "Preheat & prep", instruction: "Preheat oven to 200°C / 180°C fan. Generously butter 4 ramekins. Dust with cocoa powder, tapping out the excess. Place on a baking tray.", temperature: 200, ingredients: ["i7"] },
-      { id: "s2", order: 2, shortLabel: "Melt chocolate", instruction: "Melt chocolate and butter together in a bowl over barely simmering water (or microwave in 30-second bursts). Stir until smooth and glossy. Cool slightly.", ingredients: ["i1", "i2"] },
-      { id: "s3", order: 3, shortLabel: "Whisk eggs & sugar", instruction: "In a large bowl, whisk the whole eggs, yolks, and sugar together vigorously until the mixture is pale, thick, and doubled in volume.", ingredients: ["i3", "i4", "i5"] },
-      { id: "s4", order: 4, shortLabel: "Fold together", instruction: "Pour the chocolate mixture over the egg mixture. Add the flour. Fold together gently with a spatula until just combined — a few streaks are fine. Do not overmix.", ingredients: ["i6"] },
+      {
+        id: "s2", order: 2, shortLabel: "Melt chocolate", instruction: "Melt chocolate and butter together in a bowl over barely simmering water (or microwave in 30-second bursts). Stir until smooth and glossy. Cool slightly.", ingredients: ["i1", "i2"],
+        thermomix: { speed: 2, tempC: 50, timeSeconds: 180, instruction: "Add chocolate broken into pieces and butter to the bowl. Melt 3 min / 50°C / Speed 2. The Thermomix maintains a precise gentle temperature — no risk of seizing. Set aside to cool slightly.", label: "Melt" },
+      },
+      {
+        id: "s3", order: 3, shortLabel: "Whisk eggs & sugar", instruction: "In a large bowl, whisk the whole eggs, yolks, and sugar together vigorously until the mixture is pale, thick, and doubled in volume.", ingredients: ["i3", "i4", "i5"],
+        thermomix: { speed: 4, tempC: 37, timeSeconds: 180, instruction: "Without cleaning the bowl, add eggs, yolks, and sugar. Whisk 3 min / 37°C / Speed 4. The gentle warmth helps dissolve the sugar and the mixture will ribbon and lighten.", label: "Whisk" },
+      },
+      {
+        id: "s4", order: 4, shortLabel: "Fold together", instruction: "Pour the chocolate mixture over the egg mixture. Add the flour. Fold together gently with a spatula until just combined — a few streaks are fine. Do not overmix.", ingredients: ["i6"],
+        thermomix: { speed: 3, tempC: 0, timeSeconds: 20, instruction: "Add the melted chocolate mixture and flour to the egg mixture in the bowl. Mix 20 sec / Speed 3 — stop immediately when just combined. Overmixing deflates the batter.", label: "Fold" },
+      },
       { id: "s5", order: 5, shortLabel: "Fill & bake", instruction: "Divide the batter evenly between the prepared ramekins. Bake for exactly 12 minutes — the tops should be set but still have a slight wobble in the centre.", durationSeconds: 720, timerLabel: "Bake", temperature: 200 },
       { id: "s6", order: 6, shortLabel: "Turn out & serve", instruction: "Run a knife around the edge of each ramekin. Place a plate on top and invert. Leave for 10 seconds, then lift the ramekin away. Serve immediately with ice cream or cream." },
     ],
@@ -380,6 +452,7 @@ export const recipes: Recipe[] = [
     reviewCount: 2956,
     tags: ["curry", "indian", "tomato", "cream"],
     dietaryTags: [],
+    thermomixAvailable: true,
     description: "Tender chicken in a velvety tomato-based sauce enriched with butter and cream. This is the curry that made Indian food famous worldwide — mild enough for all, complex enough to keep you coming back.",
     chefNotes: "The secret to the velvety texture is blending and straining the sauce. Don't skip this step. Kashmiri chilli gives the vibrant colour without excessive heat.",
     ingredients: [
@@ -397,10 +470,22 @@ export const recipes: Recipe[] = [
     steps: [
       { id: "s1", order: 1, shortLabel: "Marinate chicken", instruction: "Score the chicken thighs deeply. Mix with yoghurt, Kashmiri chilli, salt, and garam masala. Marinate at least 1 hour, preferably overnight.", ingredients: ["i1", "i2", "i3"] },
       { id: "s2", order: 2, shortLabel: "Char chicken", instruction: "Grill or pan-fry the marinated chicken in batches at high heat until charred on the outside. The inside can be slightly undercooked — it will finish in the sauce.", durationSeconds: 600, timerLabel: "Char" },
-      { id: "s3", order: 3, shortLabel: "Build sauce", instruction: "Melt butter in a deep pan. Fry onion, garlic, and ginger until softened and golden. Add the remaining spices and cook 2 minutes.", durationSeconds: 600, timerLabel: "Fry", ingredients: ["i5", "i6", "i7", "i8"] },
-      { id: "s4", order: 4, shortLabel: "Add tomatoes & simmer", instruction: "Add canned tomatoes. Simmer 20 minutes until the sauce has reduced and the oil begins to separate on the surface.", durationSeconds: 1200, timerLabel: "Simmer", ingredients: ["i4"] },
-      { id: "s5", order: 5, shortLabel: "Blend & strain", instruction: "Blend the sauce until silky smooth. Strain through a fine sieve back into the pan. This step gives the characteristic velvety texture." },
-      { id: "s6", order: 6, shortLabel: "Finish & serve", instruction: "Add the charred chicken pieces to the sauce. Simmer 10 minutes. Stir in cream and butter. Adjust seasoning. Serve with naan and basmati rice.", durationSeconds: 600, timerLabel: "Finish", ingredients: ["i9"] },
+      {
+        id: "s3", order: 3, shortLabel: "Build sauce", instruction: "Melt butter in a deep pan. Fry onion, garlic, and ginger until softened and golden. Add the remaining spices and cook 2 minutes.", durationSeconds: 600, timerLabel: "Fry", ingredients: ["i5", "i6", "i7", "i8"],
+        thermomix: { speed: 2, tempC: 120, timeSeconds: 600, instruction: "Add onion, garlic, and ginger to the bowl. Chop 5 sec / Speed 5. Scrape down. Add butter and cook 8 min / Varoma / Speed 2 until golden. Add all spices and cook 2 min / 100°C / Speed 1.", label: "Fry" },
+      },
+      {
+        id: "s4", order: 4, shortLabel: "Add tomatoes & simmer", instruction: "Add canned tomatoes. Simmer 20 minutes until the sauce has reduced and the oil begins to separate on the surface.", durationSeconds: 1200, timerLabel: "Simmer", ingredients: ["i4"],
+        thermomix: { speed: 2, tempC: 100, timeSeconds: 1200, instruction: "Add canned tomatoes. Cook 20 min / 100°C / Speed 2 with the Simmering Basket on top to prevent splashing. The sauce will reduce and deepen in colour.", label: "Simmer" },
+      },
+      {
+        id: "s5", order: 5, shortLabel: "Blend & strain", instruction: "Blend the sauce until silky smooth. Strain through a fine sieve back into the pan. This step gives the characteristic velvety texture.",
+        thermomix: { speed: 9, tempC: 0, timeSeconds: 60, instruction: "Allow sauce to cool 2 minutes. Blend 1 min / Speed 9, increasing gradually from Speed 1 to Speed 9. The Thermomix produces an exceptionally smooth sauce — straining is optional but recommended for the smoothest result.", label: "Blend" },
+      },
+      {
+        id: "s6", order: 6, shortLabel: "Finish & serve", instruction: "Add the charred chicken pieces to the sauce. Simmer 10 minutes. Stir in cream and butter. Adjust seasoning. Serve with naan and basmati rice.", durationSeconds: 600, timerLabel: "Finish", ingredients: ["i9"],
+        thermomix: { speed: 1, tempC: 90, timeSeconds: 600, instruction: "Add charred chicken to the blended sauce. Cook 10 min / 90°C / Speed 1 / Reverse Blade. Add cream through the lid hole in the last 2 minutes. The lower temperature keeps the cream from splitting.", label: "Finish" },
+      },
     ],
   },
   {

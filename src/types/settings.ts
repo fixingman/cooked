@@ -7,6 +7,7 @@ export interface UserSettings {
   dietaryPreferences: DietaryTag[];
   favoriteMealTimes: MealTime[];
   aiEnabled: boolean;
+  thermomixEnabled: boolean;
   microphoneEnabled: boolean;
   cameraEnabled: boolean;
   darkMode: boolean;
@@ -17,6 +18,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
   dietaryPreferences: [],
   favoriteMealTimes: [],
   aiEnabled: false,
+  thermomixEnabled: false,
   microphoneEnabled: false,
   cameraEnabled: false,
   darkMode: false,

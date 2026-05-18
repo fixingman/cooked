@@ -28,6 +28,14 @@ export interface Ingredient {
   quantityImperial?: number;
 }
 
+export interface ThermomixStep {
+  speed: number;           // 0–10
+  tempC: number | "Varoma";
+  timeSeconds: number;
+  instruction: string;
+  label?: string;          // e.g. "Blend", "Simmer"
+}
+
 export interface CookingStep {
   id: string;
   order: number;
@@ -37,6 +45,7 @@ export interface CookingStep {
   timerLabel?: string;
   temperature?: number;
   ingredients?: string[];
+  thermomix?: ThermomixStep;
 }
 
 export interface Recipe {
@@ -64,6 +73,7 @@ export interface Recipe {
   ingredients: Ingredient[];
   steps: CookingStep[];
   relatedRecipeIds?: string[];
+  thermomixAvailable?: boolean;
 }
 
 export interface CookingHistoryEntry {

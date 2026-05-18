@@ -4,6 +4,7 @@ import { UnitToggle } from "@/components/settings/UnitToggle";
 import { DietaryPreferences } from "@/components/settings/DietaryPreferences";
 import { PermissionToggle } from "@/components/settings/PermissionToggle";
 import { AIIntegrationToggle } from "@/components/settings/AIIntegrationToggle";
+import { ThermomixToggle } from "@/components/settings/ThermomixToggle";
 import { useSettings } from "@/hooks/useSettings";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -44,11 +45,17 @@ export default function SettingsPage() {
         </div>
       </Section>
 
-      <Section title="AI Features">
-        <AIIntegrationToggle
-          enabled={settings.aiEnabled}
-          onToggle={() => update({ aiEnabled: !settings.aiEnabled })}
+      <Section title="Cooking Modes">
+        <ThermomixToggle
+          enabled={settings.thermomixEnabled}
+          onToggle={() => update({ thermomixEnabled: !settings.thermomixEnabled })}
         />
+        <div className="border-t border-parchment-300">
+          <AIIntegrationToggle
+            enabled={settings.aiEnabled}
+            onToggle={() => update({ aiEnabled: !settings.aiEnabled })}
+          />
+        </div>
       </Section>
 
       <Section title="Permissions">

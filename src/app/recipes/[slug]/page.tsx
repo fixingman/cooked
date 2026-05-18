@@ -81,7 +81,7 @@ function RecipeDetailClient({ recipe }: { recipe: ReturnType<typeof getRecipe> &
           </div>
         )}
 
-        <StartCookingButton slug={recipe.slug} />
+        <StartCookingButton slug={recipe.slug} thermomixAvailable={recipe.thermomixAvailable} />
       </div>
     </div>
   );

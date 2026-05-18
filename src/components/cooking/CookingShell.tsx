@@ -12,12 +12,14 @@ import { IngredientContext } from "./IngredientContext";
 import { StepNavControls } from "./StepNavControls";
 import { VoiceNoteButton } from "./VoiceNoteButton";
 import { CompletionScreen } from "./CompletionScreen";
+import { ThermomixStepPanel } from "./ThermomixStepPanel";
 
 interface CookingShellProps {
   recipe: Recipe;
+  thermomixMode?: boolean;
 }
 
-export function CookingShell({ recipe }: CookingShellProps) {
+export function CookingShell({ recipe, thermomixMode = false }: CookingShellProps) {
   const [stepIndex, setStepIndex] = useState(0);
   const [direction, setDirection] = useState(1);
   const [completed, setCompleted] = useState(false);
@@ -66,6 +68,7 @@ export function CookingShell({ recipe }: CookingShellProps) {
           </p>
           <p className="text-label text-ink-400 uppercase tracking-widest">
             {stepIndex + 1} / {recipe.steps.length}
+            {thermomixMode && <span className="ml-1.5 text-sage-500">· TM</span>}
           </p>
         </div>
         <div className="w-8" />
@@ -82,14 +85,17 @@ export function CookingShell({ recipe }: CookingShellProps) {
 
       {/* Main content — splits into 2 columns on iPad landscape */}
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
-        {/* Left panel: visual + timer */}
+        {/* Left panel: visual + timer (or Thermomix panel) */}
         <div className="md:w-1/2 flex flex-col items-center justify-center p-6 gap-6 border-b md:border-b-0 md:border-r border-parchment-300">
-          <IngredientContext
-            imageUrl={recipe.heroImageUrl}
-            stepId={step.id}
-          />
-          {step.durationSeconds && step.durationSeconds > 0 && (
-            <TimerBlock remaining={timer.remaining} label={step.timerLabel} />
+          {thermomixMode && step.thermomix ? (
+            <ThermomixStepPanel step={step.thermomix} stepId={step.id} direction={direction} />
+          ) : (
+            <>
+              <IngredientContext imageUrl={recipe.heroImageUrl} stepId={step.id} />
+              {step.durationSeconds && step.durationSeconds > 0 && (
+                <TimerBlock remaining={timer.remaining} label={step.timerLabel} />
+              )}
+            </>
           )}
         </div>
 
