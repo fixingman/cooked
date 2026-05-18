@@ -1,0 +1,60 @@
+"use client";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { Clock, Star } from "lucide-react";
+import { FoodImage } from "@/components/ui/FoodImage";
+import { Badge } from "@/components/ui/Badge";
+import { formatMinutes } from "@/lib/formatTime";
+import type { Recipe } from "@/types/recipe";
+
+interface FeaturedHeroProps {
+  recipe: Recipe;
+}
+
+export function FeaturedHero({ recipe }: FeaturedHeroProps) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.15, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+    >
+      <p className="text-label uppercase tracking-widest text-ink-400 mb-3">Featured Today</p>
+      <Link href={`/recipes/${recipe.slug}`}>
+        <div className="group relative rounded-card overflow-hidden aspect-[16/9] md:aspect-[21/9] cursor-pointer">
+          <FoodImage
+            src={recipe.heroImageUrl}
+            alt={recipe.title}
+            fill
+            priority
+            sizes="(max-width: 768px) 100vw, 80vw"
+            containerClassName="absolute inset-0"
+            className="group-hover:scale-105 transition-transform duration-700"
+          />
+          <div className="absolute inset-0 bg-hero-scrim" />
+          <div className="absolute bottom-0 left-0 right-0 p-5 md:p-7">
+            <div className="flex items-center gap-3 mb-2">
+              <Badge label={recipe.cuisine} />
+              <div className="flex items-center gap-1 text-parchment-300">
+                <Star size={12} fill="currentColor" className="text-saffron-400" />
+                <span className="text-sm text-parchment-200">{recipe.rating}</span>
+              </div>
+            </div>
+            <h2 className="font-serif text-white text-2xl md:text-3xl font-semibold leading-tight text-balance group-hover:text-saffron-300 transition-colors duration-300">
+              {recipe.title}
+            </h2>
+            {recipe.subtitle && (
+              <p className="text-parchment-300/80 text-sm mt-1 hidden md:block">{recipe.subtitle}</p>
+            )}
+            <div className="flex items-center gap-3 mt-3">
+              <span className="flex items-center gap-1.5 text-sm text-parchment-300">
+                <Clock size={13} />
+                {formatMinutes(recipe.totalTimeMinutes)}
+              </span>
+              <Badge label={recipe.difficulty} variant="difficulty" className="opacity-90" />
+            </div>
+          </div>
+        </div>
+      </Link>
+    </motion.div>
+  );
+}
