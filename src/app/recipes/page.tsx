@@ -10,6 +10,7 @@ import { useRecipeFilter } from "@/hooks/useRecipeFilter";
 import { recipes } from "@/data/recipes";
 import type { CategoryFilter, SortOption } from "@/hooks/useRecipeFilter";
 import type { MealTime, DietaryTag } from "@/types/recipe";
+import type { Recipe } from "@/types/recipe";
 
 const DIFFICULTY_RANK: Record<string, number> = { easy: 0, medium: 1, hard: 2 };
 
@@ -20,26 +21,25 @@ const sortLabels: { value: SortOption; label: string }[] = [
   { value: "difficulty", label: "Easiest first" },
 ];
 
+function matchesCategory(recipe: Recipe, cat: CategoryFilter): boolean {
+  if (cat === "vegetarian") return recipe.dietaryTags.includes("vegetarian" as DietaryTag);
+  if (cat === "quick")      return recipe.totalTimeMinutes <= 30;
+  if (cat === "thermomix")  return !!recipe.thermomixAvailable;
+  return recipe.mealTimes.includes(cat as MealTime);
+}
+
 function RecipesContent() {
   const searchParams = useSearchParams();
-  const initialCategory = (searchParams.get("category") as CategoryFilter) || "all";
+  const initialCategory = searchParams.get("category") as CategoryFilter | null;
 
-  const { query, category, dietary, viewMode, sort, setQuery, setCategory, setViewMode, setSort } =
-    useRecipeFilter({ category: initialCategory });
+  const { query, categories, dietary, viewMode, sort, setQuery, toggleCategory, clearCategories, setViewMode, setSort } =
+    useRecipeFilter({ categories: initialCategory ? [initialCategory] : [] });
 
   const filtered = useMemo(() => {
     let result = [...recipes];
 
-    if (category !== "all") {
-      if (category === "vegetarian") {
-        result = result.filter((r) => r.dietaryTags.includes("vegetarian" as DietaryTag));
-      } else if (category === "quick") {
-        result = result.filter((r) => r.totalTimeMinutes <= 30);
-      } else if (category === "thermomix") {
-        result = result.filter((r) => r.thermomixAvailable);
-      } else {
-        result = result.filter((r) => r.mealTimes.includes(category as MealTime));
-      }
+    if (categories.length > 0) {
+      result = result.filter((r) => categories.every((cat) => matchesCategory(r, cat)));
     }
 
     if (dietary.length > 0) {
@@ -68,7 +68,7 @@ function RecipesContent() {
     }
 
     return result;
-  }, [query, category, dietary, sort]);
+  }, [query, categories, dietary, sort]);
 
   return (
     <div className="px-4 py-6 md:px-8 max-w-6xl mx-auto">
@@ -78,7 +78,7 @@ function RecipesContent() {
           <SearchBar value={query} onChange={setQuery} />
           <div className="flex items-center gap-3">
             <div className="flex-1 min-w-0">
-              <CategoryChips active={category} onChange={setCategory} />
+              <CategoryChips active={categories} onToggle={toggleCategory} onClear={clearCategories} />
             </div>
             <ViewToggle viewMode={viewMode} onChange={setViewMode} />
           </div>
