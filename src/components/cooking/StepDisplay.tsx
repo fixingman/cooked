@@ -34,7 +34,7 @@ export function StepDisplay({ step, direction, totalSteps }: StepDisplayProps) {
             animate="center"
             exit="exit"
             transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute inset-0 flex items-start"
+            className="absolute inset-0 flex items-center"
           >
             <p className="font-serif text-ink-900 text-xl md:text-2xl leading-relaxed text-balance">
               {step.instruction}

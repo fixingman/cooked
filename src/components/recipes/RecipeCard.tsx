@@ -85,7 +85,7 @@ export function RecipeCard({ recipe, viewMode = "grid", index = 0 }: RecipeCardP
           </div>
           <div className="p-3.5">
             <h3 className={cn(
-              "font-serif font-medium text-ink-900 leading-snug group-hover:text-saffron-600 transition-colors duration-200 line-clamp-2 mb-2",
+              "font-serif font-medium text-ink-900 leading-snug group-hover:text-saffron-600 transition-colors duration-200 line-clamp-2 mb-2 text-balance",
               "text-[1rem]"
             )}>
               {recipe.title}

@@ -1,7 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { ChefHat } from "lucide-react";
 import { useSettings } from "@/hooks/useSettings";
 
@@ -14,11 +14,28 @@ export function StartCookingButton({ slug, thermomixAvailable }: StartCookingBut
   const { settings } = useSettings();
   const showTmToggle = settings.thermomixEnabled && thermomixAvailable;
   const [useTm, setUseTm] = useState(false);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const check = () => setVisible(window.scrollY > 320);
+    check();
+    window.addEventListener("scroll", check, { passive: true });
+    return () => window.removeEventListener("scroll", check);
+  }, []);
 
   const href = `/recipes/${slug}/cook${useTm ? "?tm=1" : ""}`;
 
   return (
-    <div className="sticky bottom-0 left-0 right-0 p-4 pb-safe-bottom bg-gradient-to-t from-parchment-100 via-parchment-100/95 to-transparent pt-8 -mx-4 md:-mx-6">
+    <AnimatePresence>
+      {visible && (
+    <motion.div
+      key="start-cooking-bar"
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 16 }}
+      transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+      className="sticky bottom-0 left-0 right-0 p-4 pb-safe-bottom bg-gradient-to-t from-parchment-100 via-parchment-100/95 to-transparent pt-8 -mx-4 md:-mx-6"
+    >
       {showTmToggle && (
         <motion.button
           initial={{ opacity: 0, y: 6 }}
@@ -61,6 +78,8 @@ export function StartCookingButton({ slug, thermomixAvailable }: StartCookingBut
           Start Cooking
         </motion.div>
       </Link>
-    </div>
+    </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

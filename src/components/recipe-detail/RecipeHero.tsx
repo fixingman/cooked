@@ -1,17 +1,24 @@
 "use client";
-import Link from "next/link";
 import { ChevronLeft, Heart } from "lucide-react";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { FoodImage } from "@/components/ui/FoodImage";
 import type { Recipe } from "@/types/recipe";
-import { useState } from "react";
+import { useFavourites } from "@/hooks/useFavourites";
 
 interface RecipeHeroProps {
   recipe: Recipe;
 }
 
 export function RecipeHero({ recipe }: RecipeHeroProps) {
-  const [saved, setSaved] = useState(false);
+  const router = useRouter();
+  const { isFavourite, toggle } = useFavourites();
+  const saved = isFavourite(recipe.id);
+
+  function goBack() {
+    if (window.history.length > 1) router.back();
+    else router.push("/recipes");
+  }
 
   return (
     <div className="relative h-[55vw] max-h-[480px] min-h-[260px]">
@@ -26,18 +33,17 @@ export function RecipeHero({ recipe }: RecipeHeroProps) {
       <div className="absolute inset-0 bg-hero-scrim" />
 
       {/* Top controls */}
-      <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-4 pt-safe-top">
-        <Link href="/recipes">
-          <motion.div
-            whileTap={{ scale: 0.92 }}
-            className="w-10 h-10 bg-parchment-100/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-card"
-          >
-            <ChevronLeft size={20} className="text-ink-900" />
-          </motion.div>
-        </Link>
+      <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-page-x pt-header-top pb-4">
+        <motion.button
+          whileTap={{ scale: 0.92 }}
+          onClick={goBack}
+          className="w-10 h-10 bg-parchment-100/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-card"
+        >
+          <ChevronLeft size={20} className="text-ink-900" />
+        </motion.button>
         <motion.button
           whileTap={{ scale: 0.85 }}
-          onClick={() => setSaved((s) => !s)}
+          onClick={() => toggle(recipe.id)}
           className="w-10 h-10 bg-parchment-100/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-card"
         >
           <Heart

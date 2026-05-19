@@ -10,6 +10,7 @@ const categories: { value: CategoryFilter; label: string }[] = [
   { value: "dessert",    label: "Dessert" },
   { value: "snack",      label: "Snack" },
   { value: "vegetarian", label: "Vegetarian" },
+  { value: "thermomix",  label: "Thermomix" },
 ];
 
 interface CategoryChipsProps {

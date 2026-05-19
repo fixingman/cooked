@@ -10,6 +10,7 @@ export interface CookingTimerState {
   start: () => void;
   pause: () => void;
   reset: (duration: number) => void;
+  resetAndStart: (duration: number) => void;
   toggle: () => void;
 }
 
@@ -50,8 +51,14 @@ export function useCookingTimer(initialDuration = 0): CookingTimerState {
     setElapsed(0);
   }, []);
 
+  const resetAndStart = useCallback((duration: number) => {
+    setTotal(duration);
+    setElapsed(0);
+    setIsRunning(true);
+  }, []);
+
   const remaining = Math.max(0, total - elapsed);
   const isComplete = total > 0 && elapsed >= total;
 
-  return { total, elapsed, remaining, isRunning, isComplete, start, pause, reset, toggle };
+  return { total, elapsed, remaining, isRunning, isComplete, start, pause, reset, resetAndStart, toggle };
 }

@@ -1,11 +1,12 @@
 "use client";
-import { Mic, Camera, Flame } from "lucide-react";
+import { Mic, Camera, Flame, RotateCcw } from "lucide-react";
 import { UnitToggle } from "@/components/settings/UnitToggle";
 import { DietaryPreferences } from "@/components/settings/DietaryPreferences";
 import { PermissionToggle } from "@/components/settings/PermissionToggle";
 import { AIIntegrationToggle } from "@/components/settings/AIIntegrationToggle";
 import { ThermomixToggle } from "@/components/settings/ThermomixToggle";
 import { useSettings } from "@/hooks/useSettings";
+import { DEFAULT_SETTINGS } from "@/types/settings";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -75,7 +76,14 @@ export default function SettingsPage() {
         />
       </Section>
 
-      <div className="text-center">
+      <div className="text-center space-y-3">
+        <button
+          onClick={() => { if (confirm("Reset all settings to defaults?")) update(DEFAULT_SETTINGS); }}
+          className="flex items-center gap-1.5 text-xs text-ink-400 hover:text-ink-600 transition-colors mx-auto"
+        >
+          <RotateCcw size={11} />
+          Reset to defaults
+        </button>
         <p className="text-xs text-ink-300">Made with care. UI only — no data stored externally.</p>
       </div>
     </div>
