@@ -1,5 +1,5 @@
 "use client";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import Link from "next/link";
@@ -8,9 +8,8 @@ import { useCookingTimer } from "@/hooks/useCookingTimer";
 import { useSwipeGesture } from "@/hooks/useSwipeGesture";
 import { TimerBlock } from "./TimerBlock";
 import { StepDisplay } from "./StepDisplay";
-import { IngredientContext } from "./IngredientContext";
+import { StepIngredients } from "./StepIngredients";
 import { StepNavControls } from "./StepNavControls";
-import { VoiceNoteButton } from "./VoiceNoteButton";
 import { CompletionScreen } from "./CompletionScreen";
 import { ThermomixStepPanel } from "./ThermomixStepPanel";
 
@@ -31,7 +30,9 @@ export function CookingShell({ recipe, thermomixMode = false }: CookingShellProp
     if (stepIndex < recipe.steps.length - 1) {
       setDirection(1);
       setStepIndex((i) => i + 1);
-      timer.reset(recipe.steps[stepIndex + 1].durationSeconds ?? 0);
+      const next = recipe.steps[stepIndex + 1];
+      const dur = next.durationSeconds ?? 0;
+      dur > 0 ? timer.resetAndStart(dur) : timer.reset(0);
     } else {
       setCompleted(true);
     }
@@ -41,11 +42,27 @@ export function CookingShell({ recipe, thermomixMode = false }: CookingShellProp
     if (stepIndex > 0) {
       setDirection(-1);
       setStepIndex((i) => i - 1);
-      timer.reset(recipe.steps[stepIndex - 1].durationSeconds ?? 0);
+      const prev = recipe.steps[stepIndex - 1];
+      const dur = prev.durationSeconds ?? 0;
+      dur > 0 ? timer.resetAndStart(dur) : timer.reset(0);
     }
   }, [stepIndex, recipe.steps, timer]);
 
   const swipe = useSwipeGesture({ onSwipeLeft: goNext, onSwipeRight: goPrev });
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key === "ArrowRight") { e.preventDefault(); goNext(); }
+      else if (e.key === "ArrowLeft") { e.preventDefault(); goPrev(); }
+      else if (e.key === " ") {
+        e.preventDefault();
+        if (step.durationSeconds && step.durationSeconds > 0) timer.toggle();
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [goNext, goPrev, timer, step]);
 
   return (
     <div
@@ -91,7 +108,13 @@ export function CookingShell({ recipe, thermomixMode = false }: CookingShellProp
             <ThermomixStepPanel step={step.thermomix} stepId={step.id} direction={direction} />
           ) : (
             <>
-              <IngredientContext imageUrl={recipe.heroImageUrl} stepId={step.id} />
+              <StepIngredients
+                allIngredients={recipe.ingredients}
+                stepIngredientIds={step.ingredients}
+                stepId={step.id}
+                fallbackImageUrl={recipe.heroImageUrl}
+                direction={direction}
+              />
               {step.durationSeconds && step.durationSeconds > 0 && (
                 <TimerBlock remaining={timer.remaining} label={step.timerLabel} />
               )}
@@ -109,10 +132,8 @@ export function CookingShell({ recipe, thermomixMode = false }: CookingShellProp
 
       {/* Bottom controls */}
       <div className="border-t border-parchment-300 bg-parchment-100/95 backdrop-blur-sm">
-        <div className="flex items-center px-4 py-4 gap-4">
-          <VoiceNoteButton />
-          <div className="flex-1">
-            <StepNavControls
+        <div className="flex items-center px-4 py-4">
+          <StepNavControls
               currentStep={stepIndex + 1}
               totalSteps={recipe.steps.length}
               isRunning={timer.isRunning}
@@ -121,7 +142,6 @@ export function CookingShell({ recipe, thermomixMode = false }: CookingShellProp
               onNext={goNext}
               onToggleTimer={timer.toggle}
             />
-          </div>
         </div>
         <div className="pb-safe-bottom" />
       </div>

@@ -51,7 +51,7 @@ export const recipes: Recipe[] = [
   {
     id: "2",
     slug: "avocado-toast-poached-egg",
-    title: "Avocado Toast with Poached Egg",
+    title: "Avocado Toast & Poached Egg",
     subtitle: "The breakfast that changed mornings",
     heroImageUrl: "https://images.unsplash.com/photo-1525351484163-7529414344d8?w=1200&q=80",
     authorName: "Sofia Laurent",

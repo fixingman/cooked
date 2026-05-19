@@ -11,6 +11,7 @@
   --color-accent:  #E8890C;
   --color-action:  #6B8C5F;
   --nav-h: 4rem;
+  --spacing-header-top: max(env(safe-area-inset-top), 1rem);
 }
 
 * {

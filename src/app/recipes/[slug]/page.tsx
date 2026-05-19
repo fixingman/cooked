@@ -34,7 +34,11 @@ function RecipeDetailClient({ recipe }: { recipe: ReturnType<typeof getRecipe> &
         <div className="flex flex-wrap items-center gap-4 py-4 border-b border-parchment-300">
           <div className="flex items-center gap-1.5 text-sm text-ink-600">
             <Clock size={14} className="text-ink-400" />
-            <span className="font-medium">{formatMinutes(recipe.totalTimeMinutes)}</span>
+            <span className="text-ink-400">Prep</span>
+            <span className="font-medium">{formatMinutes(recipe.prepTimeMinutes)}</span>
+            <span className="text-ink-300">·</span>
+            <span className="text-ink-400">Cook</span>
+            <span className="font-medium">{formatMinutes(recipe.cookTimeMinutes)}</span>
           </div>
           <div className="flex items-center gap-1.5 text-sm text-ink-600">
             <Users size={14} className="text-ink-400" />

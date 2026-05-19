@@ -3,15 +3,19 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Clock } from "lucide-react";
 import { FoodImage } from "@/components/ui/FoodImage";
+import { Badge } from "@/components/ui/Badge";
 import { formatMinutes } from "@/lib/formatTime";
 import type { Recipe } from "@/types/recipe";
+
+import type { MealTime } from "@/types/recipe";
 
 interface MealTimeSectionProps {
   recipes: Recipe[];
   label: string;
+  mealTime: MealTime;
 }
 
-export function MealTimeSection({ recipes, label }: MealTimeSectionProps) {
+export function MealTimeSection({ recipes, label, mealTime }: MealTimeSectionProps) {
   if (recipes.length === 0) return null;
 
   return (
@@ -22,7 +26,7 @@ export function MealTimeSection({ recipes, label }: MealTimeSectionProps) {
     >
       <div className="flex items-center justify-between mb-3">
         <p className="text-label uppercase tracking-widest text-ink-400">{label}</p>
-        <Link href="/recipes" className="text-xs text-saffron-500 font-medium hover:text-saffron-600 transition-colors">
+        <Link href={`/recipes?category=${mealTime}`} className="text-xs text-saffron-500 font-medium hover:text-saffron-600 transition-colors">
           See all →
         </Link>
       </div>
@@ -48,10 +52,13 @@ export function MealTimeSection({ recipes, label }: MealTimeSectionProps) {
               <h4 className="font-serif text-sm text-ink-900 leading-snug line-clamp-2 group-hover:text-saffron-600 transition-colors">
                 {recipe.title}
               </h4>
-              <p className="flex items-center gap-1 text-xs text-ink-400 mt-0.5">
-                <Clock size={10} />
-                {formatMinutes(recipe.totalTimeMinutes)}
-              </p>
+              <div className="flex items-center gap-1.5 mt-1">
+                <p className="flex items-center gap-1 text-xs text-ink-400">
+                  <Clock size={10} />
+                  {formatMinutes(recipe.totalTimeMinutes)}
+                </p>
+                <Badge label={recipe.difficulty} variant="difficulty" className="text-[10px] px-1.5 py-px" />
+              </div>
             </motion.div>
           </Link>
         ))}

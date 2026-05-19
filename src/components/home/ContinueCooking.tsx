@@ -2,10 +2,12 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { FoodImage } from "@/components/ui/FoodImage";
+import { Badge } from "@/components/ui/Badge";
 import { cookingHistory } from "@/data/cookingHistory";
 import { recipes } from "@/data/recipes";
 import { formatDistanceToNow } from "date-fns";
-import { Star } from "lucide-react";
+import { formatMinutes } from "@/lib/formatTime";
+import { Star, Clock } from "lucide-react";
 
 export function ContinueCooking() {
   const items = cookingHistory
@@ -43,17 +45,26 @@ export function ContinueCooking() {
                 <h4 className="font-serif text-sm font-medium text-ink-900 line-clamp-1 group-hover:text-saffron-600 transition-colors">
                   {recipe!.title}
                 </h4>
-                <p className="text-xs text-ink-400 mt-0.5">
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                  <span className="flex items-center gap-1 text-xs text-ink-400">
+                    <Clock size={10} />
+                    {formatMinutes(recipe!.totalTimeMinutes)}
+                  </span>
+                  <Badge label={recipe!.difficulty} variant="difficulty" className="text-[10px] px-1.5 py-px" />
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-1 shrink-0">
+                {rating && (
+                  <div className="flex items-center gap-0.5 text-saffron-500">
+                    {Array.from({ length: rating }).map((_, j) => (
+                      <Star key={j} size={10} fill="currentColor" />
+                    ))}
+                  </div>
+                )}
+                <p className="text-[10px] text-ink-300">
                   {formatDistanceToNow(new Date(cookedAt), { addSuffix: true })}
                 </p>
               </div>
-              {rating && (
-                <div className="flex items-center gap-0.5 text-saffron-500 shrink-0">
-                  {Array.from({ length: rating }).map((_, j) => (
-                    <Star key={j} size={10} fill="currentColor" />
-                  ))}
-                </div>
-              )}
             </motion.div>
           </Link>
         ))}

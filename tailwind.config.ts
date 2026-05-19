@@ -64,6 +64,10 @@ const config: Config = {
         "safe-bottom": "env(safe-area-inset-bottom)",
         "safe-top":    "env(safe-area-inset-top)",
         "nav-h":       "4rem",
+        "header-top":  "var(--spacing-header-top)", // safe-area-aware floating header top (min 1rem)
+        "page-x":      "1rem",                      // standard horizontal page padding
+        "section-y":   "1.25rem",                   // between content sections
+        "card-p":      "1.25rem",                   // card internal padding
       },
       keyframes: {
         slideUp: {
