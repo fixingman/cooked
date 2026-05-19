@@ -17,7 +17,12 @@ export function useDropboxAuth() {
     }
   }, []);
 
-  const connect = useCallback(async () => {
+  const connect = useCallback(async (): Promise<string | null> => {
+    const appKey = process.env.NEXT_PUBLIC_DROPBOX_APP_KEY;
+    if (!appKey) {
+      return "Dropbox App Key is not configured. Check your environment variables and redeploy.";
+    }
+
     const verifier  = generateCodeVerifier();
     const challenge = await generateCodeChallenge(verifier);
     const state     = generateState();
@@ -25,11 +30,10 @@ export function useDropboxAuth() {
     sessionStorage.setItem("dropbox-pkce-verifier", verifier);
     sessionStorage.setItem("dropbox-pkce-state", state);
 
-    const appKey      = process.env.NEXT_PUBLIC_DROPBOX_APP_KEY;
     const redirectUri = `${window.location.origin}/auth/dropbox/callback`;
 
     const params = new URLSearchParams({
-      client_id:             appKey!,
+      client_id:             appKey,
       response_type:         "code",
       code_challenge:        challenge,
       code_challenge_method: "S256",
@@ -39,6 +43,7 @@ export function useDropboxAuth() {
     });
 
     window.location.href = `https://www.dropbox.com/oauth2/authorize?${params}`;
+    return null;
   }, []);
 
   const disconnect = useCallback(() => {

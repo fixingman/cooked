@@ -20,6 +20,7 @@ export function DropboxConnect() {
   const { status, accountName, connect, disconnect } = useDropboxAuth();
   const [syncing,  setSyncing]  = useState(false);
   const [lastSync, setLastSync] = useState<string | null>(null);
+  const [connectError, setConnectError] = useState<string | null>(null);
   const [, tick] = useState(0);
 
   useEffect(() => {
@@ -73,7 +74,10 @@ export function DropboxConnect() {
         ) : (
           <>
             <p className="text-sm font-medium text-ink-900">Dropbox Sync</p>
-            <p className="text-xs text-ink-400">Sync your data across devices</p>
+            {connectError
+              ? <p className="text-xs text-red-500 leading-snug mt-0.5">{connectError}</p>
+              : <p className="text-xs text-ink-400">Sync your data across devices</p>
+            }
           </>
         )}
       </div>
@@ -89,7 +93,11 @@ export function DropboxConnect() {
       ) : (
         <motion.button
           whileTap={{ scale: 0.94 }}
-          onClick={connect}
+          onClick={async () => {
+            setConnectError(null);
+            const err = await connect();
+            if (err) setConnectError(err);
+          }}
           className="text-xs text-white bg-saffron-500 hover:bg-saffron-600 transition-colors px-3 py-1.5 rounded-lg font-medium shrink-0"
         >
           Connect
