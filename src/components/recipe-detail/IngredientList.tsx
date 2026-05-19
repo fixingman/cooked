@@ -36,6 +36,9 @@ export function IngredientList({ ingredients, scale, units = "metric" }: Ingredi
                 : scaleQuantity(ing.quantity, scale);
               const unit = useImperial ? ing.unitImperial! : ing.unit;
 
+              const displayUnit = unit && unit !== "whole" && unit !== "pinch" && unit !== "handful" ? unit : "";
+              const hasAmount = qty !== "" || displayUnit !== "";
+
               return (
                 <li
                   key={ing.id}
@@ -44,9 +47,11 @@ export function IngredientList({ ingredients, scale, units = "metric" }: Ingredi
                     ing.optional && "opacity-70"
                   )}
                 >
-                  <span className="font-medium text-ink-900 text-sm min-w-[3.5rem] tabular-nums shrink-0">
-                    {qty} {unit !== "whole" && unit !== "pinch" && unit !== "handful" ? unit : ""}
-                  </span>
+                  {hasAmount && (
+                    <span className="font-medium text-ink-900 text-sm min-w-[3.5rem] tabular-nums shrink-0">
+                      {qty}{displayUnit ? ` ${displayUnit}` : ""}
+                    </span>
+                  )}
                   <span className="text-ink-700 text-sm flex-1">
                     {ing.name}
                     {ing.optional && (

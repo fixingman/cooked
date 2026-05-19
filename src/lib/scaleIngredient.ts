@@ -1,5 +1,6 @@
 export function scaleQuantity(quantity: number, scale: number): string {
   const scaled = quantity * scale;
+  if (scaled === 0) return "";
   if (scaled === Math.floor(scaled)) return String(scaled);
 
   const fractions: [number, string][] = [
