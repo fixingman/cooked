@@ -1,5 +1,5 @@
 "use client";
-import { Mic, Camera, Flame, RotateCcw } from "lucide-react";
+import { Mic, Camera, Flame } from "lucide-react";
 import { UnitToggle } from "@/components/settings/UnitToggle";
 import { DietaryPreferences } from "@/components/settings/DietaryPreferences";
 import { PermissionToggle } from "@/components/settings/PermissionToggle";
@@ -7,7 +7,6 @@ import { AIIntegrationToggle } from "@/components/settings/AIIntegrationToggle";
 import { ThermomixToggle } from "@/components/settings/ThermomixToggle";
 import { DropboxConnect } from "@/components/settings/DropboxConnect";
 import { useSettings } from "@/hooks/useSettings";
-import { DEFAULT_SETTINGS } from "@/types/settings";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -31,7 +30,7 @@ export default function SettingsPage() {
         </div>
         <div>
           <h1 className="font-serif text-xl font-semibold text-ink-900">Cooked</h1>
-          <p className="text-xs text-ink-400">v0.4.1 — Your cooking companion</p>
+          <p className="text-xs text-ink-400">v0.5.0 — Your cooking companion</p>
         </div>
       </div>
 
@@ -81,16 +80,7 @@ export default function SettingsPage() {
         <DropboxConnect />
       </Section>
 
-      <div className="text-center space-y-3">
-        <button
-          onClick={() => { if (confirm("Reset all settings to defaults?")) update(DEFAULT_SETTINGS); }}
-          className="flex items-center gap-1.5 text-xs text-ink-400 hover:text-ink-600 transition-colors mx-auto"
-        >
-          <RotateCcw size={11} />
-          Reset to defaults
-        </button>
-        <p className="text-xs text-ink-300">Made with care. UI only — no data stored externally.</p>
-      </div>
+      <p className="text-center text-xs text-ink-300">Made with care.</p>
     </div>
   );
 }
