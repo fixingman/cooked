@@ -32,7 +32,7 @@ export function CookingShell({ recipe, thermomixMode = false }: CookingShellProp
       setStepIndex((i) => i + 1);
       const next = recipe.steps[stepIndex + 1];
       const dur = next.durationSeconds ?? 0;
-      dur > 0 ? timer.resetAndStart(dur) : timer.reset(0);
+      if (dur > 0) { timer.resetAndStart(dur); } else { timer.reset(0); }
     } else {
       setCompleted(true);
     }
@@ -44,7 +44,7 @@ export function CookingShell({ recipe, thermomixMode = false }: CookingShellProp
       setStepIndex((i) => i - 1);
       const prev = recipe.steps[stepIndex - 1];
       const dur = prev.durationSeconds ?? 0;
-      dur > 0 ? timer.resetAndStart(dur) : timer.reset(0);
+      if (dur > 0) { timer.resetAndStart(dur); } else { timer.reset(0); }
     }
   }, [stepIndex, recipe.steps, timer]);
 

@@ -55,7 +55,7 @@ export function StepIngredients({
         {stepIngredients.length > 0 ? (
           <div className="w-full max-w-[280px]">
             <p className="text-label text-ink-400 uppercase tracking-widest text-[10px] mb-3">
-              You'll need
+              You&apos;ll need
             </p>
             <div className="flex flex-col gap-2">
               {stepIngredients.map((ing) => (
