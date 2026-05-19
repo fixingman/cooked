@@ -1,7 +1,8 @@
 "use client";
-import { ChevronLeft, Heart } from "lucide-react";
+import { ChevronLeft, Heart, Link2, Check } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { FoodImage } from "@/components/ui/FoodImage";
 import type { Recipe } from "@/types/recipe";
 import { useFavourites } from "@/hooks/useFavourites";
@@ -14,10 +15,18 @@ export function RecipeHero({ recipe }: RecipeHeroProps) {
   const router = useRouter();
   const { isFavourite, toggle } = useFavourites();
   const saved = isFavourite(recipe.id);
+  const [copied, setCopied] = useState(false);
 
   function goBack() {
     if (window.history.length > 1) router.back();
     else router.push("/recipes");
+  }
+
+  function share() {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
   }
 
   return (
@@ -41,17 +50,30 @@ export function RecipeHero({ recipe }: RecipeHeroProps) {
         >
           <ChevronLeft size={20} className="text-ink-900" />
         </motion.button>
-        <motion.button
-          whileTap={{ scale: 0.85 }}
-          onClick={() => toggle(recipe.id)}
-          className="w-10 h-10 bg-parchment-100/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-card"
-        >
-          <Heart
-            size={18}
-            className={saved ? "text-red-500 fill-red-500" : "text-ink-700"}
-            fill={saved ? "currentColor" : "none"}
-          />
-        </motion.button>
+        <div className="flex items-center gap-2">
+          <motion.button
+            whileTap={{ scale: 0.85 }}
+            onClick={share}
+            className="w-10 h-10 bg-parchment-100/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-card"
+            aria-label="Copy link"
+          >
+            {copied
+              ? <Check size={17} className="text-sage-600" />
+              : <Link2 size={17} className="text-ink-700" />
+            }
+          </motion.button>
+          <motion.button
+            whileTap={{ scale: 0.85 }}
+            onClick={() => toggle(recipe.id)}
+            className="w-10 h-10 bg-parchment-100/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-card"
+          >
+            <Heart
+              size={18}
+              className={saved ? "text-red-500 fill-red-500" : "text-ink-700"}
+              fill={saved ? "currentColor" : "none"}
+            />
+          </motion.button>
+        </div>
       </div>
 
       {/* Bottom title overlay */}

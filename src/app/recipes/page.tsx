@@ -1,16 +1,18 @@
 "use client";
-import { useMemo, Suspense } from "react";
+import { useMemo, Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { ChefHat } from "lucide-react";
+import { ChefHat, Plus } from "lucide-react";
+import { motion } from "framer-motion";
 import { SearchBar } from "@/components/recipes/SearchBar";
 import { CategoryChips } from "@/components/recipes/CategoryChips";
 import { RecipeGrid } from "@/components/recipes/RecipeGrid";
 import { ViewToggle } from "@/components/recipes/ViewToggle";
+import { ImportRecipeModal } from "@/components/recipes/ImportRecipeModal";
 import { useRecipeFilter } from "@/hooks/useRecipeFilter";
-import { recipes } from "@/data/recipes";
+import { useUserRecipes } from "@/hooks/useUserRecipes";
+import { recipes as builtInRecipes } from "@/data/recipes";
 import type { CategoryFilter, SortOption } from "@/hooks/useRecipeFilter";
-import type { MealTime, DietaryTag } from "@/types/recipe";
-import type { Recipe } from "@/types/recipe";
+import type { MealTime, DietaryTag, Recipe } from "@/types/recipe";
 
 const DIFFICULTY_RANK: Record<string, number> = { easy: 0, medium: 1, hard: 2 };
 
@@ -31,21 +33,24 @@ function matchesCategory(recipe: Recipe, cat: CategoryFilter): boolean {
 function RecipesContent() {
   const searchParams = useSearchParams();
   const initialCategory = searchParams.get("category") as CategoryFilter | null;
+  const [showImport, setShowImport] = useState(false);
+
+  const { recipes: userRecipes } = useUserRecipes();
 
   const { query, categories, dietary, viewMode, sort, setQuery, toggleCategory, clearCategories, setViewMode, setSort } =
     useRecipeFilter({ categories: initialCategory ? [initialCategory] : [] });
 
+  const allRecipes = useMemo(() => [...userRecipes, ...builtInRecipes], [userRecipes]);
+
   const filtered = useMemo(() => {
-    let result = [...recipes];
+    let result = [...allRecipes];
 
     if (categories.length > 0) {
       result = result.filter((r) => categories.every((cat) => matchesCategory(r, cat)));
     }
-
     if (dietary.length > 0) {
       result = result.filter((r) => dietary.every((d) => r.dietaryTags.includes(d)));
     }
-
     if (query.trim()) {
       const q = query.toLowerCase();
       result = result.filter(
@@ -57,23 +62,29 @@ function RecipesContent() {
       );
     }
 
-    if (sort === "rating") {
-      result = [...result].sort((a, b) => b.rating - a.rating);
-    } else if (sort === "time") {
-      result = [...result].sort((a, b) => a.totalTimeMinutes - b.totalTimeMinutes);
-    } else if (sort === "difficulty") {
-      result = [...result].sort(
-        (a, b) => (DIFFICULTY_RANK[a.difficulty] ?? 1) - (DIFFICULTY_RANK[b.difficulty] ?? 1)
-      );
-    }
+    if (sort === "rating") result = [...result].sort((a, b) => b.rating - a.rating);
+    else if (sort === "time") result = [...result].sort((a, b) => a.totalTimeMinutes - b.totalTimeMinutes);
+    else if (sort === "difficulty") result = [...result].sort(
+      (a, b) => (DIFFICULTY_RANK[a.difficulty] ?? 1) - (DIFFICULTY_RANK[b.difficulty] ?? 1)
+    );
 
     return result;
-  }, [query, categories, dietary, sort]);
+  }, [allRecipes, query, categories, dietary, sort]);
 
   return (
     <div className="px-4 py-6 md:px-8 max-w-6xl mx-auto">
       <div className="mb-6">
-        <h1 className="font-serif text-heading text-ink-900 font-semibold mb-5">Recipes</h1>
+        <div className="flex items-center justify-between mb-5">
+          <h1 className="font-serif text-heading text-ink-900 font-semibold">Recipes</h1>
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowImport(true)}
+            className="flex items-center gap-1.5 text-sm text-ink-500 hover:text-ink-900 bg-parchment-200 hover:bg-parchment-300 border border-parchment-300 px-3 py-1.5 rounded-xl font-medium transition-colors"
+          >
+            <Plus size={15} />
+            Import
+          </motion.button>
+        </div>
         <div className="space-y-3">
           <SearchBar value={query} onChange={setQuery} />
           <div className="flex items-center gap-3">
@@ -105,12 +116,21 @@ function RecipesContent() {
             <ChefHat size={28} className="text-ink-300" />
           </div>
           <p className="font-serif text-lg text-ink-700 mb-1">No recipes found</p>
-          <p className="text-sm text-ink-400">Try a different search or filter</p>
+          <p className="text-sm text-ink-400 mb-4">Try a different search or filter</p>
+          <button
+            onClick={() => setShowImport(true)}
+            className="flex items-center gap-1.5 text-sm text-saffron-500 hover:text-saffron-600 font-medium transition-colors"
+          >
+            <Plus size={15} />
+            Import a recipe
+          </button>
         </div>
       ) : (
         <RecipeGrid recipes={filtered} viewMode={viewMode} />
       )}
       <div className="h-6" />
+
+      {showImport && <ImportRecipeModal onClose={() => setShowImport(false)} />}
     </div>
   );
 }

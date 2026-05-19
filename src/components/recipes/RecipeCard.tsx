@@ -74,9 +74,8 @@ export function RecipeCard({ recipe, viewMode = "grid", index = 0 }: RecipeCardP
               fill
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               containerClassName="absolute inset-0"
-              className="group-hover:scale-105 transition-transform duration-500"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent transition-opacity duration-300 group-hover:opacity-0" />
             {recipe.dietaryTags.includes("vegetarian") && (
               <div className="absolute top-2.5 right-2.5 bg-sage-500 text-white text-[0.6rem] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">
                 Veg

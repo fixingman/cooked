@@ -28,9 +28,8 @@ export function FeaturedHero({ recipe }: FeaturedHeroProps) {
             priority
             sizes="(max-width: 768px) 100vw, 80vw"
             containerClassName="absolute inset-0"
-            className="group-hover:scale-105 transition-transform duration-700"
           />
-          <div className="absolute inset-0 bg-hero-scrim" />
+          <div className="absolute inset-0 bg-hero-scrim transition-opacity duration-400 group-hover:opacity-60" />
           <div className="absolute bottom-0 left-0 right-0 p-5 md:p-7">
             <div className="flex items-center gap-3 mb-2">
               <Badge label={recipe.cuisine} />

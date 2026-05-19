@@ -9,6 +9,32 @@ interface UseDropboxSyncOptions<T> {
   getValidAccessToken:  () => Promise<string | null>;
 }
 
+// Module-level counter so any hook instance can signal global sync state
+let activeSyncs = 0;
+
+function dispatchSyncEvent(syncing: boolean) {
+  if (typeof window === "undefined") return;
+  const lastSync = localStorage.getItem("dropbox-last-sync") ?? undefined;
+  window.dispatchEvent(new CustomEvent("dropbox-sync", { detail: { syncing, lastSync } }));
+}
+
+function recordLastSync() {
+  const ts = new Date().toISOString();
+  localStorage.setItem("dropbox-last-sync", ts);
+  dispatchSyncEvent(activeSyncs > 0);
+}
+
+function beginSync() {
+  activeSyncs++;
+  dispatchSyncEvent(true);
+}
+
+function endSync(success: boolean) {
+  if (success) recordLastSync();
+  activeSyncs = Math.max(0, activeSyncs - 1);
+  if (activeSyncs === 0) dispatchSyncEvent(false);
+}
+
 export function useDropboxSync<T>({
   dropboxPath,
   localStorageKey,
@@ -31,6 +57,8 @@ export function useDropboxSync<T>({
       const token = await getValidAccessToken();
       if (!token) return;
       setSyncing(true);
+      beginSync();
+      let ok = false;
       try {
         const remote = await downloadFile(token, dropboxPath);
         if (remote !== null) {
@@ -38,7 +66,9 @@ export function useDropboxSync<T>({
           setValueState(parsed);
           localStorage.setItem(localStorageKey, remote);
         }
+        ok = true;
       } catch {}
+      endSync(ok);
       setSyncing(false);
     })();
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -57,7 +87,13 @@ export function useDropboxSync<T>({
         debounceRef.current = setTimeout(async () => {
           const token = await getValidAccessToken();
           if (!token) return;
-          try { await uploadFile(token, dropboxPath, JSON.stringify(next)); } catch {}
+          beginSync();
+          let ok = false;
+          try {
+            await uploadFile(token, dropboxPath, JSON.stringify(next));
+            ok = true;
+          } catch {}
+          endSync(ok);
         }, 1500);
 
         return next;

@@ -46,8 +46,8 @@ export function MealTimeSection({ recipes, label, mealTime }: MealTimeSectionPro
                   fill
                   sizes="160px"
                   containerClassName="absolute inset-0"
-                  className="group-hover:scale-105 transition-transform duration-500"
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/15 to-transparent transition-opacity duration-300 group-hover:opacity-0" />
               </div>
               <h4 className="font-serif text-sm text-ink-900 leading-snug line-clamp-2 group-hover:text-saffron-600 transition-colors">
                 {recipe.title}
