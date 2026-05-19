@@ -3,14 +3,15 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { FoodImage } from "@/components/ui/FoodImage";
 import { Badge } from "@/components/ui/Badge";
-import { cookingHistory } from "@/data/cookingHistory";
+import { useCookingHistory } from "@/hooks/useCookingHistory";
 import { recipes } from "@/data/recipes";
 import { formatDistanceToNow } from "date-fns";
 import { formatMinutes } from "@/lib/formatTime";
 import { Star, Clock } from "lucide-react";
 
 export function ContinueCooking() {
-  const items = cookingHistory
+  const { history } = useCookingHistory();
+  const items = history
     .map((h) => ({ ...h, recipe: recipes.find((r) => r.id === h.recipeId) }))
     .filter((h) => h.recipe);
 

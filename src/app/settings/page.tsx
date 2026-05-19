@@ -5,6 +5,7 @@ import { DietaryPreferences } from "@/components/settings/DietaryPreferences";
 import { PermissionToggle } from "@/components/settings/PermissionToggle";
 import { AIIntegrationToggle } from "@/components/settings/AIIntegrationToggle";
 import { ThermomixToggle } from "@/components/settings/ThermomixToggle";
+import { DropboxConnect } from "@/components/settings/DropboxConnect";
 import { useSettings } from "@/hooks/useSettings";
 import { DEFAULT_SETTINGS } from "@/types/settings";
 
@@ -74,6 +75,10 @@ export default function SettingsPage() {
           enabled={settings.cameraEnabled}
           onToggle={() => update({ cameraEnabled: !settings.cameraEnabled })}
         />
+      </Section>
+
+      <Section title="Cloud Sync">
+        <DropboxConnect />
       </Section>
 
       <div className="text-center space-y-3">

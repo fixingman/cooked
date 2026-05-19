@@ -2,8 +2,9 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Star, ChefHat } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Recipe } from "@/types/recipe";
+import { useCookingHistory } from "@/hooks/useCookingHistory";
 
 interface CompletionScreenProps {
   recipe: Recipe;
@@ -11,6 +12,18 @@ interface CompletionScreenProps {
 
 export function CompletionScreen({ recipe }: CompletionScreenProps) {
   const [rating, setRating] = useState(0);
+  const { addEntry } = useCookingHistory();
+  const [cookedAt] = useState(() => new Date().toISOString());
+
+  useEffect(() => {
+    addEntry({ recipeId: recipe.id, cookedAt });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function handleRating(star: number) {
+    setRating(star);
+    addEntry({ recipeId: recipe.id, cookedAt, rating: star });
+  }
 
   return (
     <motion.div
@@ -55,7 +68,7 @@ export function CompletionScreen({ recipe }: CompletionScreenProps) {
           <motion.button
             key={star}
             whileTap={{ scale: 0.8 }}
-            onClick={() => setRating(star)}
+            onClick={() => handleRating(star)}
             className={star <= rating ? "text-saffron-500" : "text-parchment-300"}
           >
             <Star size={32} fill={star <= rating ? "currentColor" : "none"} strokeWidth={1.5} />

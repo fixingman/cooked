@@ -1,33 +1,20 @@
 "use client";
-import { useState, useCallback, useEffect } from "react";
-
-const STORAGE_KEY = "cooked-favourites";
-
-function load(): string[] {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
-  } catch {
-    return [];
-  }
-}
-
-function save(ids: string[]) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(ids)); } catch {}
-}
+import { useCallback } from "react";
+import { useDropboxAuth } from "@/hooks/useDropboxAuth";
+import { useDropboxSync } from "@/hooks/useDropboxSync";
 
 export function useFavourites() {
-  const [ids, setIds] = useState<string[]>([]);
-
-  useEffect(() => { setIds(load()); }, []);
+  const { getValidAccessToken } = useDropboxAuth();
+  const { value: ids, setValue } = useDropboxSync<string[]>({
+    dropboxPath:     "/favourites.json",
+    localStorageKey: "cooked-favourites",
+    defaultValue:    [],
+    getValidAccessToken,
+  });
 
   const toggle = useCallback((id: string) => {
-    setIds((prev) => {
-      const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
-      save(next);
-      return next;
-    });
-  }, []);
+    setValue((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
+  }, [setValue]);
 
   const isFavourite = useCallback((id: string) => ids.includes(id), [ids]);
 
