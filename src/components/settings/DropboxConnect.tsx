@@ -78,7 +78,7 @@ export function DropboxConnect() {
               ? <p className="text-xs text-red-500 leading-snug mt-0.5">{connectError}</p>
               : <p className="text-xs text-ink-400">
                   {process.env.NEXT_PUBLIC_DROPBOX_APP_KEY
-                    ? "Sync your data across devices"
+                    ? `Key: ${process.env.NEXT_PUBLIC_DROPBOX_APP_KEY.slice(0, 6)}…`
                     : "⚠ App key not found in build"}
                 </p>
             }
