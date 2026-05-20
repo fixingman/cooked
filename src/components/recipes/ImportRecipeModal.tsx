@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Link2, Loader2, Check, AlertCircle, ChefHat, Clock, Users, Globe } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useUserRecipes } from "@/hooks/useUserRecipes";
+import { useDropboxAuth } from "@/hooks/useDropboxAuth";
+import { uploadBinary } from "@/lib/dropbox/client";
 import { formatMinutes } from "@/lib/formatTime";
 import type { Recipe, MealTime } from "@/types/recipe";
 
@@ -26,6 +28,7 @@ interface ImportRecipeModalProps {
 export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecipeModalProps) {
   const router = useRouter();
   const { addRecipe } = useUserRecipes();
+  const { status: dropboxStatus, getValidAccessToken } = useDropboxAuth();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const isEditMode = !!initialDraft;
@@ -37,6 +40,7 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
   const [editDesc, setEditDesc] = useState(initialDraft?.description ?? "");
   const [editMealTimes, setEditMealTimes] = useState<MealTime[]>(initialDraft?.mealTimes ?? []);
   const [saving, setSaving] = useState(false);
+  const [heroImageBase64, setHeroImageBase64] = useState<string | null>(null);
 
   async function handleImport() {
     const trimmed = url.trim();
@@ -59,6 +63,7 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
       setEditTitle(data.recipe.title);
       setEditDesc(data.recipe.description);
       setEditMealTimes(data.recipe.mealTimes);
+      if (data.heroImageBase64) setHeroImageBase64(data.heroImageBase64);
       setStage("review");
     } catch {
       setError("Network error — check your connection and try again.");
@@ -75,13 +80,27 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
   async function handleSave() {
     if (!draft) return;
     setSaving(true);
-    const finalRecipe: Recipe = {
+    let finalRecipe: Recipe = {
       ...draft,
       title: editTitle.trim() || draft.title,
       description: editDesc.trim() || draft.description,
       mealTimes: editMealTimes.length > 0 ? editMealTimes : draft.mealTimes,
     };
     addRecipe(finalRecipe);
+
+    // Archive hero image to Dropbox if available
+    if (!isEditMode && heroImageBase64 && dropboxStatus === "connected") {
+      try {
+        const token = await getValidAccessToken();
+        if (token) {
+          const imagePath = `/images/${finalRecipe.id}.jpg`;
+          await uploadBinary(token, imagePath, heroImageBase64);
+          finalRecipe = { ...finalRecipe, heroImageDropboxPath: imagePath };
+          addRecipe(finalRecipe);
+        }
+      } catch {}
+    }
+
     onSave?.(finalRecipe);
     await new Promise(r => setTimeout(r, 50));
     onClose();
@@ -115,7 +134,7 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
         initial={{ opacity: 0, y: "100%" }}
         animate={{ opacity: 1, y: 0, transition: { type: "spring", stiffness: 340, damping: 38 } }}
         exit={{ opacity: 0, y: "100%", transition: { duration: 0.2 } }}
-        className="fixed bottom-0 left-0 right-0 z-50 flex flex-col bg-parchment-100 rounded-t-[1.5rem] shadow-card-lg max-h-[92dvh] md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-card md:w-full md:max-w-lg md:max-h-[82vh]"
+        className="fixed bottom-0 left-0 right-0 z-50 flex flex-col bg-parchment-100 rounded-t-[1.5rem] shadow-card-lg overflow-hidden max-h-[90dvh] md:inset-x-auto md:bottom-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-card md:w-full md:max-w-lg md:max-h-[85dvh]"
         onClick={e => e.stopPropagation()}
       >
         {/* Drag handle — not in scroll area */}
@@ -324,7 +343,7 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
                   className="flex-[2] py-3 bg-sage-500 text-white rounded-xl text-sm font-medium hover:bg-sage-600 disabled:opacity-60 transition-colors flex items-center justify-center gap-2"
                 >
                   {saving ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />}
-                  {saving ? "Saving…" : isEditMode ? "Save Changes" : "Save Recipe"}
+                  {saving ? (heroImageBase64 && dropboxStatus === "connected" ? "Saving image…" : "Saving…") : isEditMode ? "Save Changes" : "Save Recipe"}
                 </motion.button>
               </div>
             )}

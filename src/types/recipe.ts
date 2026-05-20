@@ -1,4 +1,5 @@
 export type Difficulty = "easy" | "medium" | "hard";
+export type RecipeSource = "builtin" | "url" | "image" | "authored";
 export type MealTime = "breakfast" | "lunch" | "dinner" | "snack" | "dessert";
 export type Cuisine =
   | "italian"
@@ -74,6 +75,9 @@ export interface Recipe {
   steps: CookingStep[];
   relatedRecipeIds?: string[];
   thermomixAvailable?: boolean;
+  sourceType?: RecipeSource;
+  sourceUrl?: string;
+  heroImageDropboxPath?: string;
 }
 
 export interface CookingHistoryEntry {

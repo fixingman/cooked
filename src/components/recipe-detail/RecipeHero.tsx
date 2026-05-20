@@ -6,6 +6,7 @@ import { useState, useEffect, useRef } from "react";
 import { FoodImage } from "@/components/ui/FoodImage";
 import type { Recipe } from "@/types/recipe";
 import { useFavourites } from "@/hooks/useFavourites";
+import { useDropboxImage } from "@/hooks/useDropboxImage";
 
 interface RecipeHeroProps {
   recipe: Recipe;
@@ -17,6 +18,8 @@ export function RecipeHero({ recipe, onEdit, onDelete }: RecipeHeroProps) {
   const router = useRouter();
   const { isFavourite, toggle } = useFavourites();
   const saved = isFavourite(recipe.id);
+  const dropboxImage = useDropboxImage(recipe.heroImageDropboxPath);
+  const heroSrc = dropboxImage ?? recipe.heroImageUrl;
   const [copied, setCopied] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -47,7 +50,7 @@ export function RecipeHero({ recipe, onEdit, onDelete }: RecipeHeroProps) {
   return (
     <div className="relative h-[55vw] max-h-[480px] min-h-[260px]">
       <FoodImage
-        src={recipe.heroImageUrl}
+        src={heroSrc}
         alt={recipe.title}
         fill
         priority

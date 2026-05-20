@@ -1,4 +1,4 @@
-import type { Recipe, Ingredient, CookingStep, Cuisine, MealTime, DietaryTag, Difficulty } from "@/types/recipe";
+import type { Recipe, Ingredient, CookingStep, Cuisine, MealTime, DietaryTag, Difficulty, RecipeSource } from "@/types/recipe";
 
 function parseDuration(iso: string | undefined): number {
   if (!iso) return 0;
@@ -159,6 +159,7 @@ function findRecipeSchema(data: any): any | null {
 
 export interface RecipeDraft extends Recipe {
   sourceUrl: string;
+  sourceType: RecipeSource;
 }
 
 export function buildRecipeFromSchema(
@@ -216,6 +217,7 @@ export function buildRecipeFromSchema(
     ingredients,
     steps,
     thermomixAvailable: false,
+    sourceType: "url",
     sourceUrl,
   };
 }

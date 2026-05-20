@@ -2,6 +2,21 @@ import { parseRecipeFromHtml, buildRecipeFromSchema, stripHtmlToText } from "@/l
 
 const ALLOWED_PROTOCOLS = ["http:", "https:"];
 
+async function fetchImageAsBase64(imageUrl: string | undefined): Promise<string | null> {
+  if (!imageUrl) return null;
+  try {
+    const res = await fetch(imageUrl, { signal: AbortSignal.timeout(5_000) });
+    if (!res.ok) return null;
+    const contentType = res.headers.get("content-type") ?? "image/jpeg";
+    if (!contentType.startsWith("image/")) return null;
+    const buffer = await res.arrayBuffer();
+    const base64 = Buffer.from(buffer).toString("base64");
+    return `data:${contentType};base64,${base64}`;
+  } catch {
+    return null;
+  }
+}
+
 async function extractWithClaude(
   pageText: string,
   sourceUrl: string,
@@ -112,7 +127,8 @@ export async function POST(req: Request) {
   // Try JSON-LD first
   const jsonLdRecipe = parseRecipeFromHtml(html, url, id);
   if (jsonLdRecipe) {
-    return Response.json({ recipe: jsonLdRecipe });
+    const heroImageBase64 = await fetchImageAsBase64(jsonLdRecipe.heroImageUrl);
+    return Response.json({ recipe: jsonLdRecipe, ...(heroImageBase64 ? { heroImageBase64 } : {}) });
   }
 
   // Claude fallback — only if API key is configured
@@ -124,7 +140,10 @@ export async function POST(req: Request) {
         return Response.json({ error: "This page doesn't appear to contain a recipe." }, { status: 422 });
       }
       const claudeRecipe = await extractWithClaude(pageText, url, id, apiKey);
-      if (claudeRecipe) return Response.json({ recipe: claudeRecipe });
+      if (claudeRecipe) {
+        const heroImageBase64 = await fetchImageAsBase64(claudeRecipe.heroImageUrl);
+        return Response.json({ recipe: claudeRecipe, ...(heroImageBase64 ? { heroImageBase64 } : {}) });
+      }
     } catch {}
   }
 

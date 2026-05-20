@@ -1,4 +1,5 @@
 "use client";
+import React from "react";
 import { notFound, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Clock, Users, BarChart2, Star } from "lucide-react";
@@ -12,6 +13,7 @@ import { ImportRecipeModal } from "@/components/recipes/ImportRecipeModal";
 import { Badge } from "@/components/ui/Badge";
 import { useServingsScale } from "@/hooks/useServingsScale";
 import { useUserRecipes } from "@/hooks/useUserRecipes";
+import { useDropboxAuth } from "@/hooks/useDropboxAuth";
 import { getRecipe } from "@/lib/recipes";
 import { formatMinutes } from "@/lib/formatTime";
 import type { Recipe } from "@/types/recipe";
@@ -90,6 +92,7 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
 
       {/* Content */}
       <div className="px-4 md:px-6 pb-6 max-w-2xl mx-auto">
+        <AttributionRow recipe={recipe} />
         {/* Meta bar */}
         <div className="flex flex-wrap items-center gap-4 py-4 border-b border-parchment-300">
           <div className="flex items-center gap-1.5 text-sm text-ink-600">
@@ -168,6 +171,43 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
         />
       )}
     </div>
+  );
+}
+
+function AttributionRow({ recipe }: { recipe: Recipe }) {
+  const { accountName } = useDropboxAuth();
+
+  if (!recipe.sourceType) return null;
+
+  let content: React.ReactNode = null;
+
+  if (recipe.sourceType === "url" && recipe.sourceUrl) {
+    let hostname = "";
+    try { hostname = new URL(recipe.sourceUrl).hostname.replace(/^www\./, ""); } catch {}
+    content = (
+      <a
+        href={recipe.sourceUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="hover:text-ink-600 transition-colors"
+      >
+        From: {hostname}
+      </a>
+    );
+  } else if (recipe.sourceType === "authored") {
+    content = <>By {accountName ?? "Me"}</>;
+  } else if (recipe.sourceType === "image") {
+    content = <>Scanned from photo</>;
+  } else if (recipe.sourceType === "builtin") {
+    content = <>By {recipe.authorName}</>;
+  }
+
+  if (!content) return null;
+
+  return (
+    <p className="text-xs text-ink-400 pt-3 pb-1">
+      {content}
+    </p>
   );
 }
 

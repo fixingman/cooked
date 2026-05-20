@@ -33,6 +33,38 @@ export async function uploadFile(token: string, path: string, content: string): 
   }
 }
 
+export async function uploadBinary(token: string, path: string, dataUrl: string): Promise<void> {
+  const base64 = dataUrl.replace(/^data:[^;]+;base64,/, "");
+  const binary = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+  const res = await fetch(`${CONTENT}/files/upload`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/octet-stream",
+      "Dropbox-API-Arg": JSON.stringify({ path, mode: { ".tag": "overwrite" }, autorename: false, mute: true }),
+    },
+    body: binary,
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Dropbox upload binary ${res.status}: ${body}`);
+  }
+}
+
+export async function getTemporaryLink(token: string, path: string): Promise<string> {
+  const res = await fetch(`${API}/files/get_temporary_link`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ path }),
+  });
+  if (!res.ok) throw new Error(`Dropbox temporary link ${res.status}`);
+  const data = await res.json();
+  return data.link as string;
+}
+
 export async function getAccountInfo(token: string): Promise<{ accountId: string; displayName: string }> {
   const res = await fetch(`${API}/users/get_current_account`, {
     method: "POST",
