@@ -9,6 +9,20 @@ interface UseDropboxSyncOptions<T> {
   getValidAccessToken:  () => Promise<string | null>;
 }
 
+// Download at most once per 15 minutes per path, regardless of how many times the
+// hook mounts (tab switches, navigation). Upload still fires on every data change.
+const RESYNC_MS = 15 * 60 * 1000;
+const lastDownloadedAt = new Map<string, number>();
+
+function shouldDownload(path: string): boolean {
+  const last = lastDownloadedAt.get(path) ?? 0;
+  return Date.now() - last > RESYNC_MS;
+}
+
+function markDownloaded(path: string) {
+  lastDownloadedAt.set(path, Date.now());
+}
+
 // Module-level counter so any hook instance can signal global sync state
 let activeSyncs = 0;
 
@@ -52,7 +66,8 @@ export function useDropboxSync<T>({
       if (stored) setValueState(JSON.parse(stored) as T);
     } catch {}
 
-    // 2. Reconcile with Dropbox — Dropbox wins if different
+    // 2. Reconcile with Dropbox — only if not already downloaded this session window
+    if (!shouldDownload(dropboxPath)) return;
     (async () => {
       const token = await getValidAccessToken();
       if (!token) return;
@@ -71,6 +86,7 @@ export function useDropboxSync<T>({
           const toUpload = local ?? JSON.stringify(defaultValue);
           await uploadFile(token, dropboxPath, toUpload);
         }
+        markDownloaded(dropboxPath);
         ok = true;
       } catch {}
       endSync(ok);
