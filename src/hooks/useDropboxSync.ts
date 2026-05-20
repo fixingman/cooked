@@ -65,6 +65,11 @@ export function useDropboxSync<T>({
           const parsed = JSON.parse(remote) as T;
           setValueState(parsed);
           localStorage.setItem(localStorageKey, remote);
+        } else {
+          // File doesn't exist yet — bootstrap Dropbox with local data
+          const local = localStorage.getItem(localStorageKey);
+          const toUpload = local ?? JSON.stringify(defaultValue);
+          await uploadFile(token, dropboxPath, toUpload);
         }
         ok = true;
       } catch {}
