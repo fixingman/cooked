@@ -34,6 +34,7 @@ Multiple commits in one session that each need a bump: batch them into one bump 
 - `0.6.1` — Dropbox upload 400 fix, debug UI cleanup
 - `0.7.0` — Edit / delete user recipes (U-18)
 - `0.7.1` — Dropbox sync throttle (15 min window), bootstrap fix
+- `0.8.0` — Attribution, Dropbox image hosting, import modal viewport fix
 
 ---
 
@@ -66,7 +67,10 @@ Multiple commits in one session that each need a bump: batch them into one bump 
 ---
 
 ## Backlog
-Live backlog: `.context/BACKLOG.md`. Always update it when shipping a feature or adding an item.
+Live backlog: `BACKLOG.md` at repo root. Always update it when shipping a feature or adding an item.
+
+## Project memory
+Architecture, design system, routes, and conventions: `MEMORY.md` at repo root. Read it at the start of any session to get full context. Update it when architecture or conventions change.
 
 ## Collaboration style
 - Present design decisions before implementing non-trivial features.
