@@ -1,14 +1,17 @@
 "use client";
-import { notFound } from "next/navigation";
+import { notFound, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Clock, Users, BarChart2, Star } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { RecipeHero } from "@/components/recipe-detail/RecipeHero";
 import { ServingsAdjuster } from "@/components/recipe-detail/ServingsAdjuster";
 import { IngredientList } from "@/components/recipe-detail/IngredientList";
 import { InstructionSteps } from "@/components/recipe-detail/InstructionSteps";
 import { StartCookingButton } from "@/components/recipe-detail/StartCookingButton";
+import { ImportRecipeModal } from "@/components/recipes/ImportRecipeModal";
 import { Badge } from "@/components/ui/Badge";
 import { useServingsScale } from "@/hooks/useServingsScale";
+import { useUserRecipes } from "@/hooks/useUserRecipes";
 import { getRecipe } from "@/lib/recipes";
 import { formatMinutes } from "@/lib/formatTime";
 import type { Recipe } from "@/types/recipe";
@@ -48,7 +51,7 @@ export default function RecipeDetailPage({ params }: PageProps) {
   const recipe = builtIn ?? userRecipe;
   if (!recipe) notFound();
 
-  return <RecipeDetailClient recipe={recipe} />;
+  return <RecipeDetailClient recipe={recipe} isUserRecipe={isUserSlug} />;
 }
 
 function RecipeDetailSkeleton() {
@@ -64,12 +67,26 @@ function RecipeDetailSkeleton() {
   );
 }
 
-function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
+function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: Recipe; isUserRecipe: boolean }) {
+  const router = useRouter();
+  const [recipe, setRecipe] = useState(initialRecipe);
+  const [showEdit, setShowEdit] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const { removeRecipe } = useUserRecipes();
   const { servings, scale, increment, decrement } = useServingsScale(recipe.servings);
+
+  function handleDelete() {
+    removeRecipe(recipe.id);
+    router.push("/recipes");
+  }
 
   return (
     <div className="relative">
-      <RecipeHero recipe={recipe} />
+      <RecipeHero
+        recipe={recipe}
+        onEdit={isUserRecipe ? () => setShowEdit(true) : undefined}
+        onDelete={isUserRecipe ? () => setShowDeleteConfirm(true) : undefined}
+      />
 
       {/* Content */}
       <div className="px-4 md:px-6 pb-6 max-w-2xl mx-auto">
@@ -134,6 +151,73 @@ function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
 
         <StartCookingButton slug={recipe.slug} thermomixAvailable={recipe.thermomixAvailable} />
       </div>
+
+      {showEdit && (
+        <ImportRecipeModal
+          onClose={() => setShowEdit(false)}
+          initialDraft={recipe}
+          onSave={(updated) => setRecipe(updated)}
+        />
+      )}
+
+      {showDeleteConfirm && (
+        <DeleteConfirmSheet
+          recipeTitle={recipe.title}
+          onCancel={() => setShowDeleteConfirm(false)}
+          onConfirm={handleDelete}
+        />
+      )}
     </div>
+  );
+}
+
+function DeleteConfirmSheet({ recipeTitle, onCancel, onConfirm }: {
+  recipeTitle: string;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <AnimatePresence>
+      <motion.div
+        key="backdrop"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 bg-ink-900/40 backdrop-blur-sm"
+        onClick={onCancel}
+      />
+      <motion.div
+        key="sheet"
+        initial={{ opacity: 0, y: "100%" }}
+        animate={{ opacity: 1, y: 0, transition: { type: "spring", stiffness: 340, damping: 38 } }}
+        exit={{ opacity: 0, y: "100%", transition: { duration: 0.2 } }}
+        className="fixed bottom-0 left-0 right-0 z-50 bg-parchment-100 rounded-t-[1.5rem] shadow-card-lg p-5 pb-8 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-card md:w-full md:max-w-sm"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="flex justify-center mb-5 md:hidden">
+          <div className="w-10 h-1 bg-parchment-300 rounded-full" />
+        </div>
+        <h2 className="font-serif text-lg font-semibold text-ink-900 mb-1">Delete this recipe?</h2>
+        <p className="text-sm text-ink-500 mb-6">
+          &ldquo;{recipeTitle}&rdquo; will be removed. This can&apos;t be undone.
+        </p>
+        <div className="flex gap-3">
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={onCancel}
+            className="flex-1 py-3 bg-parchment-200 text-ink-700 rounded-xl text-sm font-medium hover:bg-parchment-300 transition-colors"
+          >
+            Cancel
+          </motion.button>
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={onConfirm}
+            className="flex-1 py-3 bg-red-500 text-white rounded-xl text-sm font-medium hover:bg-red-600 transition-colors"
+          >
+            Delete Recipe
+          </motion.button>
+        </div>
+      </motion.div>
+    </AnimatePresence>
   );
 }

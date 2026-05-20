@@ -19,20 +19,23 @@ type Stage = "input" | "loading" | "review" | "error";
 
 interface ImportRecipeModalProps {
   onClose: () => void;
+  initialDraft?: Recipe;
+  onSave?: (recipe: Recipe) => void;
 }
 
-export function ImportRecipeModal({ onClose }: ImportRecipeModalProps) {
+export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecipeModalProps) {
   const router = useRouter();
   const { addRecipe } = useUserRecipes();
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const [stage, setStage] = useState<Stage>("input");
+  const isEditMode = !!initialDraft;
+  const [stage, setStage] = useState<Stage>(isEditMode ? "review" : "input");
   const [url, setUrl] = useState("");
   const [error, setError] = useState("");
-  const [draft, setDraft] = useState<(Recipe & { sourceUrl?: string }) | null>(null);
-  const [editTitle, setEditTitle] = useState("");
-  const [editDesc, setEditDesc] = useState("");
-  const [editMealTimes, setEditMealTimes] = useState<MealTime[]>([]);
+  const [draft, setDraft] = useState<(Recipe & { sourceUrl?: string }) | null>(initialDraft ?? null);
+  const [editTitle, setEditTitle] = useState(initialDraft?.title ?? "");
+  const [editDesc, setEditDesc] = useState(initialDraft?.description ?? "");
+  const [editMealTimes, setEditMealTimes] = useState<MealTime[]>(initialDraft?.mealTimes ?? []);
   const [saving, setSaving] = useState(false);
 
   async function handleImport() {
@@ -79,15 +82,20 @@ export function ImportRecipeModal({ onClose }: ImportRecipeModalProps) {
       mealTimes: editMealTimes.length > 0 ? editMealTimes : draft.mealTimes,
     };
     addRecipe(finalRecipe);
+    onSave?.(finalRecipe);
     await new Promise(r => setTimeout(r, 50));
     onClose();
-    router.push(`/recipes/${finalRecipe.slug}`);
+    if (!isEditMode) {
+      router.push(`/recipes/${finalRecipe.slug}`);
+    }
   }
 
   let hostname = "";
   try { hostname = draft ? new URL((draft as Recipe & { sourceUrl?: string }).sourceUrl ?? "").hostname.replace(/^www\./, "") : ""; } catch {}
 
-  const stageTitle = stage === "review" ? "Review recipe" : "Import Recipe";
+  const stageTitle = stage === "review"
+    ? (isEditMode ? "Edit Recipe" : "Review recipe")
+    : "Import Recipe";
 
   return (
     <AnimatePresence>
@@ -285,6 +293,12 @@ export function ImportRecipeModal({ onClose }: ImportRecipeModalProps) {
                     className="mt-1.5 w-full px-3 py-2 bg-parchment-200 border border-parchment-300 rounded-xl text-sm text-ink-700 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/30 resize-none"
                   />
                 </div>
+
+                {isEditMode && (
+                  <p className="text-xs text-ink-400 bg-parchment-200 rounded-lg px-3 py-2.5">
+                    To update ingredients and steps, re-import this recipe from its original URL.
+                  </p>
+                )}
               </>
             )}
 
@@ -298,10 +312,10 @@ export function ImportRecipeModal({ onClose }: ImportRecipeModalProps) {
               <div className="flex gap-3">
                 <motion.button
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => { setStage("input"); setDraft(null); }}
+                  onClick={() => isEditMode ? onClose() : (setStage("input"), setDraft(null))}
                   className="flex-1 py-3 bg-parchment-200 text-ink-700 rounded-xl text-sm font-medium hover:bg-parchment-300 transition-colors"
                 >
-                  Back
+                  {isEditMode ? "Cancel" : "Back"}
                 </motion.button>
                 <motion.button
                   whileTap={{ scale: 0.95 }}
@@ -310,7 +324,7 @@ export function ImportRecipeModal({ onClose }: ImportRecipeModalProps) {
                   className="flex-[2] py-3 bg-sage-500 text-white rounded-xl text-sm font-medium hover:bg-sage-600 disabled:opacity-60 transition-colors flex items-center justify-center gap-2"
                 >
                   {saving ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />}
-                  {saving ? "Saving…" : "Save Recipe"}
+                  {saving ? "Saving…" : isEditMode ? "Save Changes" : "Save Recipe"}
                 </motion.button>
               </div>
             )}

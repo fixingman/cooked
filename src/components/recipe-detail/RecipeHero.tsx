@@ -1,21 +1,36 @@
 "use client";
-import { ChevronLeft, Heart, Link2, Check } from "lucide-react";
+import { ChevronLeft, Heart, Link2, Check, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { FoodImage } from "@/components/ui/FoodImage";
 import type { Recipe } from "@/types/recipe";
 import { useFavourites } from "@/hooks/useFavourites";
 
 interface RecipeHeroProps {
   recipe: Recipe;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }
 
-export function RecipeHero({ recipe }: RecipeHeroProps) {
+export function RecipeHero({ recipe, onEdit, onDelete }: RecipeHeroProps) {
   const router = useRouter();
   const { isFavourite, toggle } = useFavourites();
   const saved = isFavourite(recipe.id);
   const [copied, setCopied] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!showMenu) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setShowMenu(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showMenu]);
 
   function goBack() {
     if (window.history.length > 1) router.back();
@@ -51,6 +66,40 @@ export function RecipeHero({ recipe }: RecipeHeroProps) {
           <ChevronLeft size={20} className="text-ink-900" />
         </motion.button>
         <div className="flex items-center gap-2">
+          {(onEdit || onDelete) && (
+            <div className="relative" ref={menuRef}>
+              <motion.button
+                whileTap={{ scale: 0.85 }}
+                onClick={() => setShowMenu(m => !m)}
+                className="w-10 h-10 bg-parchment-100/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-card"
+                aria-label="More options"
+              >
+                <MoreVertical size={18} className="text-ink-700" />
+              </motion.button>
+              {showMenu && (
+                <div className="absolute top-12 right-0 bg-parchment-100 rounded-xl shadow-card-lg border border-parchment-200 overflow-hidden z-50 min-w-[160px]">
+                  {onEdit && (
+                    <button
+                      onClick={() => { setShowMenu(false); onEdit(); }}
+                      className="flex items-center gap-2.5 w-full px-4 py-3 text-sm text-ink-700 hover:bg-parchment-200 transition-colors text-left"
+                    >
+                      <Pencil size={15} className="text-ink-400" />
+                      Edit recipe
+                    </button>
+                  )}
+                  {onDelete && (
+                    <button
+                      onClick={() => { setShowMenu(false); onDelete(); }}
+                      className="flex items-center gap-2.5 w-full px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors text-left"
+                    >
+                      <Trash2 size={15} className="text-red-400" />
+                      Delete
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
           <motion.button
             whileTap={{ scale: 0.85 }}
             onClick={share}
