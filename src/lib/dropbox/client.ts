@@ -23,11 +23,14 @@ export async function uploadFile(token: string, path: string, content: string): 
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/octet-stream",
-      "Dropbox-API-Arg": JSON.stringify({ path, mode: "overwrite", autorename: false }),
+      "Dropbox-API-Arg": JSON.stringify({ path, mode: { ".tag": "overwrite" }, autorename: false, mute: true }),
     },
     body: content,
   });
-  if (!res.ok) throw new Error(`Dropbox upload ${res.status}`);
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Dropbox upload ${res.status}: ${body}`);
+  }
 }
 
 export async function getAccountInfo(token: string): Promise<{ accountId: string; displayName: string }> {
