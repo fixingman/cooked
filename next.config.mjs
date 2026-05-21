@@ -3,7 +3,7 @@ import withPWA from "@ducanh2912/next-pwa";
 const nextConfig = {
   images: {
     remotePatterns: [
-      { protocol: "https", hostname: "images.unsplash.com" },
+      { protocol: "https", hostname: "**" },
     ],
   },
 };
