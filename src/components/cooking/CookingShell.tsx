@@ -24,29 +24,31 @@ export function CookingShell({ recipe, thermomixMode = false }: CookingShellProp
   const [completed, setCompleted] = useState(false);
 
   const step = recipe.steps[stepIndex];
-  const timer = useCookingTimer(step.durationSeconds ?? 0);
+  const hasTmStep = thermomixMode && !!step.thermomix;
+  function stepDuration(s: typeof step) {
+    return thermomixMode && s.thermomix ? s.thermomix.timeSeconds : (s.durationSeconds ?? 0);
+  }
+  const timer = useCookingTimer(stepDuration(step));
 
   const goNext = useCallback(() => {
     if (stepIndex < recipe.steps.length - 1) {
       setDirection(1);
       setStepIndex((i) => i + 1);
-      const next = recipe.steps[stepIndex + 1];
-      const dur = next.durationSeconds ?? 0;
-      timer.reset(dur);
+      timer.reset(stepDuration(recipe.steps[stepIndex + 1]));
     } else {
       setCompleted(true);
     }
-  }, [stepIndex, recipe.steps, timer]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stepIndex, recipe.steps, timer, thermomixMode]);
 
   const goPrev = useCallback(() => {
     if (stepIndex > 0) {
       setDirection(-1);
       setStepIndex((i) => i - 1);
-      const prev = recipe.steps[stepIndex - 1];
-      const dur = prev.durationSeconds ?? 0;
-      timer.reset(dur);
+      timer.reset(stepDuration(recipe.steps[stepIndex - 1]));
     }
-  }, [stepIndex, recipe.steps, timer]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stepIndex, recipe.steps, timer, thermomixMode]);
 
   const swipe = useSwipeGesture({ onSwipeLeft: goNext, onSwipeRight: goPrev });
 
@@ -105,7 +107,14 @@ export function CookingShell({ recipe, thermomixMode = false }: CookingShellProp
         {/* Left panel: visual + timer (or Thermomix panel) */}
         <div className="md:w-1/2 flex flex-col items-center justify-center p-6 gap-6 border-b md:border-b-0 md:border-r border-parchment-300">
           {thermomixMode && step.thermomix ? (
-            <ThermomixStepPanel step={step.thermomix} stepId={step.id} direction={direction} />
+            <ThermomixStepPanel
+              step={step.thermomix}
+              stepId={step.id}
+              direction={direction}
+              remaining={timer.remaining}
+              isRunning={timer.isRunning}
+              onToggleTimer={timer.toggle}
+            />
           ) : (
             <>
               <StepIngredients
@@ -142,7 +151,7 @@ export function CookingShell({ recipe, thermomixMode = false }: CookingShellProp
           currentStep={stepIndex + 1}
           totalSteps={recipe.steps.length}
           isRunning={timer.isRunning}
-          hasTimer={!!step.durationSeconds && step.durationSeconds > 0}
+          hasTimer={!hasTmStep && !!step.durationSeconds && step.durationSeconds > 0}
           onPrev={goPrev}
           onNext={goNext}
           onToggleTimer={timer.toggle}

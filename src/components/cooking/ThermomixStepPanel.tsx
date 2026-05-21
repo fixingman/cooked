@@ -1,20 +1,16 @@
 "use client";
 import { motion, AnimatePresence } from "framer-motion";
+import { Play, Pause } from "lucide-react";
+import { TimerBlock } from "./TimerBlock";
 import type { ThermomixStep } from "@/types/recipe";
 
 interface ThermomixStepPanelProps {
   step: ThermomixStep;
   stepId: string;
   direction: number;
-}
-
-function StatBadge({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex flex-col items-center gap-1 bg-parchment-100 rounded-2xl px-4 py-3 min-w-[72px]">
-      <span className="font-serif text-xl font-medium text-ink-900">{value}</span>
-      <span className="text-label text-ink-400 uppercase tracking-widest text-[10px]">{label}</span>
-    </div>
-  );
+  remaining: number;
+  isRunning: boolean;
+  onToggleTimer: () => void;
 }
 
 const variants = {
@@ -23,12 +19,7 @@ const variants = {
   exit: (dir: number) => ({ x: dir > 0 ? -40 : 40, opacity: 0 }),
 };
 
-export function ThermomixStepPanel({ step, stepId, direction }: ThermomixStepPanelProps) {
-  const tempDisplay = step.tempC === "Varoma" ? "Varoma" : `${step.tempC}°C`;
-  const mins = Math.floor(step.timeSeconds / 60);
-  const secs = step.timeSeconds % 60;
-  const timeDisplay = secs > 0 ? `${mins}:${String(secs).padStart(2, "0")}` : `${mins} min`;
-
+export function ThermomixStepPanel({ step, stepId, direction, remaining, isRunning, onToggleTimer }: ThermomixStepPanelProps) {
   return (
     <AnimatePresence mode="wait" custom={direction}>
       <motion.div
@@ -55,13 +46,20 @@ export function ThermomixStepPanel({ step, stepId, direction }: ThermomixStepPan
           </span>
         </div>
 
-        {/* Speed / Temp / Time badges */}
-        <div className="flex items-center gap-2">
-          <StatBadge label="Speed" value={`${step.speed}`} />
-          <StatBadge label="Temp" value={tempDisplay} />
-          <StatBadge label="Time" value={timeDisplay} />
-        </div>
+        {/* Live countdown */}
+        <TimerBlock remaining={remaining} />
 
+        {/* Start / pause */}
+        <motion.button
+          whileTap={{ scale: 0.92 }}
+          onClick={onToggleTimer}
+          className="flex items-center gap-2 px-5 py-2.5 bg-sage-500 text-white rounded-full text-sm font-medium hover:bg-sage-600 transition-colors"
+        >
+          {isRunning
+            ? <><Pause size={14} fill="currentColor" /> Pause</>
+            : <><Play size={14} fill="currentColor" className="ml-0.5" /> Start</>
+          }
+        </motion.button>
       </motion.div>
     </AnimatePresence>
   );
