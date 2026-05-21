@@ -125,7 +125,13 @@ export function CookingShell({ recipe, thermomixMode = false }: CookingShellProp
         {/* Right panel: step instruction */}
         <div className="flex-1 flex flex-col p-6 md:p-8">
           <div className="flex-1 overflow-hidden">
-            <StepDisplay step={step} direction={direction} totalSteps={recipe.steps.length} />
+            <StepDisplay
+            step={step}
+            direction={direction}
+            totalSteps={recipe.steps.length}
+            overrideInstruction={thermomixMode && step.thermomix ? step.thermomix.instruction : undefined}
+            overrideLabel={thermomixMode && step.thermomix?.label ? step.thermomix.label : undefined}
+          />
           </div>
         </div>
       </div>
