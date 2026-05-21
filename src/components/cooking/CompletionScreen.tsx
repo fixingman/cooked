@@ -5,6 +5,7 @@ import { Star, ChefHat } from "lucide-react";
 import { useState, useEffect } from "react";
 import type { Recipe } from "@/types/recipe";
 import { useCookingHistory } from "@/hooks/useCookingHistory";
+import { useRecipeStates } from "@/hooks/useRecipeStates";
 
 interface CompletionScreenProps {
   recipe: Recipe;
@@ -13,16 +14,19 @@ interface CompletionScreenProps {
 export function CompletionScreen({ recipe }: CompletionScreenProps) {
   const [rating, setRating] = useState(0);
   const { addEntry } = useCookingHistory();
+  const { markCooked, updateRating } = useRecipeStates();
   const [cookedAt] = useState(() => new Date().toISOString());
 
   useEffect(() => {
     addEntry({ recipeId: recipe.id, cookedAt });
+    markCooked(recipe.id, cookedAt);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function handleRating(star: number) {
     setRating(star);
     addEntry({ recipeId: recipe.id, cookedAt, rating: star });
+    updateRating(recipe.id, star);
   }
 
   return (

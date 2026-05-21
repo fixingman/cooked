@@ -14,9 +14,10 @@ interface RecipeCardProps {
   recipe: Recipe;
   viewMode?: "grid" | "list";
   index?: number;
+  isCooked?: boolean;
 }
 
-export const RecipeCard = memo(function RecipeCard({ recipe, viewMode = "grid", index = 0 }: RecipeCardProps) {
+export const RecipeCard = memo(function RecipeCard({ recipe, viewMode = "grid", index = 0, isCooked = false }: RecipeCardProps) {
   if (viewMode === "list") {
     return (
       <motion.div
@@ -49,6 +50,9 @@ export const RecipeCard = memo(function RecipeCard({ recipe, viewMode = "grid", 
                   {formatMinutes(recipe.totalTimeMinutes)}
                 </span>
                 <Badge label={recipe.difficulty} variant="difficulty" />
+                {isCooked && (
+                  <span className="text-[10px] font-semibold text-sage-600 uppercase tracking-wide">✓ Cooked</span>
+                )}
               </div>
             </div>
           </div>
@@ -78,6 +82,11 @@ export const RecipeCard = memo(function RecipeCard({ recipe, viewMode = "grid", 
             {recipe.dietaryTags.includes("vegetarian") && (
               <div className="absolute top-2.5 right-2.5 bg-sage-500 text-white text-[0.6rem] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">
                 Veg
+              </div>
+            )}
+            {isCooked && (
+              <div className="absolute top-2.5 left-2.5 bg-parchment-100/90 backdrop-blur-sm text-sage-700 text-[0.6rem] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">
+                ✓ Cooked
               </div>
             )}
           </div>

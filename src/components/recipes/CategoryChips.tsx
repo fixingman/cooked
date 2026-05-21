@@ -3,13 +3,14 @@ import { Chip } from "@/components/ui/Chip";
 import type { CategoryFilter } from "@/hooks/useRecipeFilter";
 
 const categories: { value: CategoryFilter; label: string }[] = [
-  { value: "breakfast",  label: "Breakfast" },
-  { value: "lunch",      label: "Lunch" },
-  { value: "dinner",     label: "Dinner" },
-  { value: "dessert",    label: "Dessert" },
-  { value: "snack",      label: "Snack" },
-  { value: "vegetarian", label: "Vegetarian" },
-  { value: "thermomix",  label: "Thermomix" },
+  { value: "want-to-cook", label: "Want to Cook" },
+  { value: "breakfast",    label: "Breakfast" },
+  { value: "lunch",        label: "Lunch" },
+  { value: "dinner",       label: "Dinner" },
+  { value: "dessert",      label: "Dessert" },
+  { value: "snack",        label: "Snack" },
+  { value: "vegetarian",   label: "Vegetarian" },
+  { value: "thermomix",    label: "Thermomix" },
 ];
 
 interface CategoryChipsProps {

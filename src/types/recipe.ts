@@ -86,3 +86,10 @@ export interface CookingHistoryEntry {
   rating?: number;
   notes?: string;
 }
+
+export interface RecipeState {
+  recipeId: string;
+  wantToCook: boolean;
+  cookedAt?: string[];
+  rating?: number;
+}

@@ -1,11 +1,12 @@
 "use client";
-import { ChevronLeft, Heart, Link2, Check, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { ChevronLeft, Heart, Link2, Check, MoreVertical, Pencil, Trash2, Bookmark } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import { FoodImage } from "@/components/ui/FoodImage";
 import type { Recipe } from "@/types/recipe";
 import { useFavourites } from "@/hooks/useFavourites";
+import { useRecipeStates } from "@/hooks/useRecipeStates";
 import { useDropboxImage } from "@/hooks/useDropboxImage";
 
 interface RecipeHeroProps {
@@ -17,7 +18,10 @@ interface RecipeHeroProps {
 export function RecipeHero({ recipe, onEdit, onDelete }: RecipeHeroProps) {
   const router = useRouter();
   const { isFavourite, toggle } = useFavourites();
+  const { isWantToCook, toggleWantToCook, hasCooked } = useRecipeStates();
   const saved = isFavourite(recipe.id);
+  const bookmarked = isWantToCook(recipe.id);
+  const cooked = hasCooked(recipe.id);
   const dropboxImage = useDropboxImage(recipe.heroImageDropboxPath);
   const heroSrc = dropboxImage ?? recipe.heroImageUrl;
   const [copied, setCopied] = useState(false);
@@ -113,6 +117,18 @@ export function RecipeHero({ recipe, onEdit, onDelete }: RecipeHeroProps) {
           )}
           <motion.button
             whileTap={{ scale: 0.85 }}
+            onClick={() => toggleWantToCook(recipe.id)}
+            className="w-10 h-10 bg-parchment-100/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-card"
+            aria-label={bookmarked ? "Remove from Want to Cook" : "Add to Want to Cook"}
+          >
+            <Bookmark
+              size={17}
+              className={bookmarked ? "text-saffron-500 fill-saffron-500" : "text-ink-700"}
+              fill={bookmarked ? "currentColor" : "none"}
+            />
+          </motion.button>
+          <motion.button
+            whileTap={{ scale: 0.85 }}
             onClick={share}
             className="w-10 h-10 bg-parchment-100/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-card"
             aria-label="Copy link"
@@ -146,6 +162,12 @@ export function RecipeHero({ recipe, onEdit, onDelete }: RecipeHeroProps) {
           <span className="text-label uppercase tracking-widest text-parchment-300/90">
             by {recipe.authorName}
           </span>
+          {cooked && (
+            <>
+              <span className="text-parchment-300/50">·</span>
+              <span className="text-label uppercase tracking-widest text-sage-400">✓ Cooked</span>
+            </>
+          )}
         </div>
         <h1 className="font-serif text-white text-2xl md:text-3xl font-semibold leading-tight text-balance">
           {recipe.title}

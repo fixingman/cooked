@@ -1,5 +1,6 @@
 "use client";
 import { RecipeCard } from "./RecipeCard";
+import { useRecipeStates } from "@/hooks/useRecipeStates";
 import type { Recipe } from "@/types/recipe";
 import type { ViewMode } from "@/hooks/useRecipeFilter";
 import { motion } from "framer-motion";
@@ -10,6 +11,8 @@ interface RecipeGridProps {
 }
 
 export function RecipeGrid({ recipes, viewMode = "grid" }: RecipeGridProps) {
+  const { hasCooked } = useRecipeStates();
+
   if (recipes.length === 0) {
     return (
       <motion.div
@@ -28,7 +31,7 @@ export function RecipeGrid({ recipes, viewMode = "grid" }: RecipeGridProps) {
     return (
       <div className="flex flex-col gap-3">
         {recipes.map((recipe, i) => (
-          <RecipeCard key={recipe.id} recipe={recipe} viewMode="list" index={i} />
+          <RecipeCard key={recipe.id} recipe={recipe} viewMode="list" index={i} isCooked={hasCooked(recipe.id)} />
         ))}
       </div>
     );
@@ -37,7 +40,7 @@ export function RecipeGrid({ recipes, viewMode = "grid" }: RecipeGridProps) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       {recipes.map((recipe, i) => (
-        <RecipeCard key={recipe.id} recipe={recipe} viewMode="grid" index={i} />
+        <RecipeCard key={recipe.id} recipe={recipe} viewMode="grid" index={i} isCooked={hasCooked(recipe.id)} />
       ))}
     </div>
   );

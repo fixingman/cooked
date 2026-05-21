@@ -10,6 +10,7 @@ import { ViewToggle } from "@/components/recipes/ViewToggle";
 import { ImportRecipeModal } from "@/components/recipes/ImportRecipeModal";
 import { useRecipeFilter } from "@/hooks/useRecipeFilter";
 import { useUserRecipes } from "@/hooks/useUserRecipes";
+import { useRecipeStates } from "@/hooks/useRecipeStates";
 import { recipes as builtInRecipes } from "@/data/recipes";
 import type { CategoryFilter, SortOption } from "@/hooks/useRecipeFilter";
 import type { MealTime, DietaryTag, Recipe } from "@/types/recipe";
@@ -23,10 +24,11 @@ const sortLabels: { value: SortOption; label: string }[] = [
   { value: "difficulty", label: "Easiest first" },
 ];
 
-function matchesCategory(recipe: Recipe, cat: CategoryFilter): boolean {
-  if (cat === "vegetarian") return recipe.dietaryTags.includes("vegetarian" as DietaryTag);
-  if (cat === "quick")      return recipe.totalTimeMinutes <= 30;
-  if (cat === "thermomix")  return !!recipe.thermomixAvailable;
+function matchesCategory(recipe: Recipe, cat: CategoryFilter, wantToCookIds?: Set<string>): boolean {
+  if (cat === "want-to-cook") return wantToCookIds?.has(recipe.id) ?? false;
+  if (cat === "vegetarian")   return recipe.dietaryTags.includes("vegetarian" as DietaryTag);
+  if (cat === "quick")        return recipe.totalTimeMinutes <= 30;
+  if (cat === "thermomix")    return !!recipe.thermomixAvailable;
   return recipe.mealTimes.includes(cat as MealTime);
 }
 
@@ -36,17 +38,23 @@ function RecipesContent() {
   const [showImport, setShowImport] = useState(false);
 
   const { recipes: userRecipes } = useUserRecipes();
+  const { states: recipeStates } = useRecipeStates();
 
   const { query, categories, dietary, viewMode, sort, setQuery, toggleCategory, clearCategories, setViewMode, setSort } =
     useRecipeFilter({ categories: initialCategory ? [initialCategory] : [] });
 
   const allRecipes = useMemo(() => [...userRecipes, ...builtInRecipes], [userRecipes]);
 
+  const wantToCookIds = useMemo(
+    () => new Set(recipeStates.filter(s => s.wantToCook).map(s => s.recipeId)),
+    [recipeStates]
+  );
+
   const filtered = useMemo(() => {
     let result = [...allRecipes];
 
     if (categories.length > 0) {
-      result = result.filter((r) => categories.every((cat) => matchesCategory(r, cat)));
+      result = result.filter((r) => categories.every((cat) => matchesCategory(r, cat, wantToCookIds)));
     }
     if (dietary.length > 0) {
       result = result.filter((r) => dietary.every((d) => r.dietaryTags.includes(d)));
@@ -69,7 +77,7 @@ function RecipesContent() {
     );
 
     return result;
-  }, [allRecipes, query, categories, dietary, sort]);
+  }, [allRecipes, query, categories, dietary, sort, wantToCookIds]);
 
   return (
     <div className="px-4 py-6 md:px-8 max-w-6xl mx-auto">

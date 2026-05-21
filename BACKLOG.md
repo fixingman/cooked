@@ -43,12 +43,7 @@ interface PantryItem { id: string; name: string; addedAt: string; category?: "pr
 **Staleness:** post-cook nudge to remove used items · 14-day staleness banner (no push notifications)
 **Decisions needed:** fuzzy vs exact ingredient matching for ranking · auto vs manual category assignment
 
-### 🔴 2 — Recipe States (Want to Cook / Cooked)
-Separate from favourites. `wantToCook` = intent, `cooked` = history.
-```ts
-interface RecipeState { recipeId: string; cookedAt?: string[]; wantToCook: boolean; rating?: number }
-```
-Stored in existing `/history.json`. UX: bookmark icon on detail · "✓ Cooked" badge on card · "Want to Cook" filter chip · CompletionScreen auto-marks cooked.
+### ✅ 2 — Recipe States (Want to Cook / Cooked) — v0.9.0
 
 ### 🔴 3 — AI Suggestions & Creation
 Two modes: *Suggest from library* (Claude ranks existing recipes from prompt) · *Generate new recipe* (full recipe, presented in import review screen before saving). Requires `aiEnabled` + server-side API key. UX entry point TBD.
@@ -90,3 +85,8 @@ Quality checklist per recipe: 5–12 steps · ingredient IDs cross-referenced to
 | Edit / delete user recipes (U-18) | 0.7.0 | 2026-05-20 |
 | Dropbox sync throttle (15 min), bootstrap fix | 0.7.1 | 2026-05-20 |
 | Attribution, Dropbox image hosting, import modal viewport fix | 0.8.0 | 2026-05-20 |
+| Import modal desktop panel | 0.8.1 | 2026-05-20 |
+| Error handling — 404, error boundary, URL validation | 0.8.2 | 2026-05-20 |
+| Performance — memo, lazy init, animation cap | 0.8.3 | 2026-05-21 |
+| Bug fixes — back button, content flash, card animations | 0.8.4 | 2026-05-21 |
+| Recipe States — Want to Cook / Cooked, filter chip, auto-mark | 0.9.0 | 2026-05-21 |

@@ -3,7 +3,7 @@ import { useReducer, useCallback } from "react";
 import type { DietaryTag } from "@/types/recipe";
 
 export type ViewMode = "grid" | "list";
-export type CategoryFilter = "breakfast" | "lunch" | "dinner" | "dessert" | "snack" | "vegetarian" | "quick" | "thermomix";
+export type CategoryFilter = "breakfast" | "lunch" | "dinner" | "dessert" | "snack" | "vegetarian" | "quick" | "thermomix" | "want-to-cook";
 export type SortOption = "none" | "rating" | "time" | "difficulty";
 
 export interface FilterState {
