@@ -62,10 +62,6 @@ export function ThermomixStepPanel({ step, stepId, direction }: ThermomixStepPan
           <StatBadge label="Time" value={timeDisplay} />
         </div>
 
-        {/* TM instruction */}
-        <p className="text-center text-sm text-ink-500 leading-relaxed max-w-[280px]">
-          {step.instruction}
-        </p>
       </motion.div>
     </AnimatePresence>
   );
