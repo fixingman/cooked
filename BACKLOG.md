@@ -10,29 +10,43 @@
 ---
 
 ## UX / Polish
+Ordered by impact. Each item is self-contained and shippable independently.
 
-| # | Description | Area | Notes |
-|---|-------------|------|-------|
-| U-19 | Nutritional values panel | Recipe detail | calories, protein, fat, carbs per serving; scale with servings adjuster |
-| U-16 | Related recipes at bottom of detail | Recipe detail | session depth |
-| U-13 | AI toggle "coming soon" label | Settings | looks broken without it |
-| U-4 | Progress ring label ambiguous | Cooking mode | shows step progress, not timer |
-| U-12 | Camera/Mic toggles do nothing | Settings | UI-only, lowest priority |
+| # | Description | Area | Why now |
+|---|-------------|------|---------|
+| U-20 | "Mark as Cooked" + rate from recipe detail | Recipe detail | Recipe States loop is incomplete — cooked/rate only reachable via cooking mode. One-tap from detail closes the gap. |
+| U-21 | Keep screen awake during cooking (`navigator.wakeLock`) | Cooking mode | Screen turns off mid-cook. Critical usability gap for a cooking app. 5-line fix. |
+| U-22 | Cooking notes field on CompletionScreen | Cooking mode | Add a text note at completion (e.g. "added extra garlic"); shown on recipe detail below description. Drives return visits. |
+| U-4  | Progress ring / step counter label | Cooking mode | Label is ambiguous — reads as timer progress, not step progress. Quick copy fix. |
+| U-16 | Related recipes at bottom of recipe detail | Recipe detail | Increases session depth. Uses existing `getRelatedRecipes()` in `src/lib/recipes.ts`. |
+| U-23 | Quick-bookmark from recipe card (long-press / hover action) | Recipe list | Currently bookmark only accessible from detail. Small discoverability improvement. |
+| U-13 | "Coming soon" label on AI toggle in Settings | Settings | Toggle looks broken without it. Two-line fix. |
+| U-19 | Nutritional values panel | Recipe detail | calories, protein, fat, carbs per serving; scale with servings adjuster. Needs data entry. |
+| U-12 | Camera/Mic toggles do nothing | Settings | UI-only placeholders. Hide or label them. Lowest priority. |
 
 ---
 
 ## Features
+Ordered by user value × feasibility. Phase B features (F-5, H-1B) depend on Pantry and are blocked until F-1 ships.
 
-### ✅ 0 — Attribution + Image Hosting
-`sourceType` on all recipes · attribution row on detail page · hero images archived to Dropbox `/images/[id].jpg` · `useDropboxImage` hook with 4h cached temp links
+### 🔴 F-9 — Ingredient Shopping List
+**What:** Checklist of ingredients from a recipe. Tap to check off as you shop. Persistent across sessions.
+**Why first:** Highest utility per effort of anything in the backlog. Ingredient data already exists on every recipe. No new data model needed beyond a `Set<string>` in localStorage.
+**UX:** "Add to list" button on recipe detail → bottom-sheet checklist. Combine ingredients from multiple recipes. Clear list action.
+**Data:** `cooked-shopping-list` in localStorage + Dropbox `/shopping-list.json`. Shape: `{ items: { id, name, recipeId, checked }[] }`.
+**Decisions needed:** single global list or per-recipe lists · merge duplicates across recipes.
 
-### ✅ H-1 — Smart Homepage Carousels Phase A — v0.10.0
+---
 
-### 🔴 H-1B — Smart Homepage Carousels Phase B
-Depends on Pantry (F1) + Recipe Ranking (F5). pantry-match ranking · cook-history signals · "For You" section.
+### 🔴 F-4 — Photo Import
+**What:** Claude vision extracts a recipe from a photo (cookbook page, handwritten card, screenshot). Reuses the existing import review/save flow — only the extraction step changes.
+**Why early:** Reuses 90% of existing `ImportRecipeModal` and save logic. Entry point: camera icon in import modal. High perceived magic.
+**Depends on:** `ANTHROPIC_API_KEY` server-side env var (same as F-3).
 
-### 🔴 1 — Pantry
-Dedicated tab (4th nav item). Binary — no quantities v1.
+---
+
+### 🔴 F-1 — Pantry
+Dedicated tab (4th nav item). Binary presence — no quantities in v1.
 
 **Data:** Dropbox `/pantry.json` · key `cooked-pantry`
 ```ts
@@ -42,28 +56,54 @@ interface PantryItem { id: string; name: string; addedAt: string; category?: "pr
 **Staleness:** post-cook nudge to remove used items · 14-day staleness banner (no push notifications)
 **Decisions needed:** fuzzy vs exact ingredient matching for ranking · auto vs manual category assignment
 
-### ✅ 2 — Recipe States (Want to Cook / Cooked) — v0.9.0
+---
 
-### 🔴 3 — AI Suggestions & Creation
-Two modes: *Suggest from library* (Claude ranks existing recipes from prompt) · *Generate new recipe* (full recipe, presented in import review screen before saving). Requires `aiEnabled` + server-side API key. UX entry point TBD.
+### 🔴 F-3 — AI Suggestions & Creation
+Two modes: *Suggest from library* (Claude ranks existing recipes from prompt) · *Generate new recipe* (full recipe, presented in import review screen before saving). Requires `aiEnabled` flag + `ANTHROPIC_API_KEY` server-side.
+**Decisions needed:** UX entry point (floating button? search bar mode? dedicated tab?).
 
-### 🔴 4 — Photo Import
-Claude vision extracts recipe from photo. Reuses import review/save flow. Same `sourceType: "image"`.
+---
 
-### 🔴 5 — Recipe Ranking
-"For You" sort. Signals: pantry match · favourited · cooked before · want to cook · recency penalty. Only activates when user has signal. Depends on Pantry + Recipe States.
+### 🔴 F-5 — Recipe Ranking ("For You" sort)
+Signals: pantry match · favourited · cooked before · want to cook · recency penalty. Only activates when user has enough signal. **Depends on F-1 (Pantry).**
 
-### 🔴 6 — Auth & User Profiles
-Needed for social/multi-user. Supabase Auth (magic link or Google). Not urgent while Dropbox covers persistence.
+---
 
-### 🔴 7 — Database
-Supabase (Postgres). Needed when collection requires server-side querying or multi-user. Depends on Auth.
+### 🔴 H-1B — Smart Homepage Carousels Phase B
+pantry-match ranking · cook-history signals · "For You" section at top of homepage. **Depends on F-1 + F-5.**
+
+---
+
+### 🔴 F-8 — Meal Planner
+Weekly calendar. Drag recipes into days. Auto-generates a combined shopping list for the week. High effort, high value — scope carefully before starting.
+
+---
+
+### 🔴 F-6 — Auth & User Profiles
+Supabase Auth (magic link or Google). Needed for social features, multi-device without Dropbox, sharing collections. Not urgent while Dropbox covers persistence.
+
+---
+
+### 🔴 F-7 — Database
+Supabase Postgres. Needed for server-side querying, multi-user, recipe search at scale. **Depends on F-6.**
+
+---
+
+## Infrastructure / Tech
+
+| # | Description | Notes |
+|---|-------------|-------|
+| I-1 | Background timer (Web Worker) | `setInterval` in `useCookingTimer` pauses when screen locks. Web Worker keeps ticking. Critical for timed steps. |
+| I-2 | PWA offline recipe cache | Service worker currently only caches Unsplash images. Recipe list/detail should be cached for true offline cooking. |
+| I-3 | Stale history cleanup | When a user recipe is deleted, its `CookingHistoryEntry` and `RecipeState` records become orphans. Add cleanup in `removeRecipe`. |
 
 ---
 
 ## Recipe Content
 
-Target 30+ recipes before user testing. Import sites: BBC Good Food ✅ · AllRecipes ✅ · Food52 ✅ · Serious Eats ✅ · Jamie Oliver ✅ · Bon Appétit ⚠️ · Epicurious ⚠️ · NYT Cooking ❌ (paywall) · Ottolenghi ⚠️ (untested)
+**Current:** 12 built-in. **Target:** 30+ before user testing.
+
+Import sources: BBC Good Food ✅ · AllRecipes ✅ · Food52 ✅ · Serious Eats ✅ · Jamie Oliver ✅ · Bon Appétit ⚠️ · Epicurious ⚠️ · NYT Cooking ❌ (paywall) · Ottolenghi ⚠️ (untested)
 
 Quality checklist per recipe: 5–12 steps · ingredient IDs cross-referenced to steps · `durationSeconds` on timed steps · Thermomix variant if applicable · hero photo in Dropbox · accurate difficulty/timing
 
