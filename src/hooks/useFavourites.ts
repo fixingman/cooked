@@ -18,5 +18,5 @@ export function useFavourites() {
 
   const isFavourite = useCallback((id: string) => ids.includes(id), [ids]);
 
-  return { toggle, isFavourite };
+  return { toggle, isFavourite, favouriteIds: ids };
 }

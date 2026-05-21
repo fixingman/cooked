@@ -26,11 +26,10 @@
 ### ✅ 0 — Attribution + Image Hosting
 `sourceType` on all recipes · attribution row on detail page · hero images archived to Dropbox `/images/[id].jpg` · `useDropboxImage` hook with 4h cached temp links
 
-### 🔴 H-1 — Smart Homepage Carousels
-Time-of-day buckets exist. Needs personalisation + dynamic featured hero.
-- **Phase A** (no new deps): include user-imported recipes in carousels · surface unfavourited/uncooked favourites · day-seeded featured hero rotation
-- **Phase B** (depends on F1 + F2): pantry-match ranking · cook-history signals · "For You" section
-Scope TBD.
+### ✅ H-1 — Smart Homepage Carousels Phase A — v0.10.0
+
+### 🔴 H-1B — Smart Homepage Carousels Phase B
+Depends on Pantry (F1) + Recipe Ranking (F5). pantry-match ranking · cook-history signals · "For You" section.
 
 ### 🔴 1 — Pantry
 Dedicated tab (4th nav item). Binary — no quantities v1.
@@ -90,3 +89,4 @@ Quality checklist per recipe: 5–12 steps · ingredient IDs cross-referenced to
 | Performance — memo, lazy init, animation cap | 0.8.3 | 2026-05-21 |
 | Bug fixes — back button, content flash, card animations | 0.8.4 | 2026-05-21 |
 | Recipe States — Want to Cook / Cooked, filter chip, auto-mark | 0.9.0 | 2026-05-21 |
+| Smart Homepage Carousels Phase A — user recipes, personalised sections, day-seed hero | 0.10.0 | 2026-05-21 |

@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { FoodImage } from "@/components/ui/FoodImage";
 import { Badge } from "@/components/ui/Badge";
 import { useCookingHistory } from "@/hooks/useCookingHistory";
+import { useUserRecipes } from "@/hooks/useUserRecipes";
 import { recipes } from "@/data/recipes";
 import { formatDistanceToNow } from "date-fns";
 import { formatMinutes } from "@/lib/formatTime";
@@ -12,11 +13,13 @@ import { Star, Clock } from "lucide-react";
 
 export function ContinueCooking() {
   const { history } = useCookingHistory();
+  const { recipes: userRecipes } = useUserRecipes();
+  const allRecipes = useMemo(() => [...userRecipes, ...recipes], [userRecipes]);
   const items = useMemo(
     () => history
-      .map((h) => ({ ...h, recipe: recipes.find((r) => r.id === h.recipeId) }))
+      .map((h) => ({ ...h, recipe: allRecipes.find((r) => r.id === h.recipeId) }))
       .filter((h) => h.recipe),
-    [history]
+    [history, allRecipes]
   );
 
   if (items.length === 0) return null;

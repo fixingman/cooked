@@ -12,11 +12,14 @@ import type { MealTime } from "@/types/recipe";
 interface MealTimeSectionProps {
   recipes: Recipe[];
   label: string;
-  mealTime: MealTime;
+  mealTime?: MealTime;
+  seeAllHref?: string;
 }
 
-export function MealTimeSection({ recipes, label, mealTime }: MealTimeSectionProps) {
+export function MealTimeSection({ recipes, label, mealTime, seeAllHref }: MealTimeSectionProps) {
   if (recipes.length === 0) return null;
+
+  const href = seeAllHref ?? (mealTime ? `/recipes?category=${mealTime}` : null);
 
   return (
     <motion.div
@@ -26,9 +29,11 @@ export function MealTimeSection({ recipes, label, mealTime }: MealTimeSectionPro
     >
       <div className="flex items-center justify-between mb-3">
         <p className="text-label uppercase tracking-widest text-ink-400">{label}</p>
-        <Link href={`/recipes?category=${mealTime}`} className="text-xs text-saffron-500 font-medium hover:text-saffron-600 transition-colors">
-          See all →
-        </Link>
+        {href && (
+          <Link href={href} className="text-xs text-saffron-500 font-medium hover:text-saffron-600 transition-colors">
+            See all →
+          </Link>
+        )}
       </div>
       <div className="flex gap-3 overflow-x-auto hide-scrollbar pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-4">
         {recipes.slice(0, 6).map((recipe, i) => (
