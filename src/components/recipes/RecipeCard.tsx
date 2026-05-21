@@ -20,9 +20,9 @@ export const RecipeCard = memo(function RecipeCard({ recipe, viewMode = "grid", 
   if (viewMode === "list") {
     return (
       <motion.div
-        initial={{ opacity: 0, y: 16 }}
+        initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: index * 0.04, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ delay: Math.min(index * 0.04, 0.24), duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
       >
         <Link href={`/recipes/${recipe.slug}`}>
           <div className="flex gap-4 p-4 bg-parchment-200 rounded-card border border-parchment-300 hover:shadow-card-md transition-shadow duration-300 group">
@@ -59,9 +59,9 @@ export const RecipeCard = memo(function RecipeCard({ recipe, viewMode = "grid", 
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20, scale: 0.97 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ delay: index * 0.06, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: Math.min(index * 0.04, 0.24), duration: 0.2 }}
       whileHover={{ y: -4 }}
     >
       <Link href={`/recipes/${recipe.slug}`}>

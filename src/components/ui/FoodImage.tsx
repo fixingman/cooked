@@ -44,7 +44,7 @@ export function FoodImage({
         onLoad={() => setLoaded(true)}
         onError={() => setError(true)}
         className={cn(
-          "object-cover transition-opacity duration-500",
+          "object-cover transition-opacity duration-200",
           loaded ? "opacity-100" : "opacity-0",
           className
         )}

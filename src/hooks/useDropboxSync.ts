@@ -55,18 +55,19 @@ export function useDropboxSync<T>({
   defaultValue,
   getValidAccessToken,
 }: UseDropboxSyncOptions<T>) {
-  const [value, setValueState] = useState<T>(defaultValue);
+  const [value, setValueState] = useState<T>(() => {
+    if (typeof window === "undefined") return defaultValue;
+    try {
+      const stored = localStorage.getItem(localStorageKey);
+      if (stored) return JSON.parse(stored) as T;
+    } catch {}
+    return defaultValue;
+  });
   const [syncing, setSyncing]   = useState(false);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    // 1. Read localStorage immediately — no flicker
-    try {
-      const stored = localStorage.getItem(localStorageKey);
-      if (stored) setValueState(JSON.parse(stored) as T);
-    } catch {}
-
-    // 2. Reconcile with Dropbox — only if not already downloaded this session window
+    // Reconcile with Dropbox — only if not already downloaded this session window
     if (!shouldDownload(dropboxPath)) return;
     (async () => {
       const token = await getValidAccessToken();

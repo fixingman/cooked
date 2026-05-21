@@ -36,8 +36,16 @@ export function RecipeHero({ recipe, onEdit, onDelete }: RecipeHeroProps) {
   }, [showMenu]);
 
   function goBack() {
-    if (window.history.length > 1) router.back();
-    else router.push("/recipes");
+    // Only go back if the previous page was within this app.
+    // history.length > 1 is unreliable — it counts the browser's full history.
+    try {
+      const ref = document.referrer;
+      if (ref && new URL(ref).origin === window.location.origin) {
+        router.back();
+        return;
+      }
+    } catch {}
+    router.push("/recipes");
   }
 
   function share() {
