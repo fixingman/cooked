@@ -34,6 +34,7 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
   const isEditMode = !!initialDraft;
   const [stage, setStage] = useState<Stage>(isEditMode ? "review" : "input");
   const [url, setUrl] = useState("");
+  const [urlError, setUrlError] = useState("");
   const [error, setError] = useState("");
   const [draft, setDraft] = useState<(Recipe & { sourceUrl?: string }) | null>(initialDraft ?? null);
   const [editTitle, setEditTitle] = useState(initialDraft?.title ?? "");
@@ -41,18 +42,19 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
   const [editMealTimes, setEditMealTimes] = useState<MealTime[]>(initialDraft?.mealTimes ?? []);
   const [saving, setSaving] = useState(false);
   const [heroImageBase64, setHeroImageBase64] = useState<string | null>(null);
-  const [isDesktop, setIsDesktop] = useState(false);
-  const [urlError, setUrlError] = useState("");
+
+  // Initialise synchronously from window so animation direction is correct on first render
+  const [isDesktop, setIsDesktop] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth >= 768 : false
+  );
 
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 768px)");
-    setIsDesktop(mq.matches);
     const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
   }, []);
 
-  // Close on Escape
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", handler);
@@ -61,10 +63,7 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
 
   async function handleImport() {
     const trimmed = url.trim();
-    if (!trimmed) {
-      setUrlError("Please enter a URL.");
-      return;
-    }
+    if (!trimmed) { setUrlError("Please enter a URL."); return; }
     try { new URL(trimmed); } catch {
       setUrlError("That doesn't look like a valid URL. Try pasting the full address including https://");
       return;
@@ -138,12 +137,15 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
     ? (isEditMode ? "Edit Recipe" : "Review Recipe")
     : "Import Recipe";
 
-  // Desktop: slide from right. Mobile: slide from bottom.
-  const panelAnimation = isDesktop
-    ? { initial: { x: "100%" }, animate: { x: 0 }, exit: { x: "100%" } }
-    : { initial: { y: "100%" }, animate: { y: 0 }, exit: { y: "100%" } };
-
-  const showFooter = stage === "review" || stage === "input";
+  // Variants encode their own transitions so enter (spring) and exit (ease) differ
+  const EXIT_EASE: [number, number, number, number] = [0.4, 0, 1, 1];
+  const panelVariants = isDesktop ? {
+    hidden: { x: "100%", transition: { duration: 0.22, ease: EXIT_EASE } },
+    visible: { x: 0, transition: { type: "spring" as const, stiffness: 340, damping: 38 } },
+  } : {
+    hidden: { y: "100%", transition: { duration: 0.22, ease: EXIT_EASE } },
+    visible: { y: 0, transition: { type: "spring" as const, stiffness: 340, damping: 38 } },
+  };
 
   return (
     <AnimatePresence>
@@ -158,19 +160,22 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
         onClick={onClose}
       />
 
-      {/* Panel */}
+      {/* Panel
+          Mobile  : bottom sheet, max 90dvh, rounded top corners
+          Desktop : full-height right panel, fixed top-0 + bottom-0, 480px wide, rounded left corners
+      */}
       <motion.div
         key="panel"
-        initial={panelAnimation.initial}
-        animate={{ ...panelAnimation.animate, transition: { type: "spring", stiffness: 340, damping: 38 } }}
-        exit={{ ...panelAnimation.exit, transition: { duration: 0.22, ease: [0.4, 0, 1, 1] } }}
+        variants={panelVariants}
+        initial="hidden"
+        animate="visible"
+        exit="hidden"
         className={[
-          // Base
           "fixed z-50 flex flex-col bg-parchment-100 overflow-hidden",
-          // Mobile: bottom sheet
-          "bottom-0 left-0 right-0 max-h-[90dvh] rounded-t-[1.5rem] shadow-card-lg",
-          // Desktop: right panel, full height
-          "md:inset-y-0 md:right-0 md:left-auto md:bottom-auto md:top-0 md:w-[440px] md:max-h-none md:rounded-none md:rounded-l-[1.5rem] md:shadow-[-8px_0_40px_rgba(0,0,0,0.12)]",
+          // Mobile bottom sheet
+          "bottom-0 left-0 right-0 max-h-[90dvh] rounded-t-[1.5rem] shadow-[0_-8px_40px_rgba(0,0,0,0.12)]",
+          // Desktop right panel — top-0 + bottom-0 = full viewport height, no max-h conflict
+          "md:top-0 md:bottom-0 md:right-0 md:left-auto md:w-[480px] md:max-h-none md:rounded-none md:rounded-tl-[1.5rem] md:rounded-bl-[1.5rem] md:shadow-[-8px_0_48px_rgba(0,0,0,0.14)]",
         ].join(" ")}
         onClick={e => e.stopPropagation()}
       >
@@ -179,9 +184,9 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
           <div className="w-10 h-1 bg-parchment-300 rounded-full" />
         </div>
 
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-parchment-300 shrink-0">
-          <div className="flex items-center gap-3">
+        {/* Header — fixed height, never scrolls */}
+        <div className="shrink-0 flex items-center justify-between px-5 py-4 border-b border-parchment-300">
+          <div className="flex items-center gap-2">
             {stage === "review" && !isEditMode && (
               <button
                 onClick={() => { setStage("input"); setDraft(null); }}
@@ -200,23 +205,23 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
           </button>
         </div>
 
-        {/* Scrollable body */}
-        <div className="flex-1 overflow-y-auto min-h-0">
+        {/* Body — flex-1 + min-h-0 = fills remaining height and scrolls */}
+        <div className="flex-1 min-h-0 overflow-y-auto">
 
-          {/* ── Review: hero image banner ── */}
+          {/* Hero banner (review only) — full-width, part of scroll */}
           {stage === "review" && draft && (
-            <div className="relative w-full h-44 bg-parchment-200 shrink-0">
+            <div className="relative w-full h-48 bg-parchment-200 shrink-0">
               {draft.heroImageUrl ? (
-                /* eslint-disable-next-line @next/next/no-img-element */
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={draft.heroImageUrl}
                   alt={draft.title}
                   className="w-full h-full object-cover"
-                  onError={e => { (e.target as HTMLImageElement).parentElement!.classList.add("hidden"); }}
+                  onError={e => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }}
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <ChefHat size={36} className="text-ink-300" />
+                  <ChefHat size={40} className="text-ink-300" />
                 </div>
               )}
               {hostname && (
@@ -230,7 +235,7 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
 
           <div className="p-5 space-y-5">
 
-            {/* ── Input stage ── */}
+            {/* Input */}
             {stage === "input" && (
               <>
                 <p className="text-sm text-ink-500">
@@ -247,7 +252,12 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
                       onKeyDown={e => e.key === "Enter" && handleImport()}
                       placeholder="https://example.com/recipe"
                       autoFocus
-                      className={`w-full pl-9 pr-3 py-2.5 bg-parchment-200 border rounded-xl text-sm text-ink-900 placeholder:text-ink-300 focus:outline-none focus:ring-1 transition-colors ${urlError ? "border-red-300 focus:border-red-400 focus:ring-red-400/30" : "border-parchment-300 focus:border-saffron-400 focus:ring-saffron-400/30"}`}
+                      className={[
+                        "w-full pl-9 pr-3 py-2.5 bg-parchment-200 border rounded-xl text-sm text-ink-900 placeholder:text-ink-300 focus:outline-none focus:ring-1 transition-colors",
+                        urlError
+                          ? "border-red-300 focus:border-red-400 focus:ring-red-400/30"
+                          : "border-parchment-300 focus:border-saffron-400 focus:ring-saffron-400/30",
+                      ].join(" ")}
                     />
                   </div>
                   <motion.button
@@ -258,18 +268,16 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
                     Import
                   </motion.button>
                 </div>
-                {urlError && (
-                  <p className="text-xs text-red-500 mt-1">{urlError}</p>
-                )}
+                {urlError && <p className="text-xs text-red-500">{urlError}</p>}
                 <p className="text-xs text-ink-300">
                   Works with BBC Good Food, Allrecipes, Food52, Serious Eats, and more.
                 </p>
               </>
             )}
 
-            {/* ── Loading stage ── */}
+            {/* Loading */}
             {stage === "loading" && (
-              <div className="flex flex-col items-center gap-4 py-16 text-center">
+              <div className="flex flex-col items-center gap-4 py-20 text-center">
                 <div className="w-14 h-14 bg-parchment-200 rounded-full flex items-center justify-center">
                   <Loader2 size={24} className="text-saffron-500 animate-spin" />
                 </div>
@@ -280,7 +288,7 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
               </div>
             )}
 
-            {/* ── Error stage ── */}
+            {/* Error */}
             {stage === "error" && (
               <>
                 <div className="flex items-start gap-3 p-4 bg-red-50 rounded-xl border border-red-100">
@@ -297,11 +305,11 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
               </>
             )}
 
-            {/* ── Review stage: fields ── */}
+            {/* Review */}
             {stage === "review" && draft && (
               <>
-                {/* Stats row */}
-                <div className="flex items-center gap-3 text-xs text-ink-500 flex-wrap">
+                {/* Stats */}
+                <div className="flex items-center gap-3 text-xs text-ink-500 flex-wrap py-0.5">
                   <span className="flex items-center gap-1">
                     <Clock size={12} className="text-ink-400" />
                     {formatMinutes(draft.totalTimeMinutes)}
@@ -315,7 +323,7 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
                   <span>{draft.ingredients.length} ingredients · {draft.steps.length} steps</span>
                 </div>
 
-                {/* Editable title */}
+                {/* Title */}
                 <div>
                   <label className="text-xs font-medium text-ink-400 uppercase tracking-wider">Title</label>
                   <input
@@ -326,7 +334,7 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
                   />
                 </div>
 
-                {/* Meal type chips */}
+                {/* Meal type */}
                 <div>
                   <label className="text-xs font-medium text-ink-400 uppercase tracking-wider">Meal type</label>
                   <div className="flex flex-wrap gap-2 mt-2">
@@ -352,7 +360,7 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
                   <textarea
                     value={editDesc}
                     onChange={e => setEditDesc(e.target.value)}
-                    rows={3}
+                    rows={4}
                     className="mt-1.5 w-full px-3 py-2.5 bg-parchment-200 border border-parchment-300 rounded-xl text-sm text-ink-700 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/30 resize-none"
                   />
                 </div>
@@ -368,10 +376,10 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
           </div>
         </div>
 
-        {/* Footer */}
-        {showFooter && (
-          <div className="shrink-0 px-5 pt-3 pb-5 border-t border-parchment-300 bg-parchment-100">
-            {stage === "review" && (
+        {/* Footer — fixed at bottom, never scrolls */}
+        {(stage === "review" || stage === "input") && (
+          <div className="shrink-0 px-5 pt-3 pb-5 md:pb-5 border-t border-parchment-300 bg-parchment-100">
+            {stage === "review" ? (
               <div className="flex gap-3">
                 <motion.button
                   whileTap={{ scale: 0.95 }}
@@ -392,8 +400,7 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
                     : isEditMode ? "Save Changes" : "Save Recipe"}
                 </motion.button>
               </div>
-            )}
-            {stage === "input" && (
+            ) : (
               <p className="text-center text-xs text-ink-300">
                 Your imported recipes are saved to your own Dropbox.
               </p>
