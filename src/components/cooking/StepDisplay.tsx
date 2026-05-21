@@ -16,9 +16,60 @@ const variants = {
   exit: (dir: number) => ({ x: dir > 0 ? -60 : 60, opacity: 0 }),
 };
 
+// Detects TM settings lines: "Cook 10 min / 100°C / Speed 2"
+function isSettingsLine(s: string) {
+  return /speed\s*\d|°c|varoma|\d+\s*(sec|min)\s*\/|\d+:\d{2}/i.test(s);
+}
+
+function splitSentences(text: string): string[] {
+  // Split on sentence-ending punctuation followed by a space + capital letter
+  return text
+    .split(/(?<=[.!?])\s+(?=[A-Z])/)
+    .map(s => s.trim())
+    .filter(Boolean);
+}
+
+function TmInstructions({ text }: { text: string }) {
+  const sentences = splitSentences(text);
+
+  return (
+    <div className="flex flex-col gap-3 w-full">
+      {sentences.map((sentence, i) => {
+        const isSettings = isSettingsLine(sentence);
+        return isSettings ? (
+          <div
+            key={i}
+            className="flex items-center gap-2.5 bg-sage-50 border border-sage-200 rounded-xl px-4 py-3"
+          >
+            {/* TM icon */}
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" className="text-sage-500 shrink-0">
+              <path d="M6 4h12l1 4H5L6 4z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+              <path d="M5 8c0 6 2 10 7 10s7-4 7-10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              <path d="M12 8v6M9.5 11h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+            <p className="text-sage-700 text-sm font-medium leading-snug">{sentence}</p>
+          </div>
+        ) : (
+          <p
+            key={i}
+            className={`font-serif leading-snug text-balance ${
+              i === 0
+                ? "text-ink-900 text-xl md:text-2xl"
+                : "text-ink-500 text-base md:text-lg italic"
+            }`}
+          >
+            {sentence}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
 export function StepDisplay({ step, direction, totalSteps, overrideInstruction, overrideLabel }: StepDisplayProps) {
   const instruction = overrideInstruction ?? step.instruction;
   const label = overrideLabel ?? step.shortLabel;
+  const isTm = !!overrideInstruction;
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -32,18 +83,22 @@ export function StepDisplay({ step, direction, totalSteps, overrideInstruction, 
       <div className="flex-1 relative overflow-hidden" style={{ minHeight: 0 }}>
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
-            key={step.id + (overrideInstruction ? "-tm" : "")}
+            key={step.id + (isTm ? "-tm" : "")}
             custom={direction}
             variants={variants}
             initial="enter"
             animate="center"
             exit="exit"
             transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute inset-0 flex items-center"
+            className={`absolute inset-0 ${isTm ? "overflow-y-auto" : "flex items-center"}`}
           >
-            <p className="font-serif text-ink-900 text-xl md:text-2xl leading-relaxed text-balance">
-              {instruction}
-            </p>
+            {isTm ? (
+              <TmInstructions text={instruction} />
+            ) : (
+              <p className="font-serif text-ink-900 text-xl md:text-2xl leading-relaxed text-balance">
+                {instruction}
+              </p>
+            )}
           </motion.div>
         </AnimatePresence>
       </div>
