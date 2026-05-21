@@ -13,7 +13,6 @@ interface FoodImageProps {
   className?: string;
   containerClassName?: string;
   sizes?: string;
-  layoutId?: string;
 }
 
 export function FoodImage({

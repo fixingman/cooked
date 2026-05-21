@@ -29,6 +29,7 @@ Three files must always match:
 - `0.1.0` Full UI prototype · `0.2.0` Thermomix · `0.3.0` UX polish · `0.4.0` Multi-select filters
 - `0.4.1` Timer/nav fixes · `0.5.0` Dropbox sync · `0.6.0` URL import + sharing · `0.6.1` Upload fix
 - `0.7.0` Edit/delete recipes · `0.7.1` Sync throttle · `0.8.0` Attribution + image hosting
+- `0.8.1` Import modal desktop panel · `0.8.2` Error handling + 404 · `0.8.3` Performance
 
 ---
 

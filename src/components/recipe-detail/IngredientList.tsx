@@ -1,3 +1,5 @@
+"use client";
+import { useMemo } from "react";
 import { scaleQuantity } from "@/lib/scaleIngredient";
 import type { Ingredient } from "@/types/recipe";
 import { cn } from "@/lib/cn";
@@ -19,7 +21,7 @@ function groupIngredients(ingredients: Ingredient[]): Map<string, Ingredient[]> 
 }
 
 export function IngredientList({ ingredients, scale, units = "metric" }: IngredientListProps) {
-  const groups = groupIngredients(ingredients);
+  const groups = useMemo(() => groupIngredients(ingredients), [ingredients]);
 
   return (
     <div className="space-y-5">

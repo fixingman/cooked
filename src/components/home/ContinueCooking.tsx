@@ -1,4 +1,5 @@
 "use client";
+import { useMemo } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { FoodImage } from "@/components/ui/FoodImage";
@@ -11,9 +12,12 @@ import { Star, Clock } from "lucide-react";
 
 export function ContinueCooking() {
   const { history } = useCookingHistory();
-  const items = history
-    .map((h) => ({ ...h, recipe: recipes.find((r) => r.id === h.recipeId) }))
-    .filter((h) => h.recipe);
+  const items = useMemo(
+    () => history
+      .map((h) => ({ ...h, recipe: recipes.find((r) => r.id === h.recipeId) }))
+      .filter((h) => h.recipe),
+    [history]
+  );
 
   if (items.length === 0) return null;
 

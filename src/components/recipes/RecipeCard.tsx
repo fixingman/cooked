@@ -1,9 +1,11 @@
 "use client";
+import { memo } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Clock, Star } from "lucide-react";
+import { Clock } from "lucide-react";
 import { FoodImage } from "@/components/ui/FoodImage";
 import { Badge } from "@/components/ui/Badge";
+import { RecipeRating } from "@/components/ui/RecipeRating";
 import { cn } from "@/lib/cn";
 import { formatMinutes } from "@/lib/formatTime";
 import type { Recipe } from "@/types/recipe";
@@ -14,7 +16,7 @@ interface RecipeCardProps {
   index?: number;
 }
 
-export function RecipeCard({ recipe, viewMode = "grid", index = 0 }: RecipeCardProps) {
+export const RecipeCard = memo(function RecipeCard({ recipe, viewMode = "grid", index = 0 }: RecipeCardProps) {
   if (viewMode === "list") {
     return (
       <motion.div
@@ -38,10 +40,7 @@ export function RecipeCard({ recipe, viewMode = "grid", index = 0 }: RecipeCardP
                 <h3 className="font-serif font-medium text-ink-900 leading-snug text-base group-hover:text-saffron-600 transition-colors duration-200 line-clamp-1">
                   {recipe.title}
                 </h3>
-                <div className="flex items-center gap-1 text-saffron-500 shrink-0">
-                  <Star size={12} fill="currentColor" />
-                  <span className="text-xs font-medium text-ink-500">{recipe.rating}</span>
-                </div>
+                <RecipeRating rating={recipe.rating} size={12} valueClassName="font-medium" className="shrink-0" />
               </div>
               <p className="text-sm text-ink-500 mt-1 line-clamp-2">{recipe.description}</p>
               <div className="flex items-center gap-3 mt-2">
@@ -97,14 +96,11 @@ export function RecipeCard({ recipe, viewMode = "grid", index = 0 }: RecipeCardP
                 </span>
                 <Badge label={recipe.difficulty} variant="difficulty" />
               </div>
-              <div className="flex items-center gap-0.5 text-saffron-500">
-                <Star size={11} fill="currentColor" />
-                <span className="text-xs text-ink-500 ml-0.5">{recipe.rating}</span>
-              </div>
+              <RecipeRating rating={recipe.rating} size={11} className="gap-0.5" />
             </div>
           </div>
         </div>
       </Link>
     </motion.div>
   );
-}
+});
