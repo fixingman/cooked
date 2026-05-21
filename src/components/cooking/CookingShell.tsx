@@ -11,7 +11,6 @@ import { StepDisplay } from "./StepDisplay";
 import { StepIngredients } from "./StepIngredients";
 import { StepNavControls } from "./StepNavControls";
 import { CompletionScreen } from "./CompletionScreen";
-import { ThermomixStepPanel } from "./ThermomixStepPanel";
 
 interface CookingShellProps {
   recipe: Recipe;
@@ -25,30 +24,25 @@ export function CookingShell({ recipe, thermomixMode = false }: CookingShellProp
 
   const step = recipe.steps[stepIndex];
   const hasTmStep = thermomixMode && !!step.thermomix;
-  function stepDuration(s: typeof step) {
-    return thermomixMode && s.thermomix ? s.thermomix.timeSeconds : (s.durationSeconds ?? 0);
-  }
-  const timer = useCookingTimer(stepDuration(step));
+  const timer = useCookingTimer(step.durationSeconds ?? 0);
 
   const goNext = useCallback(() => {
     if (stepIndex < recipe.steps.length - 1) {
       setDirection(1);
       setStepIndex((i) => i + 1);
-      timer.reset(stepDuration(recipe.steps[stepIndex + 1]));
+      timer.reset(recipe.steps[stepIndex + 1].durationSeconds ?? 0);
     } else {
       setCompleted(true);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stepIndex, recipe.steps, timer, thermomixMode]);
+  }, [stepIndex, recipe.steps, timer]);
 
   const goPrev = useCallback(() => {
     if (stepIndex > 0) {
       setDirection(-1);
       setStepIndex((i) => i - 1);
-      timer.reset(stepDuration(recipe.steps[stepIndex - 1]));
+      timer.reset(recipe.steps[stepIndex - 1].durationSeconds ?? 0);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stepIndex, recipe.steps, timer, thermomixMode]);
+  }, [stepIndex, recipe.steps, timer]);
 
   const swipe = useSwipeGesture({ onSwipeLeft: goNext, onSwipeRight: goPrev });
 
@@ -104,30 +98,17 @@ export function CookingShell({ recipe, thermomixMode = false }: CookingShellProp
 
       {/* Main content — splits into 2 columns on iPad landscape */}
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
-        {/* Left panel: visual + timer (or Thermomix panel) */}
+        {/* Left panel: ingredients + optional timer */}
         <div className="md:w-1/2 flex flex-col items-center justify-center p-6 gap-6 border-b md:border-b-0 md:border-r border-parchment-300">
-          {thermomixMode && step.thermomix ? (
-            <ThermomixStepPanel
-              step={step.thermomix}
-              stepId={step.id}
-              direction={direction}
-              remaining={timer.remaining}
-              isRunning={timer.isRunning}
-              onToggleTimer={timer.toggle}
-            />
-          ) : (
-            <>
-              <StepIngredients
-                allIngredients={recipe.ingredients}
-                stepIngredientIds={step.ingredients}
-                stepId={step.id}
-                fallbackImageUrl={recipe.heroImageUrl}
-                direction={direction}
-              />
-              {step.durationSeconds && step.durationSeconds > 0 && (
-                <TimerBlock remaining={timer.remaining} label={step.timerLabel} />
-              )}
-            </>
+          <StepIngredients
+            allIngredients={recipe.ingredients}
+            stepIngredientIds={step.ingredients}
+            stepId={step.id}
+            fallbackImageUrl={recipe.heroImageUrl}
+            direction={direction}
+          />
+          {!hasTmStep && step.durationSeconds && step.durationSeconds > 0 && (
+            <TimerBlock remaining={timer.remaining} label={step.timerLabel} />
           )}
         </div>
 
