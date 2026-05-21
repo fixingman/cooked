@@ -16,9 +16,10 @@ const variants = {
   exit: (dir: number) => ({ x: dir > 0 ? -60 : 60, opacity: 0 }),
 };
 
-// Detects TM settings lines: "Cook 10 min / 100°C / Speed 2"
+// Settings lines always contain "Speed X" — e.g. "Cook 10 min / 100°C / Speed 2"
+// Avoids false positives like "Strain using the Varoma tray"
 function isSettingsLine(s: string) {
-  return /speed\s*\d|°c|varoma|\d+\s*(sec|min)\s*\/|\d+:\d{2}/i.test(s);
+  return /speed\s*\d+/i.test(s);
 }
 
 function splitSentences(text: string): string[] {
@@ -41,8 +42,7 @@ function TmInstructions({ text }: { text: string }) {
             key={i}
             className="flex items-center gap-2.5 bg-sage-50 border border-sage-200 rounded-xl px-4 py-3"
           >
-            {/* TM icon */}
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" className="text-sage-500 shrink-0">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="text-sage-500 shrink-0">
               <path d="M6 4h12l1 4H5L6 4z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
               <path d="M5 8c0 6 2 10 7 10s7-4 7-10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
               <path d="M12 8v6M9.5 11h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -50,14 +50,7 @@ function TmInstructions({ text }: { text: string }) {
             <p className="text-sage-700 text-sm font-medium leading-snug">{sentence}</p>
           </div>
         ) : (
-          <p
-            key={i}
-            className={`font-serif leading-snug text-balance ${
-              i === 0
-                ? "text-ink-900 text-xl md:text-2xl"
-                : "text-ink-500 text-base md:text-lg italic"
-            }`}
-          >
+          <p key={i} className="font-serif text-ink-900 text-lg md:text-xl leading-snug text-balance">
             {sentence}
           </p>
         );
