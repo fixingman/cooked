@@ -42,6 +42,7 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
   const [saving, setSaving] = useState(false);
   const [heroImageBase64, setHeroImageBase64] = useState<string | null>(null);
   const [isDesktop, setIsDesktop] = useState(false);
+  const [urlError, setUrlError] = useState("");
 
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 768px)");
@@ -60,7 +61,15 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
 
   async function handleImport() {
     const trimmed = url.trim();
-    if (!trimmed) return;
+    if (!trimmed) {
+      setUrlError("Please enter a URL.");
+      return;
+    }
+    try { new URL(trimmed); } catch {
+      setUrlError("That doesn't look like a valid URL. Try pasting the full address including https://");
+      return;
+    }
+    setUrlError("");
     setStage("loading");
     setError("");
     try {
@@ -234,22 +243,24 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
                       ref={inputRef}
                       type="url"
                       value={url}
-                      onChange={e => setUrl(e.target.value)}
+                      onChange={e => { setUrl(e.target.value); if (urlError) setUrlError(""); }}
                       onKeyDown={e => e.key === "Enter" && handleImport()}
                       placeholder="https://example.com/recipe"
                       autoFocus
-                      className="w-full pl-9 pr-3 py-2.5 bg-parchment-200 border border-parchment-300 rounded-xl text-sm text-ink-900 placeholder:text-ink-300 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/30"
+                      className={`w-full pl-9 pr-3 py-2.5 bg-parchment-200 border rounded-xl text-sm text-ink-900 placeholder:text-ink-300 focus:outline-none focus:ring-1 transition-colors ${urlError ? "border-red-300 focus:border-red-400 focus:ring-red-400/30" : "border-parchment-300 focus:border-saffron-400 focus:ring-saffron-400/30"}`}
                     />
                   </div>
                   <motion.button
                     whileTap={{ scale: 0.95 }}
                     onClick={handleImport}
-                    disabled={!url.trim()}
-                    className="px-4 py-2.5 bg-saffron-500 text-white rounded-xl text-sm font-medium hover:bg-saffron-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shrink-0"
+                    className="px-4 py-2.5 bg-saffron-500 text-white rounded-xl text-sm font-medium hover:bg-saffron-600 transition-colors shrink-0"
                   >
                     Import
                   </motion.button>
                 </div>
+                {urlError && (
+                  <p className="text-xs text-red-500 mt-1">{urlError}</p>
+                )}
                 <p className="text-xs text-ink-300">
                   Works with BBC Good Food, Allrecipes, Food52, Serious Eats, and more.
                 </p>
