@@ -47,7 +47,7 @@ export function StepNavControls({
             {isRunning ? <Pause size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" className="ml-0.5" />}
           </motion.button>
         ) : (
-          <div className="font-serif text-sm font-medium text-ink-700">
+          <div className="text-xs font-medium text-ink-600 tabular-nums">
             {currentStep}/{totalSteps}
           </div>
         )}
