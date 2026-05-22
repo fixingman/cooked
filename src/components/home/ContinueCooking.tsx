@@ -24,15 +24,25 @@ export function ContinueCooking() {
 
   if (items.length === 0) return null;
 
+  const visible = items.slice(0, 3);
+  const hasMore = items.length > 3;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.35, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
     >
-      <p className="text-label uppercase tracking-widest text-ink-400 mb-3">Recently Cooked</p>
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-label uppercase tracking-widest text-ink-400">Recently Cooked</p>
+        {hasMore && (
+          <Link href="/recipes?category=cooked" className="text-xs text-saffron-500 font-medium hover:text-saffron-600 transition-colors">
+            See all →
+          </Link>
+        )}
+      </div>
       <div className="flex flex-col gap-2.5">
-        {items.map(({ recipe, cookedAt, rating }, i) => (
+        {visible.map(({ recipe, cookedAt, rating }, i) => (
           <Link key={recipe!.id} href={`/recipes/${recipe!.slug}`}>
             <motion.div
               initial={{ opacity: 0, x: -12 }}
