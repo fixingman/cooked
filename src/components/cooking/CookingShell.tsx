@@ -89,10 +89,7 @@ export function CookingShell({ recipe, thermomixMode = false }: CookingShellProp
         <div className="text-center">
           <p className="font-serif text-sm font-medium text-ink-900 line-clamp-1 max-w-[180px]">
             {recipe.title}
-          </p>
-          <p className="text-label text-ink-400 uppercase tracking-widest">
-            {stepIndex + 1} / {recipe.steps.length}
-            {thermomixMode && <span className="ml-1.5 text-sage-500">· TM</span>}
+            {thermomixMode && <span className="ml-1.5 text-sage-500 font-sans text-xs">· TM</span>}
           </p>
         </div>
         <div className="w-8" />
@@ -126,12 +123,11 @@ export function CookingShell({ recipe, thermomixMode = false }: CookingShellProp
         <div className="flex-1 flex flex-col p-6 md:p-8">
           <div className="flex-1 overflow-hidden">
             <StepDisplay
-            step={step}
-            direction={direction}
-            totalSteps={recipe.steps.length}
-            overrideInstruction={thermomixMode && step.thermomix ? step.thermomix.instruction : undefined}
-            overrideLabel={thermomixMode && step.thermomix?.label ? step.thermomix.label : undefined}
-          />
+              step={step}
+              direction={direction}
+              overrideInstruction={thermomixMode && step.thermomix ? step.thermomix.instruction : undefined}
+              overrideLabel={thermomixMode && step.thermomix?.label ? step.thermomix.label : undefined}
+            />
           </div>
         </div>
       </div>
