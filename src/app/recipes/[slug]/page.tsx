@@ -9,6 +9,7 @@ import { ServingsAdjuster } from "@/components/recipe-detail/ServingsAdjuster";
 import { IngredientList } from "@/components/recipe-detail/IngredientList";
 import { InstructionSteps } from "@/components/recipe-detail/InstructionSteps";
 import { StartCookingButton } from "@/components/recipe-detail/StartCookingButton";
+import { NutritionPanel } from "@/components/recipe-detail/NutritionPanel";
 import { ImportRecipeModal } from "@/components/recipes/ImportRecipeModal";
 import { Badge } from "@/components/ui/Badge";
 import { useServingsScale } from "@/hooks/useServingsScale";
@@ -132,6 +133,8 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
         <div className="py-5 border-b border-parchment-300">
           <p className="font-serif text-ink-700 leading-relaxed text-[1.05rem]">{recipe.description}</p>
         </div>
+
+        <NutritionPanel recipe={recipe} />
 
         {/* Servings */}
         <div className="py-5 border-b border-parchment-300">

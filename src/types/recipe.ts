@@ -64,6 +64,9 @@ export interface Recipe {
   totalTimeMinutes: number;
   servings: number;
   calories?: number;
+  protein?: number;
+  fat?: number;
+  carbs?: number;
   rating: number;
   reviewCount: number;
   tags: string[];

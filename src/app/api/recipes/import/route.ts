@@ -81,6 +81,48 @@ ${pageText.slice(0, 40_000)}`;
   }
 }
 
+async function estimateNutrition(
+  recipe: { title: string; servings: number; ingredients: { quantity: number; unit: string; name: string }[] },
+  apiKey: string,
+): Promise<{ calories?: number; protein?: number; fat?: number; carbs?: number }> {
+  const ingredientList = recipe.ingredients
+    .map(i => `${i.quantity > 0 ? i.quantity : ""} ${i.unit} ${i.name}`.trim())
+    .join(", ");
+
+  const prompt = `Estimate nutrition per serving for this recipe.
+Title: ${recipe.title}
+Servings: ${recipe.servings}
+Ingredients: ${ingredientList}
+
+Return ONLY a JSON object with integer values per serving: {"calories": number, "protein": number, "fat": number, "carbs": number}`;
+
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 128,
+        messages: [{ role: "user", content: prompt }],
+      }),
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!res.ok) return {};
+    const data = await res.json();
+    const text = (data?.content?.[0]?.text as string | undefined) ?? "";
+    const raw = text.match(/\{[\s\S]+\}/)?.[0] ?? text.trim();
+    const json = JSON.parse(raw);
+    const num = (k: string) => (typeof json[k] === "number" && json[k] > 0 ? Math.round(json[k]) : undefined);
+    return { calories: num("calories"), protein: num("protein"), fat: num("fat"), carbs: num("carbs") };
+  } catch {
+    return {};
+  }
+}
+
 export async function POST(req: Request) {
   let url: string;
   try {
@@ -124,15 +166,28 @@ export async function POST(req: Request) {
     );
   }
 
-  // Try JSON-LD first
-  const jsonLdRecipe = parseRecipeFromHtml(html, url, id);
-  if (jsonLdRecipe) {
-    const heroImageBase64 = await fetchImageAsBase64(jsonLdRecipe.heroImageUrl);
-    return Response.json({ recipe: jsonLdRecipe, ...(heroImageBase64 ? { heroImageBase64 } : {}) });
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+
+  function needsNutrition(r: { calories?: number; protein?: number }) {
+    return !r.calories && !r.protein;
   }
 
+  async function finalise(recipe: ReturnType<typeof parseRecipeFromHtml> & object) {
+    const [heroImageBase64, nutrition] = await Promise.all([
+      fetchImageAsBase64((recipe as { heroImageUrl?: string }).heroImageUrl),
+      apiKey && needsNutrition(recipe as { calories?: number; protein?: number })
+        ? estimateNutrition(recipe as Parameters<typeof estimateNutrition>[0], apiKey)
+        : Promise.resolve({}),
+    ]);
+    const enriched = { ...recipe, ...nutrition };
+    return Response.json({ recipe: enriched, ...(heroImageBase64 ? { heroImageBase64 } : {}) });
+  }
+
+  // Try JSON-LD first
+  const jsonLdRecipe = parseRecipeFromHtml(html, url, id);
+  if (jsonLdRecipe) return finalise(jsonLdRecipe);
+
   // Claude fallback — only if API key is configured
-  const apiKey = process.env.ANTHROPIC_API_KEY;
   if (apiKey) {
     try {
       const pageText = stripHtmlToText(html);
@@ -140,10 +195,7 @@ export async function POST(req: Request) {
         return Response.json({ error: "This page doesn't appear to contain a recipe." }, { status: 422 });
       }
       const claudeRecipe = await extractWithClaude(pageText, url, id, apiKey);
-      if (claudeRecipe) {
-        const heroImageBase64 = await fetchImageAsBase64(claudeRecipe.heroImageUrl);
-        return Response.json({ recipe: claudeRecipe, ...(heroImageBase64 ? { heroImageBase64 } : {}) });
-      }
+      if (claudeRecipe) return finalise(claudeRecipe);
     } catch {}
   }
 

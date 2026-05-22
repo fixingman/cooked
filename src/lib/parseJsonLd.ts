@@ -157,6 +157,12 @@ function findRecipeSchema(data: any): any | null {
   return null;
 }
 
+function parseNutrient(v: string | undefined): number | undefined {
+  if (!v) return undefined;
+  const n = parseInt(v.replace(/[^\d]/g, ""));
+  return isNaN(n) || n === 0 ? undefined : n;
+}
+
 export interface RecipeDraft extends Recipe {
   sourceUrl: string;
   sourceType: RecipeSource;
@@ -205,9 +211,10 @@ export function buildRecipeFromSchema(
     cookTimeMinutes,
     totalTimeMinutes,
     servings,
-    calories: parseInt(
-      ((schema.nutrition as Record<string, string> | undefined)?.calories ?? "").replace(/\D.*/, "")
-    ) || undefined,
+    calories: parseNutrient((schema.nutrition as Record<string, string> | undefined)?.calories),
+    protein:  parseNutrient((schema.nutrition as Record<string, string> | undefined)?.proteinContent),
+    fat:      parseNutrient((schema.nutrition as Record<string, string> | undefined)?.fatContent),
+    carbs:    parseNutrient((schema.nutrition as Record<string, string> | undefined)?.carbohydrateContent),
     rating: 0,
     reviewCount: 0,
     tags: [],

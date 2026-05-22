@@ -20,8 +20,8 @@ Ordered by impact. Each item is self-contained and shippable independently.
 | U-4  | Progress ring / step counter label | Cooking mode | Label is ambiguous — reads as timer progress, not step progress. Quick copy fix. |
 | U-16 | Related recipes at bottom of recipe detail | Recipe detail | Increases session depth. Uses existing `getRelatedRecipes()` in `src/lib/recipes.ts`. |
 | U-23 | Quick-bookmark from recipe card (long-press / hover action) | Recipe list | Currently bookmark only accessible from detail. Small discoverability improvement. |
-| U-13 | "Coming soon" label on AI toggle in Settings | Settings | Toggle looks broken without it. Two-line fix. |
-| U-19 | Nutritional values panel | Recipe detail | calories, protein, fat, carbs per serving; scale with servings adjuster. Needs data entry. |
+| ✅ U-13 | "Coming soon" label on AI toggle — v0.10.3 | Settings | |
+| ✅ U-19 | Nutritional values panel — v0.10.3 | Recipe detail | calories/protein/fat/carbs parsed from JSON-LD; AI (Haiku) fills in missing values on import. |
 | U-12 | Camera/Mic toggles do nothing | Settings | UI-only placeholders. Hide or label them. Lowest priority. |
 
 ---
@@ -132,3 +132,4 @@ Quality checklist per recipe: 5–12 steps · ingredient IDs cross-referenced to
 | Smart Homepage Carousels Phase A — user recipes, personalised sections, day-seed hero | 0.10.0 | 2026-05-21 |
 | Keep screen awake during cooking (navigator.wakeLock) | 0.10.1 | 2026-05-22 |
 | Infrastructure — Web Worker timer, PWA offline cache, stale history cleanup | 0.10.2 | 2026-05-22 |
+| Nutrition panel (AI fill-in on import) + AI toggle "coming soon" label | 0.10.3 | 2026-05-22 |
