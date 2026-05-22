@@ -2,7 +2,7 @@
 import React from "react";
 import { notFound, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Clock, Users, BarChart2, Star, CheckCircle } from "lucide-react";
+import { Clock, Users, BarChart2, Star, CheckCircle, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RecipeHero } from "@/components/recipe-detail/RecipeHero";
 import { ServingsAdjuster } from "@/components/recipe-detail/ServingsAdjuster";
@@ -79,8 +79,8 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
   const [showEdit, setShowEdit] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const { removeRecipe } = useUserRecipes();
-  const { addEntry, deleteRecipeHistory } = useCookingHistory();
-  const { deleteState, markCooked, hasCooked, getState } = useRecipeStates();
+  const { addEntry, deleteLastEntry, deleteRecipeHistory } = useCookingHistory();
+  const { deleteState, markCooked, unmarkCooked, hasCooked, getState } = useRecipeStates();
   const { servings, scale, increment, decrement } = useServingsScale(recipe.servings);
 
   const cooked = hasCooked(recipe.id);
@@ -144,19 +144,28 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="flex items-center gap-1.5 text-sm"
+              className="flex items-center gap-1.5 text-sm group"
             >
-              <CheckCircle size={13} className="text-sage-500" fill="currentColor" strokeWidth={0} />
+              <CheckCircle size={13} className="text-sage-500 shrink-0" fill="currentColor" strokeWidth={0} />
               <span className="font-medium text-sage-700">
                 Cooked {cookCount === 1 ? "once" : `${cookCount}×`}
               </span>
               {personalRating > 0 && (
-                <div className="flex items-center gap-0.5 ml-0.5">
+                <div className="flex items-center gap-0.5">
                   {Array.from({ length: personalRating }).map((_, i) => (
                     <Star key={i} size={10} className="text-saffron-500" fill="currentColor" />
                   ))}
                 </div>
               )}
+              <motion.button
+                whileTap={{ scale: 0.85 }}
+                onClick={() => { unmarkCooked(recipe.id); deleteLastEntry(recipe.id); }}
+                title="Remove last cook"
+                aria-label="Remove last cook"
+                className="w-4 h-4 rounded-full bg-ink-200 hover:bg-red-100 flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100"
+              >
+                <X size={9} className="text-ink-500 hover:text-red-500" />
+              </motion.button>
             </motion.div>
           ) : (
             <motion.button
