@@ -6,13 +6,25 @@ interface TimerBlockProps {
   label?: string;
 }
 
-function DigitCard({ value, label }: { value: string; label: string }) {
+function FlipCard({ value, unit }: { value: string; unit: string }) {
   return (
-    <div className="flex flex-col items-center gap-1.5">
-      <div className="bg-white rounded-2xl shadow-card-md w-[76px] h-[72px] flex items-center justify-center">
-        <span className="text-timer-lg text-ink-900 tabular-nums">{value}</span>
+    <div className="flex flex-col items-center gap-2">
+      <div className="relative w-[72px] h-[84px]">
+        {/* Card body */}
+        <div className="absolute inset-0 bg-ink-900 rounded-2xl shadow-[0_6px_24px_rgba(0,0,0,0.28)] overflow-hidden">
+          {/* Lower half slightly darker for depth */}
+          <div className="absolute inset-x-0 top-1/2 bottom-0 bg-black/20" />
+        </div>
+        {/* Digit */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-timer-md text-parchment-100 tabular-nums tracking-tight select-none">
+            {value}
+          </span>
+        </div>
+        {/* Hairline crease */}
+        <div className="absolute inset-x-0 top-1/2 h-px bg-black/50" />
       </div>
-      <span className="text-label uppercase tracking-widest text-ink-400">{label}</span>
+      <span className="text-label uppercase tracking-widest text-ink-400">{unit}</span>
     </div>
   );
 }
@@ -30,13 +42,13 @@ export function TimerBlock({ remaining, label }: TimerBlockProps) {
       <div className="flex items-center gap-2">
         {hours > 0 && (
           <>
-            <DigitCard value={pad(hours)} label="h" />
-            <span className="text-timer-md text-ink-300 pb-6">:</span>
+            <FlipCard value={pad(hours)} unit="hr" />
+            <span className="text-[2rem] text-ink-700/30 font-light mb-7 select-none">:</span>
           </>
         )}
-        <DigitCard value={pad(minutes)} label="min" />
-        <span className="text-timer-md text-ink-300 pb-6">:</span>
-        <DigitCard value={pad(seconds)} label="sec" />
+        <FlipCard value={pad(minutes)} unit="min" />
+        <span className="text-[2rem] text-ink-700/30 font-light mb-7 select-none">:</span>
+        <FlipCard value={pad(seconds)} unit="sec" />
       </div>
     </div>
   );
