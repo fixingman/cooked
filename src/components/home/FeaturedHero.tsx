@@ -47,7 +47,7 @@ export function FeaturedHero({ recipe }: FeaturedHeroProps) {
                 <Clock size={13} />
                 {formatMinutes(recipe.totalTimeMinutes)}
               </span>
-              <Badge label={recipe.difficulty} variant="difficulty" className="opacity-90" />
+              <Badge label={recipe.difficulty} variant="difficulty" overlay />
             </div>
           </div>
         </div>

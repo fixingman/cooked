@@ -23,6 +23,7 @@ Ordered by impact. Each item is self-contained and shippable independently.
 | ✅ U-13 | "Coming soon" label on AI toggle — v0.10.3 | Settings | |
 | ✅ U-19 | Nutritional values panel — v0.10.3 | Recipe detail | calories/protein/fat/carbs parsed from JSON-LD; AI (Haiku) fills in missing values on import. |
 | U-12 | Camera/Mic toggles do nothing | Settings | UI-only placeholders. Hide or label them. Lowest priority. |
+| U-24 | Microphone & camera PWA permission flows | Settings | Wire the existing toggles to the real `navigator.mediaDevices.getUserMedia` / `navigator.permissions.query` APIs. Show a browser prompt, reflect live state. Needed so the toggles aren't dead UI. |
 
 ---
 

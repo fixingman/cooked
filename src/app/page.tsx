@@ -29,12 +29,12 @@ export default function HomePage() {
 
   const allRecipes = useMemo(() => [...userRecipes, ...builtInRecipes], [userRecipes]);
 
-  // Day-seeded featured hero — rotates daily among all isFeatured recipes
+  // Day-seeded featured hero — rotates daily; uses isFeatured pool if ≥ 3 recipes, else all built-ins
   const featuredRecipe = useMemo(() => {
     const featured = builtInRecipes.filter(r => r.isFeatured);
-    if (!featured.length) return undefined;
+    const pool = featured.length >= 3 ? featured : builtInRecipes;
     const dayIndex = Math.floor(Date.now() / 86_400_000);
-    return featured[dayIndex % featured.length];
+    return pool[dayIndex % pool.length];
   }, []);
 
   const primary = getCurrentMeal();

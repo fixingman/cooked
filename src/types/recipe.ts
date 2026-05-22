@@ -67,6 +67,7 @@ export interface Recipe {
   protein?: number;
   fat?: number;
   carbs?: number;
+  fiber?: number;
   rating: number;
   reviewCount: number;
   tags: string[];
