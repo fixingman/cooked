@@ -47,6 +47,14 @@ export function CookingShell({ recipe, thermomixMode = false }: CookingShellProp
   const swipe = useSwipeGesture({ onSwipeLeft: goNext, onSwipeRight: goPrev });
 
   useEffect(() => {
+    if (typeof navigator === "undefined" || !("wakeLock" in navigator)) return;
+    let lock: WakeLockSentinel | null = null;
+    (navigator as Navigator & { wakeLock: { request(type: "screen"): Promise<WakeLockSentinel> } })
+      .wakeLock.request("screen").then(l => { lock = l; }).catch(() => {});
+    return () => { lock?.release(); };
+  }, []);
+
+  useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
       if (e.key === "ArrowRight") { e.preventDefault(); goNext(); }

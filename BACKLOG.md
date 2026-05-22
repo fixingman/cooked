@@ -15,7 +15,7 @@ Ordered by impact. Each item is self-contained and shippable independently.
 | # | Description | Area | Why now |
 |---|-------------|------|---------|
 | U-20 | "Mark as Cooked" + rate from recipe detail | Recipe detail | Recipe States loop is incomplete — cooked/rate only reachable via cooking mode. One-tap from detail closes the gap. |
-| U-21 | Keep screen awake during cooking (`navigator.wakeLock`) | Cooking mode | Screen turns off mid-cook. Critical usability gap for a cooking app. 5-line fix. |
+| ✅ U-21 | Keep screen awake during cooking (`navigator.wakeLock`) — v0.10.1 | Cooking mode | |
 | U-22 | Cooking notes field on CompletionScreen | Cooking mode | Add a text note at completion (e.g. "added extra garlic"); shown on recipe detail below description. Drives return visits. |
 | U-4  | Progress ring / step counter label | Cooking mode | Label is ambiguous — reads as timer progress, not step progress. Quick copy fix. |
 | U-16 | Related recipes at bottom of recipe detail | Recipe detail | Increases session depth. Uses existing `getRelatedRecipes()` in `src/lib/recipes.ts`. |
@@ -130,3 +130,4 @@ Quality checklist per recipe: 5–12 steps · ingredient IDs cross-referenced to
 | Bug fixes — back button, content flash, card animations | 0.8.4 | 2026-05-21 |
 | Recipe States — Want to Cook / Cooked, filter chip, auto-mark | 0.9.0 | 2026-05-21 |
 | Smart Homepage Carousels Phase A — user recipes, personalised sections, day-seed hero | 0.10.0 | 2026-05-21 |
+| Keep screen awake during cooking (navigator.wakeLock) | 0.10.1 | 2026-05-22 |
