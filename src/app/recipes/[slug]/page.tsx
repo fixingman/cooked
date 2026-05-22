@@ -13,6 +13,8 @@ import { ImportRecipeModal } from "@/components/recipes/ImportRecipeModal";
 import { Badge } from "@/components/ui/Badge";
 import { useServingsScale } from "@/hooks/useServingsScale";
 import { useUserRecipes } from "@/hooks/useUserRecipes";
+import { useCookingHistory } from "@/hooks/useCookingHistory";
+import { useRecipeStates } from "@/hooks/useRecipeStates";
 import { useDropboxAuth } from "@/hooks/useDropboxAuth";
 import { getRecipe } from "@/lib/recipes";
 import { formatMinutes } from "@/lib/formatTime";
@@ -75,10 +77,14 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
   const [showEdit, setShowEdit] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const { removeRecipe } = useUserRecipes();
+  const { deleteRecipeHistory } = useCookingHistory();
+  const { deleteState } = useRecipeStates();
   const { servings, scale, increment, decrement } = useServingsScale(recipe.servings);
 
   function handleDelete() {
     removeRecipe(recipe.id);
+    deleteRecipeHistory(recipe.id);
+    deleteState(recipe.id);
     router.push("/recipes");
   }
 

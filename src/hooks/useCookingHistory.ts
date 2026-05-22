@@ -24,5 +24,9 @@ export function useCookingHistory() {
 
   const clearHistory = useCallback(() => setValue([]), [setValue]);
 
-  return { history, addEntry, clearHistory };
+  const deleteRecipeHistory = useCallback((recipeId: string) => {
+    setValue(prev => prev.filter(e => e.recipeId !== recipeId));
+  }, [setValue]);
+
+  return { history, addEntry, clearHistory, deleteRecipeHistory };
 }

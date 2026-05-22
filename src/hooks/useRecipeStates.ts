@@ -49,5 +49,9 @@ export function useRecipeStates() {
     setValue(prev => prev.map(s => s.recipeId === recipeId ? { ...s, rating } : s));
   }, [setValue]);
 
-  return { states, getState, isWantToCook, hasCooked, toggleWantToCook, markCooked, updateRating };
+  const deleteState = useCallback((recipeId: string) => {
+    setValue(prev => prev.filter(s => s.recipeId !== recipeId));
+  }, [setValue]);
+
+  return { states, getState, isWantToCook, hasCooked, toggleWantToCook, markCooked, updateRating, deleteState };
 }

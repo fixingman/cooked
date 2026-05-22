@@ -93,9 +93,9 @@ Supabase Postgres. Needed for server-side querying, multi-user, recipe search at
 
 | # | Description | Notes |
 |---|-------------|-------|
-| I-1 | Background timer (Web Worker) | `setInterval` in `useCookingTimer` pauses when screen locks. Web Worker keeps ticking. Critical for timed steps. |
-| I-2 | PWA offline recipe cache | Service worker currently only caches Unsplash images. Recipe list/detail should be cached for true offline cooking. |
-| I-3 | Stale history cleanup | When a user recipe is deleted, its `CookingHistoryEntry` and `RecipeState` records become orphans. Add cleanup in `removeRecipe`. |
+| ✅ I-1 | Background timer (Web Worker) — v0.10.2 | Timestamp-based accuracy; worker ticks every 500ms, main thread computes elapsed from `Date.now()`. |
+| ✅ I-2 | PWA offline recipe cache — v0.10.2 | NetworkFirst for pages + cooking mode; CacheFirst for all remote images. |
+| ✅ I-3 | Stale history cleanup — v0.10.2 | `deleteRecipeHistory` + `deleteState` called from `handleDelete` in recipe detail. |
 
 ---
 
@@ -131,3 +131,4 @@ Quality checklist per recipe: 5–12 steps · ingredient IDs cross-referenced to
 | Recipe States — Want to Cook / Cooked, filter chip, auto-mark | 0.9.0 | 2026-05-21 |
 | Smart Homepage Carousels Phase A — user recipes, personalised sections, day-seed hero | 0.10.0 | 2026-05-21 |
 | Keep screen awake during cooking (navigator.wakeLock) | 0.10.1 | 2026-05-22 |
+| Infrastructure — Web Worker timer, PWA offline cache, stale history cleanup | 0.10.2 | 2026-05-22 |

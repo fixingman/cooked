@@ -18,42 +18,69 @@ export function useCookingTimer(initialDuration = 0): CookingTimerState {
   const [total, setTotal] = useState(initialDuration);
   const [elapsed, setElapsed] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const clear = useCallback(() => {
-    if (intervalRef.current) clearInterval(intervalRef.current);
+  const workerRef = useRef<Worker | null>(null);
+  // Refs track latest values without re-creating the worker's onmessage closure
+  const totalRef = useRef(total);
+  const startTimeRef = useRef(0);    // Date.now() when isRunning last became true
+  const baseElapsedRef = useRef(0);  // elapsed value at that moment
+
+  totalRef.current = total;
+
+  // Spin up the Web Worker once. Falls back gracefully if Workers are unavailable.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    let w: Worker;
+    try {
+      w = new Worker("/timer-worker.js");
+    } catch {
+      return;
+    }
+    w.onmessage = () => {
+      const next = baseElapsedRef.current + Math.floor((Date.now() - startTimeRef.current) / 1000);
+      const clamped = Math.min(next, totalRef.current);
+      setElapsed(clamped);
+      if (totalRef.current > 0 && clamped >= totalRef.current) {
+        setIsRunning(false);
+        w.postMessage("stop");
+      }
+    };
+    workerRef.current = w;
+    return () => w.terminate();
   }, []);
 
+  // Start or stop the worker whenever isRunning flips
   useEffect(() => {
+    const w = workerRef.current;
+    if (!w) return;
     if (isRunning) {
-      intervalRef.current = setInterval(() => {
-        setElapsed((e) => {
-          if (e >= total) {
-            setIsRunning(false);
-            return e;
-          }
-          return e + 1;
-        });
-      }, 1000);
+      startTimeRef.current = Date.now();
+      baseElapsedRef.current = elapsed;
+      w.postMessage("start");
     } else {
-      clear();
+      w.postMessage("stop");
     }
-    return clear;
-  }, [isRunning, total, clear]);
+  // elapsed intentionally omitted — we read it via ref at the moment isRunning becomes true
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isRunning]);
 
   const start = useCallback(() => setIsRunning(true), []);
   const pause = useCallback(() => setIsRunning(false), []);
-  const toggle = useCallback(() => setIsRunning((r) => !r), []);
+  const toggle = useCallback(() => setIsRunning(r => !r), []);
 
   const reset = useCallback((duration: number) => {
     setIsRunning(false);
     setTotal(duration);
     setElapsed(0);
+    totalRef.current = duration;
+    baseElapsedRef.current = 0;
   }, []);
 
   const resetAndStart = useCallback((duration: number) => {
     setTotal(duration);
     setElapsed(0);
+    totalRef.current = duration;
+    baseElapsedRef.current = 0;
     setIsRunning(true);
   }, []);
 
