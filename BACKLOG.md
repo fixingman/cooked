@@ -22,6 +22,7 @@ Ordered by impact. Each item is self-contained and shippable independently.
 | ✅ U-25 | Undo "Mark as Cooked" — v0.12.6 | Recipe detail | × button on cooked badge removes last cook entry + clears rating if no cooks remain. |
 | ✅ U-26 | Toast feedback on recipe detail CTAs — v0.12.2 | Recipe detail | Bookmark, copy link, cook-for-later all show a dismissing pill toast on tap. |
 | ✅ U-27 | Cooking mode de-clutter — v0.12.3–v0.12.5 | Cooking mode | Removed redundant step counters; replaced recipe image with ingredient list per step; flip-clock timer redesign. |
+| U-28 | Hide built-in recipes | Recipe detail | Delete button (no edit) on built-in recipe detail pages. Stores hidden IDs in `cooked-hidden-recipes` localStorage key. Filters out of all lists, carousels, and returns 404 on direct URL. No restore UI in v1 — Settings "Reset" clears all localStorage as nuclear option. |
 | U-4  | Progress ring / step counter label | Cooking mode | Label is ambiguous — reads as timer progress, not step progress. Quick copy fix. |
 | U-16 | Related recipes at bottom of recipe detail | Recipe detail | Increases session depth. Uses existing `getRelatedRecipes()` in `src/lib/recipes.ts`. |
 | U-23 | Quick-bookmark from recipe card (long-press / hover action) | Recipe list | Currently bookmark only accessible from detail. Small discoverability improvement. |
