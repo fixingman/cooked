@@ -17,12 +17,14 @@ Ordered by impact. Each item is self-contained and shippable independently.
 | ✅ U-20 | "Mark as Cooked" + rate from recipe detail — v0.11.0 | Recipe detail | |
 | ✅ U-21 | Keep screen awake during cooking (`navigator.wakeLock`) — v0.10.1 | Cooking mode | |
 | ✅ U-22 | Cooking notes field on CompletionScreen — v0.11.0 | Cooking mode | |
+| ✅ U-13 | "Coming soon" label on AI toggle — v0.10.3 | Settings | |
+| ✅ U-19 | Nutritional values panel — v0.10.3 | Recipe detail | calories/protein/fat/carbs/fiber; AI (Sonnet) fills in missing values on import. Full macros on all 12 built-in recipes added v0.12.7. |
+| ✅ U-25 | Undo "Mark as Cooked" — v0.12.6 | Recipe detail | × button on cooked badge removes last cook entry + clears rating if no cooks remain. |
+| ✅ U-26 | Toast feedback on recipe detail CTAs — v0.12.2 | Recipe detail | Bookmark, copy link, cook-for-later all show a dismissing pill toast on tap. |
+| ✅ U-27 | Cooking mode de-clutter — v0.12.3–v0.12.5 | Cooking mode | Removed redundant step counters; replaced recipe image with ingredient list per step; flip-clock timer redesign. |
 | U-4  | Progress ring / step counter label | Cooking mode | Label is ambiguous — reads as timer progress, not step progress. Quick copy fix. |
 | U-16 | Related recipes at bottom of recipe detail | Recipe detail | Increases session depth. Uses existing `getRelatedRecipes()` in `src/lib/recipes.ts`. |
 | U-23 | Quick-bookmark from recipe card (long-press / hover action) | Recipe list | Currently bookmark only accessible from detail. Small discoverability improvement. |
-| ✅ U-13 | "Coming soon" label on AI toggle — v0.10.3 | Settings | |
-| ✅ U-19 | Nutritional values panel — v0.10.3 | Recipe detail | calories/protein/fat/carbs parsed from JSON-LD; AI (Haiku) fills in missing values on import. |
-| U-12 | Camera/Mic toggles do nothing | Settings | UI-only placeholders. Hide or label them. Lowest priority. |
 | U-24 | Microphone & camera PWA permission flows | Settings | Wire the existing toggles to the real `navigator.mediaDevices.getUserMedia` / `navigator.permissions.query` APIs. Show a browser prompt, reflect live state. Needed so the toggles aren't dead UI. |
 
 ---
@@ -65,6 +67,11 @@ Two modes: *Suggest from library* (Claude ranks existing recipes from prompt) ·
 
 ### 🔴 F-5 — Recipe Ranking ("For You" sort)
 Signals: pantry match · favourited · cooked before · want to cook · recency penalty. Only activates when user has enough signal. **Depends on F-1 (Pantry).**
+
+---
+
+### ✅ H-1A — Smart Homepage Carousels Phase A — v0.10.0
+Day-seeded featured hero rotation (cycles all `isFeatured` recipes daily). User-imported recipes appear in meal-time carousels. "In Your List" section (wantToCook recipes, hidden when empty). "From Your Favourites" section (favourited + uncooked, hidden when empty). ContinueCooking resolves user recipe titles. `MealTimeSection` gained optional `seeAllHref` prop.
 
 ---
 
@@ -133,4 +140,12 @@ Quality checklist per recipe: 5–12 steps · ingredient IDs cross-referenced to
 | Infrastructure — Web Worker timer, PWA offline cache, stale history cleanup | 0.10.2 | 2026-05-22 |
 | Nutrition panel (AI fill-in on import) + AI toggle "coming soon" label | 0.10.3 | 2026-05-22 |
 | U-20 "Mark as Cooked" + rate from detail · U-22 Cooking notes field · nutrition AI → Sonnet | 0.11.0 | 2026-05-22 |
+| Cap "Recently Cooked" to 3 items with "See all →" link | 0.11.1 | 2026-05-22 |
 | F-4 Photo import — Claude vision extracts recipe from photo | 0.12.0 | 2026-05-23 |
+| Bug fixes — cooked filter, hero rotation, badge contrast on hero, fiber in nutrition | 0.12.1 | 2026-05-23 |
+| UX — cooked CTA in meta bar, button order, toast feedback on CTAs, parallel Thermomix CTAs, cooking entrance animation | 0.12.2 | 2026-05-23 |
+| Cooking mode — remove recipe image, show per-step ingredient list, fix timer font | 0.12.3 | 2026-05-23 |
+| Flip-clock timer redesign — dark cards, hairline crease, no serif | 0.12.4 | 2026-05-23 |
+| Remove redundant step counters in cooking mode | 0.12.5 | 2026-05-23 |
+| U-25 Undo "Mark as Cooked" via × button on cooked badge | 0.12.6 | 2026-05-23 |
+| U-27 Full macro breakdown in nutrition panel + hide rating until rated | 0.12.7 | 2026-05-23 |
