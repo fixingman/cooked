@@ -1,4 +1,5 @@
 import { parseRecipeFromHtml, buildRecipeFromSchema, stripHtmlToText } from "@/lib/parseJsonLd";
+import { estimateNutrition, generateThermomixSteps } from "@/lib/recipeEnrichment";
 
 const ALLOWED_PROTOCOLS = ["http:", "https:"];
 
@@ -81,48 +82,6 @@ ${pageText.slice(0, 40_000)}`;
   }
 }
 
-async function estimateNutrition(
-  recipe: { title: string; servings: number; ingredients: { quantity: number; unit: string; name: string }[] },
-  apiKey: string,
-): Promise<{ calories?: number; protein?: number; fat?: number; carbs?: number; fiber?: number }> {
-  const ingredientList = recipe.ingredients
-    .map(i => `${i.quantity > 0 ? i.quantity : ""} ${i.unit} ${i.name}`.trim())
-    .join(", ");
-
-  const prompt = `Estimate nutrition per serving for this recipe.
-Title: ${recipe.title}
-Servings: ${recipe.servings}
-Ingredients: ${ingredientList}
-
-Return ONLY a JSON object with integer values per serving: {"calories": number, "protein": number, "fat": number, "carbs": number, "fiber": number}`;
-
-  try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 128,
-        messages: [{ role: "user", content: prompt }],
-      }),
-      signal: AbortSignal.timeout(15_000),
-    });
-    if (!res.ok) return {};
-    const data = await res.json();
-    const text = (data?.content?.[0]?.text as string | undefined) ?? "";
-    const raw = text.match(/\{[\s\S]+\}/)?.[0] ?? text.trim();
-    const json = JSON.parse(raw);
-    const num = (k: string) => (typeof json[k] === "number" && json[k] > 0 ? Math.round(json[k]) : undefined);
-    return { calories: num("calories"), protein: num("protein"), fat: num("fat"), carbs: num("carbs"), fiber: num("fiber") };
-  } catch {
-    return {};
-  }
-}
-
 export async function POST(req: Request) {
   let url: string;
   try {
@@ -173,14 +132,26 @@ export async function POST(req: Request) {
   }
 
   async function finalise(recipe: ReturnType<typeof parseRecipeFromHtml> & object) {
-    const [heroImageBase64, nutrition] = await Promise.all([
-      fetchImageAsBase64((recipe as { heroImageUrl?: string }).heroImageUrl),
-      apiKey && needsNutrition(recipe as { calories?: number; protein?: number })
-        ? estimateNutrition(recipe as Parameters<typeof estimateNutrition>[0], apiKey)
+    const r = recipe as import("@/types/recipe").Recipe;
+    const [heroImageBase64, nutrition, thermomixSteps] = await Promise.all([
+      fetchImageAsBase64(r.heroImageUrl),
+      apiKey && needsNutrition(r)
+        ? estimateNutrition(r, apiKey)
         : Promise.resolve({}),
+      apiKey ? generateThermomixSteps(r.steps, apiKey) : Promise.resolve(null),
     ]);
-    const enriched = { ...recipe, ...nutrition };
-    return Response.json({ recipe: enriched, ...(heroImageBase64 ? { heroImageBase64 } : {}) });
+    const nutritionAdded = Object.keys(nutrition).length > 0;
+    const thermomixAdded = thermomixSteps !== null;
+    const enriched = {
+      ...recipe,
+      ...nutrition,
+      ...(thermomixSteps ? { steps: thermomixSteps, thermomixAvailable: true } : {}),
+    };
+    return Response.json({
+      recipe: enriched,
+      ...(heroImageBase64 ? { heroImageBase64 } : {}),
+      enrichments: { nutrition: nutritionAdded, thermomix: thermomixAdded },
+    });
   }
 
   // Try JSON-LD first

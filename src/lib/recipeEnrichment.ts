@@ -1,0 +1,114 @@
+import type { CookingStep } from "@/types/recipe";
+
+const API_BASE = "https://api.anthropic.com/v1/messages";
+const HEADERS = (key: string) => ({
+  "x-api-key": key,
+  "anthropic-version": "2023-06-01",
+  "content-type": "application/json",
+});
+
+export async function estimateNutrition(
+  recipe: { title: string; servings: number; ingredients: { quantity: number; unit: string; name: string }[] },
+  apiKey: string,
+): Promise<{ calories?: number; protein?: number; fat?: number; carbs?: number; fiber?: number }> {
+  const ingredientList = recipe.ingredients
+    .map(i => `${i.quantity > 0 ? i.quantity : ""} ${i.unit} ${i.name}`.trim())
+    .join(", ");
+
+  const prompt = `Estimate nutrition per serving for this recipe.
+Title: ${recipe.title}
+Servings: ${recipe.servings}
+Ingredients: ${ingredientList}
+
+Return ONLY a JSON object with integer values per serving: {"calories": number, "protein": number, "fat": number, "carbs": number, "fiber": number}`;
+
+  try {
+    const res = await fetch(API_BASE, {
+      method: "POST",
+      headers: HEADERS(apiKey),
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 128,
+        messages: [{ role: "user", content: prompt }],
+      }),
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!res.ok) return {};
+    const data = await res.json();
+    const text = (data?.content?.[0]?.text as string | undefined) ?? "";
+    const raw = text.match(/\{[\s\S]+\}/)?.[0] ?? text.trim();
+    const json = JSON.parse(raw);
+    const num = (k: string) => (typeof json[k] === "number" && json[k] > 0 ? Math.round(json[k]) : undefined);
+    return { calories: num("calories"), protein: num("protein"), fat: num("fat"), carbs: num("carbs"), fiber: num("fiber") };
+  } catch {
+    return {};
+  }
+}
+
+export async function generateThermomixSteps(
+  steps: CookingStep[],
+  apiKey: string,
+): Promise<CookingStep[] | null> {
+  if (steps.length === 0) return null;
+
+  const stepLines = steps.map(s => `[${s.id}] ${s.instruction}`).join("\n");
+
+  const prompt = `You are adapting a recipe for the Thermomix TM6. For each step below, decide if it can meaningfully use the Thermomix. Only include steps where the Thermomix adds real value (mixing, cooking, steaming, blending, chopping, sautéing). Skip steps like plating, resting, marinating, seasoning to taste, or serving.
+
+Steps:
+${stepLines}
+
+Return ONLY a JSON array for steps that CAN use the Thermomix:
+[
+  {
+    "stepId": "the exact UUID from above",
+    "speed": 0,
+    "tempC": 0,
+    "timeSeconds": 0,
+    "instruction": "Thermomix-specific instruction",
+    "label": "one word e.g. Blend/Simmer/Steam/Chop/Sauté"
+  }
+]
+
+Speed guide: 0=no mixing (heat only), 1=gentle stir, 3=mix, 5=blend, 7=chop, 10=crush.
+tempC guide: 0=no heat, 37-100=cooking, "Varoma"=steaming (~115°C).
+Return [] if no steps suit the Thermomix.`;
+
+  try {
+    const res = await fetch(API_BASE, {
+      method: "POST",
+      headers: HEADERS(apiKey),
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 1024,
+        messages: [{ role: "user", content: prompt }],
+      }),
+      signal: AbortSignal.timeout(20_000),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const text = (data?.content?.[0]?.text as string | undefined) ?? "";
+    const raw = text.match(/\[[\s\S]*\]/)?.[0] ?? text.trim();
+    const items = JSON.parse(raw) as { stepId: string; speed: number; tempC: number | "Varoma"; timeSeconds: number; instruction: string; label?: string }[];
+    if (!Array.isArray(items) || items.length === 0) return null;
+
+    const map = new Map(items.map(t => [t.stepId, t]));
+    const updated = steps.map(s => {
+      const tm = map.get(s.id);
+      if (!tm) return s;
+      return {
+        ...s,
+        thermomix: {
+          speed: tm.speed,
+          tempC: tm.tempC,
+          timeSeconds: tm.timeSeconds,
+          instruction: tm.instruction,
+          label: tm.label,
+        },
+      };
+    });
+    return updated;
+  } catch {
+    return null;
+  }
+}
