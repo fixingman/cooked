@@ -10,6 +10,7 @@ import { IngredientList } from "@/components/recipe-detail/IngredientList";
 import { InstructionSteps } from "@/components/recipe-detail/InstructionSteps";
 import { StartCookingButton } from "@/components/recipe-detail/StartCookingButton";
 import { NutritionPanel } from "@/components/recipe-detail/NutritionPanel";
+import { CookedStatus } from "@/components/recipe-detail/CookedStatus";
 import { ImportRecipeModal } from "@/components/recipes/ImportRecipeModal";
 import { Badge } from "@/components/ui/Badge";
 import { useServingsScale } from "@/hooks/useServingsScale";
@@ -160,6 +161,8 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
             <p className="font-serif text-ink-700 text-sm leading-relaxed italic">{recipe.chefNotes}</p>
           </div>
         )}
+
+        <CookedStatus recipeId={recipe.id} />
 
         <StartCookingButton slug={recipe.slug} thermomixAvailable={recipe.thermomixAvailable} />
       </div>

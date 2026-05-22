@@ -14,9 +14,9 @@ Ordered by impact. Each item is self-contained and shippable independently.
 
 | # | Description | Area | Why now |
 |---|-------------|------|---------|
-| U-20 | "Mark as Cooked" + rate from recipe detail | Recipe detail | Recipe States loop is incomplete — cooked/rate only reachable via cooking mode. One-tap from detail closes the gap. |
+| ✅ U-20 | "Mark as Cooked" + rate from recipe detail — v0.11.0 | Recipe detail | |
 | ✅ U-21 | Keep screen awake during cooking (`navigator.wakeLock`) — v0.10.1 | Cooking mode | |
-| U-22 | Cooking notes field on CompletionScreen | Cooking mode | Add a text note at completion (e.g. "added extra garlic"); shown on recipe detail below description. Drives return visits. |
+| ✅ U-22 | Cooking notes field on CompletionScreen — v0.11.0 | Cooking mode | |
 | U-4  | Progress ring / step counter label | Cooking mode | Label is ambiguous — reads as timer progress, not step progress. Quick copy fix. |
 | U-16 | Related recipes at bottom of recipe detail | Recipe detail | Increases session depth. Uses existing `getRelatedRecipes()` in `src/lib/recipes.ts`. |
 | U-23 | Quick-bookmark from recipe card (long-press / hover action) | Recipe list | Currently bookmark only accessible from detail. Small discoverability improvement. |
@@ -133,3 +133,4 @@ Quality checklist per recipe: 5–12 steps · ingredient IDs cross-referenced to
 | Keep screen awake during cooking (navigator.wakeLock) | 0.10.1 | 2026-05-22 |
 | Infrastructure — Web Worker timer, PWA offline cache, stale history cleanup | 0.10.2 | 2026-05-22 |
 | Nutrition panel (AI fill-in on import) + AI toggle "coming soon" label | 0.10.3 | 2026-05-22 |
+| U-20 "Mark as Cooked" + rate from detail · U-22 Cooking notes field · nutrition AI → Sonnet | 0.11.0 | 2026-05-22 |

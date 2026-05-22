@@ -13,6 +13,7 @@ interface CompletionScreenProps {
 
 export function CompletionScreen({ recipe }: CompletionScreenProps) {
   const [rating, setRating] = useState(0);
+  const [notes, setNotes] = useState("");
   const { addEntry } = useCookingHistory();
   const { markCooked, updateRating } = useRecipeStates();
   const [cookedAt] = useState(() => new Date().toISOString());
@@ -25,8 +26,13 @@ export function CompletionScreen({ recipe }: CompletionScreenProps) {
 
   function handleRating(star: number) {
     setRating(star);
-    addEntry({ recipeId: recipe.id, cookedAt, rating: star });
+    addEntry({ recipeId: recipe.id, cookedAt, rating: star, notes: notes || undefined });
     updateRating(recipe.id, star);
+  }
+
+  function handleNotesBlur() {
+    if (!notes) return;
+    addEntry({ recipeId: recipe.id, cookedAt, rating: rating || undefined, notes });
   }
 
   return (
@@ -66,7 +72,7 @@ export function CompletionScreen({ recipe }: CompletionScreenProps) {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="flex items-center gap-2 mb-8"
+        className="flex items-center gap-2 mb-5"
       >
         {[1, 2, 3, 4, 5].map((star) => (
           <motion.button
@@ -84,6 +90,22 @@ export function CompletionScreen({ recipe }: CompletionScreenProps) {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
+        className="w-full max-w-xs mb-6"
+      >
+        <textarea
+          value={notes}
+          onChange={e => setNotes(e.target.value)}
+          onBlur={handleNotesBlur}
+          placeholder="Any notes? (e.g. added extra garlic)"
+          rows={2}
+          className="w-full px-3 py-2.5 bg-parchment-200 border border-parchment-300 rounded-xl text-sm text-ink-700 placeholder:text-ink-300 resize-none focus:outline-none focus:ring-2 focus:ring-saffron-400/50"
+        />
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.7 }}
         className="flex gap-3 w-full max-w-xs"
       >
         <Link href="/recipes" className="flex-1">
