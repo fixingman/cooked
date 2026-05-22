@@ -30,6 +30,12 @@ Three files must always match:
 - `0.4.1` Timer/nav fixes · `0.5.0` Dropbox sync · `0.6.0` URL import + sharing · `0.6.1` Upload fix
 - `0.7.0` Edit/delete recipes · `0.7.1` Sync throttle · `0.8.0` Attribution + image hosting
 - `0.8.1` Import modal desktop panel · `0.8.2` Error handling + 404 · `0.8.3` Performance
+- `0.8.4` Back button / content flash / card animations · `0.9.0` Recipe States (wantToCook/hasCooked)
+- `0.10.0` Smart homepage carousels Phase A · `0.10.1` Wake lock · `0.10.2` Web Worker timer + PWA cache
+- `0.10.3` Nutrition panel + AI fill-in · `0.11.0` Mark as Cooked + rating + cooking notes
+- `0.11.1` Cap recently cooked to 3 · `0.12.0` Photo import (Claude vision)
+- `0.12.1`–`0.12.5` Bug fixes + cooking mode de-clutter · `0.12.6` Undo mark as cooked
+- `0.12.7` Full macro breakdown + hide rating until rated
 
 ---
 
@@ -44,6 +50,14 @@ Three files must always match:
 - `useUserRecipes.addRecipe` is an upsert (filter by `id`, then prepend)
 - Edit/delete: three-dot menu in `RecipeHero`, only for `user-*` slugs
 - `ImportRecipeModal`: import (default) and edit (`initialDraft` prop) modes; on save calls `onSave?.(recipe)`
+- Photo import: `/api/recipes/import-photo` — POST `{ imageBase64, mimeType }`, returns `{ recipe, heroImageBase64 }`; photo becomes hero image; sets `sourceType: "image"`
+- URL import: `/api/recipes/import` — calls Claude Sonnet for nutrition estimation (fiber included)
+
+## Recipe states & history
+- `useRecipeStates` — synced to Dropbox `/recipe-states.json`; shape: `{ recipeId, wantToCook, cookedAt[], rating? }`
+- `useCookingHistory` — synced to Dropbox `/history.json`; shape: `CookingHistoryEntry { recipeId, cookedAt, notes?, rating? }`
+- `unmarkCooked(id)` removes last `cookedAt` entry and clears rating if array becomes empty
+- `deleteLastEntry(id)` on `useCookingHistory` removes the most recent history entry
 
 ---
 
