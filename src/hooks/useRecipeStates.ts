@@ -49,9 +49,17 @@ export function useRecipeStates() {
     setValue(prev => prev.map(s => s.recipeId === recipeId ? { ...s, rating } : s));
   }, [setValue]);
 
+  const unmarkCooked = useCallback((recipeId: string) => {
+    setValue(prev => prev.map(s => {
+      if (s.recipeId !== recipeId) return s;
+      const remaining = (s.cookedAt ?? []).slice(0, -1);
+      return { ...s, cookedAt: remaining, rating: remaining.length === 0 ? undefined : s.rating };
+    }));
+  }, [setValue]);
+
   const deleteState = useCallback((recipeId: string) => {
     setValue(prev => prev.filter(s => s.recipeId !== recipeId));
   }, [setValue]);
 
-  return { states, getState, isWantToCook, hasCooked, toggleWantToCook, markCooked, updateRating, deleteState };
+  return { states, getState, isWantToCook, hasCooked, toggleWantToCook, markCooked, unmarkCooked, updateRating, deleteState };
 }

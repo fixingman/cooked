@@ -24,9 +24,19 @@ export function useCookingHistory() {
 
   const clearHistory = useCallback(() => setValue([]), [setValue]);
 
+  const deleteLastEntry = useCallback((recipeId: string) => {
+    setValue(prev => {
+      const last = [...prev]
+        .filter(e => e.recipeId === recipeId)
+        .sort((a, b) => b.cookedAt.localeCompare(a.cookedAt))[0];
+      if (!last) return prev;
+      return prev.filter(e => !(e.recipeId === recipeId && e.cookedAt === last.cookedAt));
+    });
+  }, [setValue]);
+
   const deleteRecipeHistory = useCallback((recipeId: string) => {
     setValue(prev => prev.filter(e => e.recipeId !== recipeId));
   }, [setValue]);
 
-  return { history, addEntry, clearHistory, deleteRecipeHistory };
+  return { history, addEntry, clearHistory, deleteLastEntry, deleteRecipeHistory };
 }
