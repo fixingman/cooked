@@ -69,7 +69,10 @@ export function CookingShell({ recipe, thermomixMode = false }: CookingShellProp
   }, [goNext, goPrev, timer, step]);
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
       className="fixed inset-0 bg-parchment-100 z-50 flex flex-col overflow-hidden"
       {...swipe}
     >
@@ -152,6 +155,6 @@ export function CookingShell({ recipe, thermomixMode = false }: CookingShellProp
       <AnimatePresence>
         {completed && <CompletionScreen recipe={recipe} />}
       </AnimatePresence>
-    </div>
+    </motion.div>
   );
 }
