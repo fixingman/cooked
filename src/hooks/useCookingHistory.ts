@@ -26,11 +26,12 @@ export function useCookingHistory() {
 
   const deleteLastEntry = useCallback((recipeId: string) => {
     setValue(prev => {
-      const last = [...prev]
-        .filter(e => e.recipeId === recipeId)
-        .sort((a, b) => b.cookedAt.localeCompare(a.cookedAt))[0];
-      if (!last) return prev;
-      return prev.filter(e => !(e.recipeId === recipeId && e.cookedAt === last.cookedAt));
+      const idx = [...prev]
+        .map((e, i) => ({ e, i }))
+        .filter(({ e }) => e.recipeId === recipeId)
+        .sort((a, b) => b.e.cookedAt.localeCompare(a.e.cookedAt))[0]?.i;
+      if (idx === undefined) return prev;
+      return prev.filter((_, i) => i !== idx);
     });
   }, [setValue]);
 
