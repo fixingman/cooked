@@ -24,8 +24,9 @@ const sortLabels: { value: SortOption; label: string }[] = [
   { value: "difficulty", label: "Easiest first" },
 ];
 
-function matchesCategory(recipe: Recipe, cat: CategoryFilter, wantToCookIds?: Set<string>): boolean {
+function matchesCategory(recipe: Recipe, cat: CategoryFilter, wantToCookIds?: Set<string>, cookedIds?: Set<string>): boolean {
   if (cat === "want-to-cook") return wantToCookIds?.has(recipe.id) ?? false;
+  if (cat === "cooked")       return cookedIds?.has(recipe.id) ?? false;
   if (cat === "vegetarian")   return recipe.dietaryTags.includes("vegetarian" as DietaryTag);
   if (cat === "quick")        return recipe.totalTimeMinutes <= 30;
   if (cat === "thermomix")    return !!recipe.thermomixAvailable;
@@ -50,11 +51,16 @@ function RecipesContent() {
     [recipeStates]
   );
 
+  const cookedIds = useMemo(
+    () => new Set(recipeStates.filter(s => (s.cookedAt?.length ?? 0) > 0).map(s => s.recipeId)),
+    [recipeStates]
+  );
+
   const filtered = useMemo(() => {
     let result = [...allRecipes];
 
     if (categories.length > 0) {
-      result = result.filter((r) => categories.every((cat) => matchesCategory(r, cat, wantToCookIds)));
+      result = result.filter((r) => categories.every((cat) => matchesCategory(r, cat, wantToCookIds, cookedIds)));
     }
     if (dietary.length > 0) {
       result = result.filter((r) => dietary.every((d) => r.dietaryTags.includes(d)));
@@ -77,7 +83,7 @@ function RecipesContent() {
     );
 
     return result;
-  }, [allRecipes, query, categories, dietary, sort, wantToCookIds]);
+  }, [allRecipes, query, categories, dietary, sort, wantToCookIds, cookedIds]);
 
   return (
     <div className="px-4 py-6 md:px-8 max-w-6xl mx-auto">

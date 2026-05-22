@@ -80,7 +80,7 @@ Return ONLY the JSON object, no explanation, no markdown fences.`;
 async function estimateNutrition(
   recipe: { title: string; servings: number; ingredients: { quantity: number; unit: string; name: string }[] },
   apiKey: string,
-): Promise<{ calories?: number; protein?: number; fat?: number; carbs?: number }> {
+): Promise<{ calories?: number; protein?: number; fat?: number; carbs?: number; fiber?: number }> {
   const ingredientList = recipe.ingredients
     .map(i => `${i.quantity > 0 ? i.quantity : ""} ${i.unit} ${i.name}`.trim())
     .join(", ");
@@ -89,7 +89,7 @@ Title: ${recipe.title}
 Servings: ${recipe.servings}
 Ingredients: ${ingredientList}
 
-Return ONLY a JSON object with integer values per serving: {"calories": number, "protein": number, "fat": number, "carbs": number}`;
+Return ONLY a JSON object with integer values per serving: {"calories": number, "protein": number, "fat": number, "carbs": number, "fiber": number}`;
 
   try {
     const res = await fetch("https://api.anthropic.com/v1/messages", {
@@ -112,7 +112,7 @@ Return ONLY a JSON object with integer values per serving: {"calories": number, 
     const raw = text.match(/\{[\s\S]+\}/)?.[0] ?? text.trim();
     const json = JSON.parse(raw);
     const num = (k: string) => (typeof json[k] === "number" && json[k] > 0 ? Math.round(json[k]) : undefined);
-    return { calories: num("calories"), protein: num("protein"), fat: num("fat"), carbs: num("carbs") };
+    return { calories: num("calories"), protein: num("protein"), fat: num("fat"), carbs: num("carbs"), fiber: num("fiber") };
   } catch {
     return {};
   }
