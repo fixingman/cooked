@@ -1,4 +1,5 @@
 import { buildRecipeFromSchema } from "@/lib/parseJsonLd";
+import { estimateNutrition, generateThermomixSteps } from "@/lib/recipeEnrichment";
 
 const ALLOWED_MIME = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 
@@ -77,47 +78,6 @@ Return ONLY the JSON object, no explanation, no markdown fences.`;
   }
 }
 
-async function estimateNutrition(
-  recipe: { title: string; servings: number; ingredients: { quantity: number; unit: string; name: string }[] },
-  apiKey: string,
-): Promise<{ calories?: number; protein?: number; fat?: number; carbs?: number; fiber?: number }> {
-  const ingredientList = recipe.ingredients
-    .map(i => `${i.quantity > 0 ? i.quantity : ""} ${i.unit} ${i.name}`.trim())
-    .join(", ");
-  const prompt = `Estimate nutrition per serving for this recipe.
-Title: ${recipe.title}
-Servings: ${recipe.servings}
-Ingredients: ${ingredientList}
-
-Return ONLY a JSON object with integer values per serving: {"calories": number, "protein": number, "fat": number, "carbs": number, "fiber": number}`;
-
-  try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 128,
-        messages: [{ role: "user", content: prompt }],
-      }),
-      signal: AbortSignal.timeout(15_000),
-    });
-    if (!res.ok) return {};
-    const data = await res.json();
-    const text = (data?.content?.[0]?.text as string | undefined) ?? "";
-    const raw = text.match(/\{[\s\S]+\}/)?.[0] ?? text.trim();
-    const json = JSON.parse(raw);
-    const num = (k: string) => (typeof json[k] === "number" && json[k] > 0 ? Math.round(json[k]) : undefined);
-    return { calories: num("calories"), protein: num("protein"), fat: num("fat"), carbs: num("carbs"), fiber: num("fiber") };
-  } catch {
-    return {};
-  }
-}
-
 export async function POST(req: Request) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
@@ -155,15 +115,27 @@ export async function POST(req: Request) {
     );
   }
 
-  // Override sourceType to image and run nutrition in parallel
   const recipeWithSource = { ...recipe, sourceType: "image" as const };
+  const needsNutrition = !recipeWithSource.calories && !recipeWithSource.protein;
 
-  const nutrition = !recipeWithSource.calories && !recipeWithSource.protein
-    ? await estimateNutrition(recipeWithSource as Parameters<typeof estimateNutrition>[0], apiKey)
-    : {};
+  const [nutrition, thermomixSteps] = await Promise.all([
+    needsNutrition
+      ? estimateNutrition(recipeWithSource as Parameters<typeof estimateNutrition>[0], apiKey)
+      : Promise.resolve({}),
+    generateThermomixSteps(recipeWithSource.steps, apiKey),
+  ]);
+
+  const nutritionAdded = Object.keys(nutrition).length > 0;
+  const thermomixAdded = thermomixSteps !== null;
+  const enriched = {
+    ...recipeWithSource,
+    ...nutrition,
+    ...(thermomixSteps ? { steps: thermomixSteps, thermomixAvailable: true } : {}),
+  };
 
   return Response.json({
-    recipe: { ...recipeWithSource, ...nutrition },
+    recipe: enriched,
     heroImageBase64: `data:${mimeType};base64,${imageBase64}`,
+    enrichments: { nutrition: nutritionAdded, thermomix: thermomixAdded },
   });
 }

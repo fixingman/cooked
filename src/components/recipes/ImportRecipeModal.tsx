@@ -1,7 +1,7 @@
 "use client";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Link2, Loader2, Check, AlertCircle, ChefHat, Clock, Users, Globe, ArrowLeft, Camera, ImagePlus } from "lucide-react";
+import { X, Link2, Loader2, Check, AlertCircle, ChefHat, Clock, Users, Globe, ArrowLeft, Camera, ImagePlus, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useUserRecipes } from "@/hooks/useUserRecipes";
 import { useDropboxAuth } from "@/hooks/useDropboxAuth";
@@ -44,6 +44,7 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
   const [editMealTimes, setEditMealTimes] = useState<MealTime[]>(initialDraft?.mealTimes ?? []);
   const [saving, setSaving] = useState(false);
   const [heroImageBase64, setHeroImageBase64] = useState<string | null>(null);
+  const [enrichments, setEnrichments] = useState<{ nutrition: boolean; thermomix: boolean } | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -93,6 +94,7 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
       setEditDesc(data.recipe.description);
       setEditMealTimes(data.recipe.mealTimes);
       if (data.heroImageBase64) setHeroImageBase64(data.heroImageBase64);
+      if (data.enrichments) setEnrichments(data.enrichments);
       setStage("review");
     } catch {
       setError("Network error — check your connection and try again.");
@@ -129,6 +131,7 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
         setEditDesc(data.recipe.description);
         setEditMealTimes(data.recipe.mealTimes);
         if (data.heroImageBase64) setHeroImageBase64(data.heroImageBase64);
+        if (data.enrichments) setEnrichments(data.enrichments);
         setStage("review");
       } catch {
         setError("Network error — check your connection and try again.");
@@ -443,6 +446,20 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
                   <span className="text-parchment-300">·</span>
                   <span>{draft.ingredients.length} ingredients · {draft.steps.length} steps</span>
                 </div>
+
+                {/* AI enrichment status */}
+                {enrichments && (
+                  <div className="flex flex-wrap gap-2">
+                    <span className={`inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-medium ${enrichments.nutrition ? "bg-sage-100 text-sage-700" : "bg-parchment-200 text-ink-400"}`}>
+                      <Sparkles size={10} />
+                      {enrichments.nutrition ? "Macros estimated" : "Macros unavailable"}
+                    </span>
+                    <span className={`inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-medium ${enrichments.thermomix ? "bg-saffron-50 text-saffron-700" : "bg-parchment-200 text-ink-400"}`}>
+                      <Sparkles size={10} />
+                      {enrichments.thermomix ? "Thermomix steps added" : "No Thermomix adaptation"}
+                    </span>
+                  </div>
+                )}
 
                 {/* Title */}
                 <div>
