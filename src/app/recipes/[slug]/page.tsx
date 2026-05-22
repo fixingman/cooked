@@ -2,7 +2,7 @@
 import React from "react";
 import { notFound, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Clock, Users, BarChart2, Star } from "lucide-react";
+import { Clock, Users, BarChart2, Star, CheckCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RecipeHero } from "@/components/recipe-detail/RecipeHero";
 import { ServingsAdjuster } from "@/components/recipe-detail/ServingsAdjuster";
@@ -79,9 +79,20 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
   const [showEdit, setShowEdit] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const { removeRecipe } = useUserRecipes();
-  const { deleteRecipeHistory } = useCookingHistory();
-  const { deleteState } = useRecipeStates();
+  const { addEntry, deleteRecipeHistory } = useCookingHistory();
+  const { deleteState, markCooked, hasCooked, getState } = useRecipeStates();
   const { servings, scale, increment, decrement } = useServingsScale(recipe.servings);
+
+  const cooked = hasCooked(recipe.id);
+  const state = getState(recipe.id);
+  const cookCount = state?.cookedAt?.length ?? 0;
+  const personalRating = state?.rating ?? 0;
+
+  function handleMarkCooked() {
+    const cookedAt = new Date().toISOString();
+    markCooked(recipe.id, cookedAt);
+    addEntry({ recipeId: recipe.id, cookedAt });
+  }
 
   function handleDelete() {
     removeRecipe(recipe.id);
@@ -127,6 +138,36 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
                 <span className="text-ink-400">({recipe.reviewCount.toLocaleString()})</span>
               )}
             </div>
+          )}
+          {/* Cooked CTA */}
+          {cooked ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="flex items-center gap-1.5 text-sm"
+            >
+              <CheckCircle size={13} className="text-sage-500" fill="currentColor" strokeWidth={0} />
+              <span className="font-medium text-sage-700">
+                Cooked {cookCount === 1 ? "once" : `${cookCount}×`}
+              </span>
+              {personalRating > 0 && (
+                <div className="flex items-center gap-0.5 ml-0.5">
+                  {Array.from({ length: personalRating }).map((_, i) => (
+                    <Star key={i} size={10} className="text-saffron-500" fill="currentColor" />
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          ) : (
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={handleMarkCooked}
+              title="Mark this recipe as cooked"
+              className="flex items-center gap-1.5 text-sm text-ink-400 hover:text-sage-600 transition-colors group"
+            >
+              <CheckCircle size={13} className="group-hover:text-sage-500 transition-colors" />
+              <span>Mark as cooked</span>
+            </motion.button>
           )}
         </div>
 
