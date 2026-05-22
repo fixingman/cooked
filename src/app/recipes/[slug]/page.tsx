@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { notFound, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Clock, Users, BarChart2, Star, CheckCircle, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RecipeHero } from "@/components/recipe-detail/RecipeHero";
@@ -87,8 +87,12 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
   const state = getState(recipe.id);
   const cookCount = state?.cookedAt?.length ?? 0;
   const personalRating = state?.rating ?? 0;
+  const markingRef = useRef(false);
 
   function handleMarkCooked() {
+    if (markingRef.current) return;
+    markingRef.current = true;
+    setTimeout(() => { markingRef.current = false; }, 1000);
     const cookedAt = new Date().toISOString();
     markCooked(recipe.id, cookedAt);
     addEntry({ recipeId: recipe.id, cookedAt });

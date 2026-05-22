@@ -108,7 +108,7 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
       setPhotoPreview(dataUrl);
 
       const [, mimeType, base64] = dataUrl.match(/^data:([^;]+);base64,(.+)$/) ?? [];
-      if (!base64) return;
+      if (!base64) { setError("Could not read image data."); setStage("error"); return; }
 
       setStage("loading");
       setError("");
