@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import { Star } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRecipeStates } from "@/hooks/useRecipeStates";
@@ -16,6 +17,7 @@ export function CookedStatus({ recipeId }: CookedStatusProps) {
 
   const state = getState(recipeId);
   const currentRating = state?.rating ?? 0;
+  const [showStars, setShowStars] = useState(currentRating > 0);
 
   const lastNote = history
     .filter(e => e.recipeId === recipeId && e.notes)
@@ -31,21 +33,32 @@ export function CookedStatus({ recipeId }: CookedStatusProps) {
 
   return (
     <div className="py-5 border-b border-parchment-300">
-      <p className="text-label uppercase tracking-widest text-ink-400 mb-3">Your rating</p>
-      <div className="flex items-center gap-1 mb-3">
-        {[1, 2, 3, 4, 5].map(star => (
-          <motion.button
-            key={star}
-            whileTap={{ scale: 0.8 }}
-            onClick={() => handleRating(star)}
-            title={`Rate ${star} star${star !== 1 ? "s" : ""}`}
-            aria-label={`Rate ${star} star${star !== 1 ? "s" : ""}`}
-            className={star <= currentRating ? "text-saffron-500" : "text-parchment-300 hover:text-saffron-300 transition-colors"}
-          >
-            <Star size={22} fill={star <= currentRating ? "currentColor" : "none"} strokeWidth={1.5} />
-          </motion.button>
-        ))}
-      </div>
+      {showStars ? (
+        <>
+          <p className="text-label uppercase tracking-widest text-ink-400 mb-3">Your rating</p>
+          <div className="flex items-center gap-1 mb-3">
+            {[1, 2, 3, 4, 5].map(star => (
+              <motion.button
+                key={star}
+                whileTap={{ scale: 0.8 }}
+                onClick={() => handleRating(star)}
+                title={`Rate ${star} star${star !== 1 ? "s" : ""}`}
+                aria-label={`Rate ${star} star${star !== 1 ? "s" : ""}`}
+                className={star <= currentRating ? "text-saffron-500" : "text-parchment-300 hover:text-saffron-300 transition-colors"}
+              >
+                <Star size={22} fill={star <= currentRating ? "currentColor" : "none"} strokeWidth={1.5} />
+              </motion.button>
+            ))}
+          </div>
+        </>
+      ) : (
+        <button
+          onClick={() => setShowStars(true)}
+          className="text-sm text-ink-400 hover:text-saffron-500 transition-colors"
+        >
+          Rate this recipe →
+        </button>
+      )}
       {lastNote && (
         <p className="text-sm text-ink-500 italic leading-relaxed bg-parchment-200 rounded-xl px-3 py-2.5">
           &ldquo;{lastNote}&rdquo;
