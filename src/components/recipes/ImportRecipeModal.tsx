@@ -1,7 +1,7 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Link2, Loader2, Check, AlertCircle, ChefHat, Clock, Users, Globe, ArrowLeft } from "lucide-react";
+import { X, Link2, Loader2, Check, AlertCircle, ChefHat, Clock, Users, Globe, ArrowLeft, Camera, ImagePlus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useUserRecipes } from "@/hooks/useUserRecipes";
 import { useDropboxAuth } from "@/hooks/useDropboxAuth";
@@ -18,6 +18,7 @@ const MEAL_TIMES: { value: MealTime; label: string }[] = [
 ];
 
 type Stage = "input" | "loading" | "review" | "error";
+type ImportMode = "url" | "photo";
 
 interface ImportRecipeModalProps {
   onClose: () => void;
@@ -33,6 +34,7 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
 
   const isEditMode = !!initialDraft;
   const [stage, setStage] = useState<Stage>(isEditMode ? "review" : "input");
+  const [importMode, setImportMode] = useState<ImportMode>("url");
   const [url, setUrl] = useState("");
   const [urlError, setUrlError] = useState("");
   const [error, setError] = useState("");
@@ -42,6 +44,9 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
   const [editMealTimes, setEditMealTimes] = useState<MealTime[]>(initialDraft?.mealTimes ?? []);
   const [saving, setSaving] = useState(false);
   const [heroImageBase64, setHeroImageBase64] = useState<string | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Initialise synchronously from window so animation direction is correct on first render
   const [isDesktop, setIsDesktop] = useState(() =>
@@ -94,6 +99,44 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
       setStage("error");
     }
   }
+
+  const handlePhotoImport = useCallback(async (file: File) => {
+    if (!file.type.startsWith("image/")) return;
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const dataUrl = e.target?.result as string;
+      setPhotoPreview(dataUrl);
+
+      const [, mimeType, base64] = dataUrl.match(/^data:([^;]+);base64,(.+)$/) ?? [];
+      if (!base64) return;
+
+      setStage("loading");
+      setError("");
+      try {
+        const res = await fetch("/api/recipes/import-photo", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ imageBase64: base64, mimeType }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.recipe) {
+          setError(data.error ?? "Could not extract a recipe from this image.");
+          setStage("error");
+          return;
+        }
+        setDraft(data.recipe);
+        setEditTitle(data.recipe.title);
+        setEditDesc(data.recipe.description);
+        setEditMealTimes(data.recipe.mealTimes);
+        if (data.heroImageBase64) setHeroImageBase64(data.heroImageBase64);
+        setStage("review");
+      } catch {
+        setError("Network error — check your connection and try again.");
+        setStage("error");
+      }
+    };
+    reader.readAsDataURL(file);
+  }, []);
 
   function toggleMealTime(mt: MealTime) {
     setEditMealTimes(prev =>
@@ -189,7 +232,7 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
           <div className="flex items-center gap-2">
             {stage === "review" && !isEditMode && (
               <button
-                onClick={() => { setStage("input"); setDraft(null); }}
+                onClick={() => { setStage("input"); setDraft(null); setPhotoPreview(null); }}
                 className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-parchment-200 transition-colors -ml-1"
               >
                 <ArrowLeft size={17} className="text-ink-500" />
@@ -238,40 +281,116 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
             {/* Input */}
             {stage === "input" && (
               <>
-                <p className="text-sm text-ink-500">
-                  Paste a link from any recipe website — we&apos;ll extract the ingredients and steps for you.
-                </p>
-                <div className="flex gap-2">
-                  <div className="flex-1 relative">
-                    <Link2 size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-300" />
-                    <input
-                      ref={inputRef}
-                      type="url"
-                      value={url}
-                      onChange={e => { setUrl(e.target.value); if (urlError) setUrlError(""); }}
-                      onKeyDown={e => e.key === "Enter" && handleImport()}
-                      placeholder="https://example.com/recipe"
-                      autoFocus
-                      className={[
-                        "w-full pl-9 pr-3 py-2.5 bg-parchment-200 border rounded-xl text-sm text-ink-900 placeholder:text-ink-300 focus:outline-none focus:ring-1 transition-colors",
-                        urlError
-                          ? "border-red-300 focus:border-red-400 focus:ring-red-400/30"
-                          : "border-parchment-300 focus:border-saffron-400 focus:ring-saffron-400/30",
-                      ].join(" ")}
-                    />
-                  </div>
-                  <motion.button
-                    whileTap={{ scale: 0.95 }}
-                    onClick={handleImport}
-                    className="px-4 py-2.5 bg-saffron-500 text-white rounded-xl text-sm font-medium hover:bg-saffron-600 transition-colors shrink-0"
+                {/* Mode tabs */}
+                <div className="flex gap-1 p-1 bg-parchment-200 rounded-xl">
+                  <button
+                    onClick={() => setImportMode("url")}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      importMode === "url"
+                        ? "bg-parchment-100 text-ink-900 shadow-sm"
+                        : "text-ink-400 hover:text-ink-600"
+                    }`}
                   >
-                    Import
-                  </motion.button>
+                    <Link2 size={14} />
+                    URL
+                  </button>
+                  <button
+                    onClick={() => setImportMode("photo")}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      importMode === "photo"
+                        ? "bg-parchment-100 text-ink-900 shadow-sm"
+                        : "text-ink-400 hover:text-ink-600"
+                    }`}
+                  >
+                    <Camera size={14} />
+                    Photo
+                  </button>
                 </div>
-                {urlError && <p className="text-xs text-red-500">{urlError}</p>}
-                <p className="text-xs text-ink-300">
-                  Works with BBC Good Food, Allrecipes, Food52, Serious Eats, and more.
-                </p>
+
+                {importMode === "url" ? (
+                  <>
+                    <p className="text-sm text-ink-500">
+                      Paste a link from any recipe website — we&apos;ll extract the ingredients and steps for you.
+                    </p>
+                    <div className="flex gap-2">
+                      <div className="flex-1 relative">
+                        <Link2 size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-300" />
+                        <input
+                          ref={inputRef}
+                          type="url"
+                          value={url}
+                          onChange={e => { setUrl(e.target.value); if (urlError) setUrlError(""); }}
+                          onKeyDown={e => e.key === "Enter" && handleImport()}
+                          placeholder="https://example.com/recipe"
+                          autoFocus
+                          className={[
+                            "w-full pl-9 pr-3 py-2.5 bg-parchment-200 border rounded-xl text-sm text-ink-900 placeholder:text-ink-300 focus:outline-none focus:ring-1 transition-colors",
+                            urlError
+                              ? "border-red-300 focus:border-red-400 focus:ring-red-400/30"
+                              : "border-parchment-300 focus:border-saffron-400 focus:ring-saffron-400/30",
+                          ].join(" ")}
+                        />
+                      </div>
+                      <motion.button
+                        whileTap={{ scale: 0.95 }}
+                        onClick={handleImport}
+                        className="px-4 py-2.5 bg-saffron-500 text-white rounded-xl text-sm font-medium hover:bg-saffron-600 transition-colors shrink-0"
+                      >
+                        Import
+                      </motion.button>
+                    </div>
+                    {urlError && <p className="text-xs text-red-500">{urlError}</p>}
+                    <p className="text-xs text-ink-300">
+                      Works with BBC Good Food, Allrecipes, Food52, Serious Eats, and more.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm text-ink-500">
+                      Take a photo of a cookbook page, handwritten card, or recipe screenshot.
+                    </p>
+                    {/* Drop zone */}
+                    <motion.div
+                      onClick={() => fileInputRef.current?.click()}
+                      onDragOver={e => { e.preventDefault(); setIsDragging(true); }}
+                      onDragLeave={() => setIsDragging(false)}
+                      onDrop={e => {
+                        e.preventDefault();
+                        setIsDragging(false);
+                        const file = e.dataTransfer.files[0];
+                        if (file) handlePhotoImport(file);
+                      }}
+                      animate={{ borderColor: isDragging ? "#E8A020" : "#D4C9B0" }}
+                      className="relative flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-parchment-300 bg-parchment-200 py-10 cursor-pointer hover:border-saffron-400 hover:bg-parchment-300/50 transition-colors overflow-hidden"
+                    >
+                      {photoPreview ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={photoPreview} alt="preview" className="absolute inset-0 w-full h-full object-cover opacity-30" />
+                      ) : null}
+                      <div className="relative z-10 flex flex-col items-center gap-2">
+                        <div className="w-12 h-12 bg-parchment-100 rounded-full flex items-center justify-center shadow-sm">
+                          <ImagePlus size={22} className="text-ink-400" />
+                        </div>
+                        <p className="text-sm font-medium text-ink-700">
+                          {photoPreview ? "Change photo" : "Drop photo here"}
+                        </p>
+                        <p className="text-xs text-ink-400">or tap to browse / use camera</p>
+                      </div>
+                    </motion.div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      className="hidden"
+                      onChange={e => {
+                        const file = e.target.files?.[0];
+                        if (file) handlePhotoImport(file);
+                      }}
+                    />
+                    <p className="text-xs text-ink-300">JPEG, PNG, or WebP · Max ~5MB · Powered by Claude vision</p>
+                  </>
+                )}
               </>
             )}
 
@@ -282,8 +401,10 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
                   <Loader2 size={24} className="text-saffron-500 animate-spin" />
                 </div>
                 <div>
-                  <p className="font-serif text-ink-900">Fetching recipe…</p>
-                  <p className="text-sm text-ink-400 mt-1">Reading ingredients and steps</p>
+                  <p className="font-serif text-ink-900">
+                    {importMode === "photo" ? "Reading photo…" : "Fetching recipe…"}
+                  </p>
+                  <p className="text-sm text-ink-400 mt-1">Extracting ingredients and steps</p>
                 </div>
               </div>
             )}
@@ -297,10 +418,10 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
                 </div>
                 <motion.button
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => setStage("input")}
+                  onClick={() => { setStage("input"); setPhotoPreview(null); }}
                   className="w-full py-2.5 bg-parchment-200 text-ink-700 rounded-xl text-sm font-medium hover:bg-parchment-300 transition-colors"
                 >
-                  Try a different URL
+                  {importMode === "photo" ? "Try a different photo" : "Try a different URL"}
                 </motion.button>
               </>
             )}

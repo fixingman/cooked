@@ -38,10 +38,8 @@ Ordered by user value × feasibility. Phase B features (F-5, H-1B) depend on Pan
 
 ---
 
-### 🔴 F-4 — Photo Import
-**What:** Claude vision extracts a recipe from a photo (cookbook page, handwritten card, screenshot). Reuses the existing import review/save flow — only the extraction step changes.
-**Why early:** Reuses 90% of existing `ImportRecipeModal` and save logic. Entry point: camera icon in import modal. High perceived magic.
-**Depends on:** `ANTHROPIC_API_KEY` server-side env var (same as F-3).
+### ✅ F-4 — Photo Import — v0.12.0
+Claude vision extracts a recipe from a photo (cookbook page, handwritten card, screenshot). URL/Photo tab switcher in ImportRecipeModal; `/api/recipes/import-photo` route; photo becomes hero image.
 
 ---
 
@@ -134,3 +132,4 @@ Quality checklist per recipe: 5–12 steps · ingredient IDs cross-referenced to
 | Infrastructure — Web Worker timer, PWA offline cache, stale history cleanup | 0.10.2 | 2026-05-22 |
 | Nutrition panel (AI fill-in on import) + AI toggle "coming soon" label | 0.10.3 | 2026-05-22 |
 | U-20 "Mark as Cooked" + rate from detail · U-22 Cooking notes field · nutrition AI → Sonnet | 0.11.0 | 2026-05-22 |
+| F-4 Photo import — Claude vision extracts recipe from photo | 0.12.0 | 2026-05-23 |
