@@ -115,7 +115,6 @@ export function CookingShell({ recipe, thermomixMode = false }: CookingShellProp
             allIngredients={recipe.ingredients}
             stepIngredientIds={step.ingredients}
             stepId={step.id}
-            fallbackImageUrl={recipe.heroImageUrl}
             direction={direction}
           />
           {!hasTmStep && step.durationSeconds && step.durationSeconds > 0 && (
