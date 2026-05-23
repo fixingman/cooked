@@ -68,6 +68,11 @@ export interface Recipe {
   fat?: number;
   carbs?: number;
   fiber?: number;
+  sugar?: number;
+  sodium?: number;
+  saturatedFat?: number;
+  cholesterol?: number;
+  transFat?: number;
   rating: number;
   reviewCount: number;
   tags: string[];

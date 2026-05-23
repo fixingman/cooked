@@ -40,6 +40,7 @@ Three files must always match:
 - `0.13.0` Thermomix steps + macro nutrition on URL/photo import, enrichment status chips
 - `0.13.1` Grouped recipe filter chips — meal time, type, diet, my list · `0.13.2` AI classification + chef's notes on import
 - `0.13.3` Sort icon · `0.13.4` Sticky back nav + PWA top gap (viewport-fit cover)
+- `0.14.0` Extended nutrition panel — sugar/sodium/sat.fat/cholesterol/trans fat with health warnings
 
 ---
 

@@ -12,7 +12,7 @@ const HEADERS = (key: string) => ({
 export async function estimateNutrition(
   recipe: { title: string; servings: number; ingredients: { quantity: number; unit: string; name: string }[] },
   apiKey: string,
-): Promise<{ calories?: number; protein?: number; fat?: number; carbs?: number; fiber?: number }> {
+): Promise<{ calories?: number; protein?: number; fat?: number; carbs?: number; fiber?: number; sugar?: number; sodium?: number; saturatedFat?: number; cholesterol?: number; transFat?: number }> {
   const ingredientList = recipe.ingredients
     .map(i => `${i.quantity > 0 ? i.quantity : ""} ${i.unit} ${i.name}`.trim())
     .join(", ");
@@ -22,7 +22,9 @@ Title: ${recipe.title}
 Servings: ${recipe.servings}
 Ingredients: ${ingredientList}
 
-Return ONLY a JSON object with integer values per serving: {"calories": number, "protein": number, "fat": number, "carbs": number, "fiber": number}`;
+Return ONLY a JSON object with numeric values per serving (integers except transFat which can be a decimal):
+{"calories": number, "protein": number, "fat": number, "carbs": number, "fiber": number, "sugar": number, "sodium": number, "saturatedFat": number, "cholesterol": number, "transFat": number}
+Use 0 for transFat if negligible. sodium is in mg, cholesterol is in mg, all others in g except calories in kcal.`;
 
   try {
     const res = await fetch(API_BASE, {
@@ -41,7 +43,13 @@ Return ONLY a JSON object with integer values per serving: {"calories": number, 
     const raw = text.match(/\{[\s\S]+\}/)?.[0] ?? text.trim();
     const json = JSON.parse(raw);
     const num = (k: string) => (typeof json[k] === "number" && json[k] > 0 ? Math.round(json[k]) : undefined);
-    return { calories: num("calories"), protein: num("protein"), fat: num("fat"), carbs: num("carbs"), fiber: num("fiber") };
+    const dec = (k: string) => (typeof json[k] === "number" && json[k] > 0 ? Math.round(json[k] * 10) / 10 : undefined);
+    return {
+      calories: num("calories"), protein: num("protein"), fat: num("fat"),
+      carbs: num("carbs"), fiber: num("fiber"), sugar: num("sugar"),
+      sodium: num("sodium"), saturatedFat: num("saturatedFat"),
+      cholesterol: num("cholesterol"), transFat: dec("transFat"),
+    };
   } catch {
     return {};
   }
