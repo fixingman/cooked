@@ -198,6 +198,9 @@ export function buildRecipeFromSchema(
   let hostname = "";
   try { hostname = new URL(sourceUrl).hostname.replace(/^www\./, ""); } catch {}
 
+  const schemaTypeTags = (schema.typeTags as string[] | undefined) ?? [];
+  const baseDietaryTags = mapDietaryTags(schema.suitableForDiet as string | string[] | undefined);
+
   return {
     id,
     slug: slugifyTitle(title, id),
@@ -217,9 +220,10 @@ export function buildRecipeFromSchema(
     carbs:    parseNutrient((schema.nutrition as Record<string, string> | undefined)?.carbohydrateContent),
     rating: 0,
     reviewCount: 0,
-    tags: [],
-    dietaryTags: mapDietaryTags(schema.suitableForDiet as string | string[] | undefined),
+    tags: schemaTypeTags,
+    dietaryTags: baseDietaryTags,
     description: (schema.description as string | undefined) ?? `Imported from ${hostname}`,
+    chefNotes: (schema.chefNotes as string | undefined) ?? undefined,
     isFeatured: false,
     ingredients,
     steps,
