@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { ChefHat, Plus } from "lucide-react";
+import { ChefHat, Plus, ArrowUpDown } from "lucide-react";
 import { motion } from "framer-motion";
 import { SearchBar } from "@/components/recipes/SearchBar";
 import { CategoryChips } from "@/components/recipes/CategoryChips";
@@ -123,15 +123,18 @@ function RecipesContent() {
             <p className="text-sm text-ink-400">
               {filtered.length} recipe{filtered.length !== 1 ? "s" : ""}
             </p>
-            <select
-              value={sort}
-              onChange={(e) => setSort(e.target.value as SortOption)}
-              className="text-xs text-ink-600 bg-parchment-200 border border-parchment-300 rounded-lg px-2.5 py-1.5 appearance-none cursor-pointer hover:border-parchment-400 transition-colors"
-            >
-              {sortLabels.map(({ value, label }) => (
-                <option key={value} value={value}>{label}</option>
-              ))}
-            </select>
+            <div className="relative flex items-center">
+              <ArrowUpDown size={12} className="absolute left-2.5 text-ink-400 pointer-events-none" />
+              <select
+                value={sort}
+                onChange={(e) => setSort(e.target.value as SortOption)}
+                className="text-xs text-ink-600 bg-parchment-200 border border-parchment-300 rounded-lg pl-7 pr-2.5 py-1.5 appearance-none cursor-pointer hover:border-parchment-400 transition-colors"
+              >
+                {sortLabels.map(({ value, label }) => (
+                  <option key={value} value={value}>{label}</option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
       </div>
