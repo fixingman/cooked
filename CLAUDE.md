@@ -36,6 +36,10 @@ Three files must always match:
 - `0.11.1` Cap recently cooked to 3 · `0.12.0` Photo import (Claude vision)
 - `0.12.1`–`0.12.5` Bug fixes + cooking mode de-clutter · `0.12.6` Undo mark as cooked
 - `0.12.7` Full macro breakdown + hide rating until rated
+- `0.12.8`–`0.12.11` Bug fixes: deleteLastEntry index fix, double-tap guard, photo import silent failure, back button skip /cook
+- `0.13.0` Thermomix steps + macro nutrition on URL/photo import, enrichment status chips
+- `0.13.1` Grouped recipe filter chips — meal time, type, diet, my list · `0.13.2` AI classification + chef's notes on import
+- `0.13.3` Sort icon · `0.13.4` Sticky back nav + PWA top gap (viewport-fit cover)
 
 ---
 

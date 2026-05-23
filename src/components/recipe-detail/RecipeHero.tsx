@@ -70,7 +70,7 @@ export function RecipeHero({ recipe, onEdit, onDelete }: RecipeHeroProps) {
   }
 
   return (
-    <div className="relative h-[55vw] max-h-[480px] min-h-[260px]">
+    <div className="relative h-[55vw] max-h-[480px] min-h-[260px] -mt-[env(safe-area-inset-top)]">
       <FoodImage
         src={heroSrc}
         alt={recipe.title}
@@ -82,7 +82,7 @@ export function RecipeHero({ recipe, onEdit, onDelete }: RecipeHeroProps) {
       <div className="absolute inset-0 bg-hero-scrim" />
 
       {/* Top controls */}
-      <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-page-x pt-header-top pb-4">
+      <div className="fixed top-0 left-0 right-0 z-30 md:absolute flex items-center justify-between px-page-x pt-header-top pb-4">
         <motion.button
           whileTap={{ scale: 0.92 }}
           onClick={goBack}

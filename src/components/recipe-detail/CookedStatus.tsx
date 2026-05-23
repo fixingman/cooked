@@ -12,12 +12,11 @@ interface CookedStatusProps {
 export function CookedStatus({ recipeId }: CookedStatusProps) {
   const { hasCooked, getState, updateRating } = useRecipeStates();
   const { history, addEntry } = useCookingHistory();
-
-  if (!hasCooked(recipeId)) return null;
-
   const state = getState(recipeId);
   const currentRating = state?.rating ?? 0;
   const [showStars, setShowStars] = useState(currentRating > 0);
+
+  if (!hasCooked(recipeId)) return null;
 
   const lastNote = history
     .filter(e => e.recipeId === recipeId && e.notes)

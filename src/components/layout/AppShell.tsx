@@ -14,7 +14,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen min-h-dvh">
       <SideNav />
-      <main className="flex-1 min-w-0 pb-nav-h md:pb-0">
+      <main className="flex-1 min-w-0 pb-nav-h md:pb-0 pt-safe-top md:pt-0">
         {children}
       </main>
       <BottomNav />
