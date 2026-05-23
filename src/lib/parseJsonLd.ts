@@ -159,8 +159,8 @@ function findRecipeSchema(data: any): any | null {
 
 function parseNutrient(v: string | undefined): number | undefined {
   if (!v) return undefined;
-  const n = parseInt(v.replace(/[^\d]/g, ""));
-  return isNaN(n) || n === 0 ? undefined : n;
+  const n = parseFloat(v.replace(/[^\d.]/g, ""));
+  return isNaN(n) || n === 0 ? undefined : Math.round(n);
 }
 
 export interface RecipeDraft extends Recipe {
@@ -218,6 +218,7 @@ export function buildRecipeFromSchema(
     protein:      parseNutrient((schema.nutrition as Record<string, string> | undefined)?.proteinContent),
     fat:          parseNutrient((schema.nutrition as Record<string, string> | undefined)?.fatContent),
     carbs:        parseNutrient((schema.nutrition as Record<string, string> | undefined)?.carbohydrateContent),
+    fiber:        parseNutrient((schema.nutrition as Record<string, string> | undefined)?.fiberContent),
     sugar:        parseNutrient((schema.nutrition as Record<string, string> | undefined)?.sugarContent),
     sodium:       parseNutrient((schema.nutrition as Record<string, string> | undefined)?.sodiumContent),
     saturatedFat: parseNutrient((schema.nutrition as Record<string, string> | undefined)?.saturatedFatContent),
