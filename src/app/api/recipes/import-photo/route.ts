@@ -1,5 +1,5 @@
 import { buildRecipeFromSchema } from "@/lib/parseJsonLd";
-import { estimateNutrition, generateThermomixSteps } from "@/lib/recipeEnrichment";
+import { estimateNutrition, generateThermomixSteps, classifyRecipe } from "@/lib/recipeEnrichment";
 
 const ALLOWED_MIME = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 
@@ -118,18 +118,26 @@ export async function POST(req: Request) {
   const recipeWithSource = { ...recipe, sourceType: "image" as const };
   const needsNutrition = !recipeWithSource.calories && !recipeWithSource.protein;
 
-  const [nutrition, thermomixSteps] = await Promise.all([
+  const [nutrition, thermomixSteps, classification] = await Promise.all([
     needsNutrition
       ? estimateNutrition(recipeWithSource as Parameters<typeof estimateNutrition>[0], apiKey)
       : Promise.resolve({}),
     generateThermomixSteps(recipeWithSource.steps, apiKey),
+    classifyRecipe(recipeWithSource as Parameters<typeof classifyRecipe>[0], apiKey) as Promise<{ typeTags: string[]; dietaryTags: import("@/types/recipe").DietaryTag[]; chefNotes?: string }>,
   ]);
 
   const nutritionAdded = Object.keys(nutrition).length > 0;
   const thermomixAdded = thermomixSteps !== null;
+
+  const mergedTags = Array.from(new Set([...recipeWithSource.tags, ...classification.typeTags]));
+  const mergedDietary = Array.from(new Set([...recipeWithSource.dietaryTags, ...classification.dietaryTags]));
+
   const enriched = {
     ...recipeWithSource,
     ...nutrition,
+    tags: mergedTags,
+    dietaryTags: mergedDietary,
+    ...(classification.chefNotes ? { chefNotes: classification.chefNotes } : {}),
     ...(thermomixSteps ? { steps: thermomixSteps, thermomixAvailable: true } : {}),
   };
 

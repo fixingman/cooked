@@ -1,4 +1,6 @@
-import type { CookingStep } from "@/types/recipe";
+import type { CookingStep, DietaryTag } from "@/types/recipe";
+
+const TYPE_TAGS = ["soup", "pasta", "bake", "salad"] as const;
 
 const API_BASE = "https://api.anthropic.com/v1/messages";
 const HEADERS = (key: string) => ({
@@ -110,5 +112,53 @@ Return [] if no steps suit the Thermomix.`;
     return updated;
   } catch {
     return null;
+  }
+}
+
+export async function classifyRecipe(
+  recipe: { title: string; description: string; tags: string[]; dietaryTags: DietaryTag[]; ingredients: { name: string }[] },
+  apiKey: string,
+  pageText?: string,
+): Promise<{ typeTags: string[]; dietaryTags: DietaryTag[]; chefNotes?: string }> {
+  const ingredientSample = recipe.ingredients.slice(0, 8).map(i => i.name).join(", ");
+  const context = pageText ? `\n\nPage text excerpt:\n${pageText.slice(0, 2500)}` : "";
+
+  const prompt = `Analyse this recipe and return a JSON object with three fields.
+
+Recipe: "${recipe.title}"
+Description: ${recipe.description}
+Ingredients (sample): ${ingredientSample}${context}
+
+1. "typeTags": array of applicable type tags from this list only — ["soup","pasta","bake","salad"]. Include a tag only if it clearly describes the dish. Can be empty.
+
+2. "dietaryTags": array of applicable tags from ["vegetarian","vegan","gluten-free","dairy-free","pescatarian"]. Only include if clearly true based on ingredients.
+
+3. "chefNotes": any chef tips, notes, variations, or serving suggestions found in the text. Concise prose (2–4 sentences). null if none.
+
+Return ONLY valid JSON: {"typeTags": [...], "dietaryTags": [...], "chefNotes": "..." or null}`;
+
+  try {
+    const res = await fetch(API_BASE, {
+      method: "POST",
+      headers: HEADERS(apiKey),
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 256,
+        messages: [{ role: "user", content: prompt }],
+      }),
+      signal: AbortSignal.timeout(12_000),
+    });
+    if (!res.ok) return { typeTags: [], dietaryTags: [] };
+    const data = await res.json();
+    const text = (data?.content?.[0]?.text as string | undefined) ?? "";
+    const raw = text.match(/\{[\s\S]+\}/)?.[0] ?? text.trim();
+    const json = JSON.parse(raw);
+    const typeTags = (json.typeTags as unknown[])?.filter((t): t is string => TYPE_TAGS.includes(t as never)) ?? [];
+    const dietary = (json.dietaryTags as unknown[])?.filter((t): t is DietaryTag =>
+      ["vegetarian","vegan","gluten-free","dairy-free","pescatarian"].includes(t as string)) ?? [];
+    const chefNotes = typeof json.chefNotes === "string" && json.chefNotes.trim() ? json.chefNotes.trim() : undefined;
+    return { typeTags, dietaryTags: dietary, chefNotes };
+  } catch {
+    return { typeTags: [], dietaryTags: [] };
   }
 }

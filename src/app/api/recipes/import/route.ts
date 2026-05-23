@@ -1,5 +1,5 @@
 import { parseRecipeFromHtml, buildRecipeFromSchema, stripHtmlToText } from "@/lib/parseJsonLd";
-import { estimateNutrition, generateThermomixSteps } from "@/lib/recipeEnrichment";
+import { estimateNutrition, generateThermomixSteps, classifyRecipe } from "@/lib/recipeEnrichment";
 
 const ALLOWED_PROTOCOLS = ["http:", "https:"];
 
@@ -39,7 +39,9 @@ async function extractWithClaude(
   "recipeCuisine": "cuisine type",
   "recipeCategory": "meal type e.g. Dinner, Breakfast, Dessert",
   "image": "image URL if found",
-  "suitableForDiet": ["VegetarianDiet", "VeganDiet", etc — only if clearly stated]
+  "suitableForDiet": ["VegetarianDiet", "VeganDiet", etc — only if clearly stated],
+  "typeTags": ["soup"|"pasta"|"bake"|"salad" — only tags that clearly apply, can be empty array],
+  "chefNotes": "any chef tips, notes, variations or serving suggestions from the page — concise prose, or null"
 }
 
 Return ONLY the JSON object, no explanation, no markdown fences.
@@ -55,11 +57,11 @@ ${pageText.slice(0, 40_000)}`;
       "content-type": "application/json",
     },
     body: JSON.stringify({
-      model: "claude-haiku-4-5-20251001",
+      model: "claude-sonnet-4-6",
       max_tokens: 2048,
       messages: [{ role: "user", content: prompt }],
     }),
-    signal: AbortSignal.timeout(30_000),
+    signal: AbortSignal.timeout(25_000),
   });
 
   if (!res.ok) return null;
@@ -131,20 +133,26 @@ export async function POST(req: Request) {
     return !r.calories && !r.protein;
   }
 
-  async function finalise(recipe: ReturnType<typeof parseRecipeFromHtml> & object) {
+  async function finalise(recipe: ReturnType<typeof parseRecipeFromHtml> & object, pageText?: string) {
     const r = recipe as import("@/types/recipe").Recipe;
-    const [heroImageBase64, nutrition, thermomixSteps] = await Promise.all([
+    const [heroImageBase64, nutrition, thermomixSteps, classification] = await Promise.all([
       fetchImageAsBase64(r.heroImageUrl),
-      apiKey && needsNutrition(r)
-        ? estimateNutrition(r, apiKey)
-        : Promise.resolve({}),
+      apiKey && needsNutrition(r) ? estimateNutrition(r, apiKey) : Promise.resolve({}),
       apiKey ? generateThermomixSteps(r.steps, apiKey) : Promise.resolve(null),
+      apiKey ? classifyRecipe(r, apiKey, pageText) : Promise.resolve({ typeTags: [] as string[], dietaryTags: [] as import("@/types/recipe").DietaryTag[], chefNotes: undefined }),
     ]);
     const nutritionAdded = Object.keys(nutrition).length > 0;
     const thermomixAdded = thermomixSteps !== null;
+
+    const mergedTags = Array.from(new Set([...r.tags, ...classification.typeTags]));
+    const mergedDietary = Array.from(new Set([...r.dietaryTags, ...classification.dietaryTags]));
+
     const enriched = {
       ...recipe,
       ...nutrition,
+      tags: mergedTags,
+      dietaryTags: mergedDietary,
+      ...(classification.chefNotes && !r.chefNotes ? { chefNotes: classification.chefNotes } : {}),
       ...(thermomixSteps ? { steps: thermomixSteps, thermomixAvailable: true } : {}),
     };
     return Response.json({
@@ -154,19 +162,20 @@ export async function POST(req: Request) {
     });
   }
 
+  const pageText = stripHtmlToText(html);
+
   // Try JSON-LD first
   const jsonLdRecipe = parseRecipeFromHtml(html, url, id);
-  if (jsonLdRecipe) return finalise(jsonLdRecipe);
+  if (jsonLdRecipe) return finalise(jsonLdRecipe, pageText);
 
   // Claude fallback — only if API key is configured
   if (apiKey) {
     try {
-      const pageText = stripHtmlToText(html);
       if (!pageText.toLowerCase().includes("ingredient")) {
         return Response.json({ error: "This page doesn't appear to contain a recipe." }, { status: 422 });
       }
       const claudeRecipe = await extractWithClaude(pageText, url, id, apiKey);
-      if (claudeRecipe) return finalise(claudeRecipe);
+      if (claudeRecipe) return finalise(claudeRecipe, pageText);
     } catch {}
   }
 
