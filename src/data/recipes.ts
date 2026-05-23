@@ -410,7 +410,7 @@ export const recipes: Recipe[] = [
     calories: 480, protein: 8, fat: 28, carbs: 52, fiber: 3,
     rating: 4.9,
     reviewCount: 3241,
-    tags: ["chocolate", "dessert", "dinner party", "molten"],
+    tags: ["chocolate", "dessert", "dinner party", "molten", "bake"],
     dietaryTags: ["vegetarian"],
     thermomixAvailable: true,
     description: "A perfectly baked shell with a flowing molten centre. The magic is in timing — 12 minutes precisely. Serve immediately with vanilla ice cream for the hot-cold contrast.",
