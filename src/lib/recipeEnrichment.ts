@@ -71,7 +71,7 @@ ${stepLines}
 Return ONLY a JSON array for steps that CAN use the Thermomix:
 [
   {
-    "stepId": "the exact UUID from above",
+    "stepId": "copy the exact step ID from the brackets above e.g. step-0",
     "speed": 0,
     "tempC": 0,
     "timeSeconds": 0,
@@ -117,6 +117,7 @@ Return [] if no steps suit the Thermomix.`;
         },
       };
     });
+    if (!updated.some(s => s.thermomix)) return null;
     return updated;
   } catch {
     return null;
