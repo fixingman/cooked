@@ -1,8 +1,8 @@
 "use client";
 import { useState, useCallback, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
-import Link from "next/link";
 import type { Recipe } from "@/types/recipe";
 import { useCookingTimer } from "@/hooks/useCookingTimer";
 import { useSwipeGesture } from "@/hooks/useSwipeGesture";
@@ -18,6 +18,7 @@ interface CookingShellProps {
 }
 
 export function CookingShell({ recipe, thermomixMode = false }: CookingShellProps) {
+  const router = useRouter();
   const [stepIndex, setStepIndex] = useState(0);
   const [direction, setDirection] = useState(1);
   const [completed, setCompleted] = useState(false);
@@ -78,14 +79,14 @@ export function CookingShell({ recipe, thermomixMode = false }: CookingShellProp
     >
       {/* Header */}
       <div className="flex items-center justify-between px-5 pt-safe-top py-4 border-b border-parchment-300">
-        <Link href={`/recipes/${recipe.slug}`}>
+        <button onClick={() => router.back()}>
           <motion.div
             whileTap={{ scale: 0.92 }}
             className="flex items-center gap-2 text-ink-500 hover:text-ink-900 transition-colors"
           >
             <X size={20} />
           </motion.div>
-        </Link>
+        </button>
         <div className="text-center">
           <p className="font-serif text-sm font-medium text-ink-900 line-clamp-1 max-w-[180px]">
             {recipe.title}

@@ -2,6 +2,8 @@ import { parseRecipeFromHtml, buildRecipeFromSchema, stripHtmlToText } from "@/l
 import { estimateNutrition, generateThermomixSteps, classifyRecipe } from "@/lib/recipeEnrichment";
 import { resolveRecipeImage } from "@/lib/imageUtils";
 
+export const maxDuration = 30;
+
 const ALLOWED_PROTOCOLS = ["http:", "https:"];
 
 async function extractWithClaude(

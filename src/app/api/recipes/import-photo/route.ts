@@ -1,6 +1,8 @@
 import { buildRecipeFromSchema } from "@/lib/parseJsonLd";
 import { estimateNutrition, generateThermomixSteps, classifyRecipe } from "@/lib/recipeEnrichment";
 
+export const maxDuration = 30;
+
 const ALLOWED_MIME = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 
 async function extractFromPhoto(

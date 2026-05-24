@@ -53,6 +53,7 @@ Three files must always match:
 - `0.15.4` Fix HowToStep `name` fallback in parseSteps · Claude step extraction for 0-step JSON-LD recipes
 - `0.15.5` parseDuration full-ISO fix (T-split) · 0-step time merge from Claude · budget-aware Thermomix skip · BUGS.md
 - `0.15.6` Nutrition: "based on N servings" label + consistent "Show full breakdown" · Cooking mode: contextual ingredients via text-match (no more showing all)
+- `0.15.7` Nutrition: ~Xg per serving from weight ingredients · Back button: router.back() in cook mode · maxDuration=30 on all AI routes · Thermomix enrichment error breakdown
 
 ---
 

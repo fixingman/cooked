@@ -1,6 +1,8 @@
 import { generateThermomixSteps } from "@/lib/recipeEnrichment";
 import type { CookingStep } from "@/types/recipe";
 
+export const maxDuration = 30;
+
 export async function POST(req: Request) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return Response.json({ error: "AI not configured" }, { status: 503 });

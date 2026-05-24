@@ -3,8 +3,25 @@ import { useState } from "react";
 import { AlertTriangle, ChevronDown, ChevronUp } from "lucide-react";
 import type { Recipe } from "@/types/recipe";
 
-type NutritionKeys = "calories" | "protein" | "fat" | "carbs" | "fiber" | "sugar" | "sodium" | "saturatedFat" | "cholesterol" | "transFat" | "servings";
+type NutritionKeys = "calories" | "protein" | "fat" | "carbs" | "fiber" | "sugar" | "sodium" | "saturatedFat" | "cholesterol" | "transFat" | "servings" | "ingredients";
 type NutritionPanelProps = { recipe: Pick<Recipe, NutritionKeys> };
+
+const WEIGHT_TO_GRAMS: Record<string, number> = {
+  g: 1, gram: 1, grams: 1,
+  kg: 1000,
+  oz: 28.35, ounce: 28.35, ounces: 28.35,
+  lb: 453.6, lbs: 453.6, pound: 453.6, pounds: 453.6,
+};
+
+function estimateServingGrams(recipe: Pick<Recipe, "ingredients" | "servings">): number | null {
+  let total = 0;
+  for (const ing of recipe.ingredients) {
+    const factor = WEIGHT_TO_GRAMS[ing.unit?.toLowerCase() ?? ""];
+    if (factor && ing.quantity > 0) total += ing.quantity * factor;
+  }
+  if (total === 0 || recipe.servings <= 0) return null;
+  return Math.round(total / recipe.servings);
+}
 
 type WarningLevel = "amber" | "red";
 
@@ -65,6 +82,7 @@ function Stat({
 export function NutritionPanel({ recipe }: NutritionPanelProps) {
   const { calories, protein, fat, carbs, fiber, sugar, sodium, saturatedFat, cholesterol, transFat, servings } = recipe;
   const [expanded, setExpanded] = useState(false);
+  const servingGrams = estimateServingGrams(recipe);
 
   if (!calories && !protein && !fat && !carbs) return null;
 
@@ -84,9 +102,10 @@ export function NutritionPanel({ recipe }: NutritionPanelProps) {
     <div className="py-5 border-b border-parchment-300">
       <div className="flex items-baseline gap-2 mb-3">
         <p className="text-label uppercase tracking-widest text-ink-400">Nutrition per serving</p>
-        {servings > 1 && (
-          <span className="text-[10px] text-ink-300">based on {servings} servings</span>
-        )}
+        <span className="text-[10px] text-ink-300">
+          {servings > 1 ? `based on ${servings} servings` : ""}
+          {servingGrams ? `${servings > 1 ? " · " : ""}~${servingGrams}g` : ""}
+        </span>
       </div>
 
       <div className="flex gap-2">

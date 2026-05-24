@@ -1,5 +1,7 @@
 import { resolveRecipeImage } from "@/lib/imageUtils";
 
+export const maxDuration = 30;
+
 async function fetchImageAsBase64(imageUrl: string | undefined): Promise<string | null> {
   if (!imageUrl) return null;
   try {

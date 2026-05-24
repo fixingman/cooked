@@ -23,7 +23,7 @@ export function ThermomixEnrichSection() {
   const { settings } = useSettings();
   const [running, setRunning] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
-  const [result, setResult] = useState<{ updated: number; skipped: number } | null>(null);
+  const [result, setResult] = useState<{ updated: number; noSteps: number; failed: number } | null>(null);
 
   const pending = recipes.filter(needsEnrichment);
 
@@ -34,7 +34,8 @@ export function ThermomixEnrichSection() {
     const toProcess = recipes.filter(needsEnrichment);
     setProgress({ done: 0, total: toProcess.length });
     let updated = 0;
-    let skipped = 0;
+    let noSteps = 0;
+    let failed = 0;
 
     for (const recipe of toProcess) {
       try {
@@ -42,20 +43,22 @@ export function ThermomixEnrichSection() {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({ steps: recipe.steps }),
+          signal: AbortSignal.timeout(28_000),
         });
-        if (!res.ok) { skipped++; setProgress(p => p ? { ...p, done: p.done + 1 } : null); continue; }
+        if (res.status === 422) { noSteps++; setProgress(p => p ? { ...p, done: p.done + 1 } : null); continue; }
+        if (!res.ok) { failed++; setProgress(p => p ? { ...p, done: p.done + 1 } : null); continue; }
         const data = await res.json() as { steps: Recipe["steps"]; thermomixAvailable: true };
         addRecipe({ ...recipe, steps: data.steps, thermomixAvailable: true });
         updated++;
       } catch {
-        skipped++;
+        failed++;
       }
       setProgress(p => p ? { ...p, done: p.done + 1 } : null);
     }
 
     setRunning(false);
     setProgress(null);
-    setResult({ updated, skipped });
+    setResult({ updated, noSteps, failed });
   }, [recipes, running, addRecipe]);
 
   if (!settings.thermomixEnabled || recipes.length === 0) return null;
@@ -112,8 +115,10 @@ export function ThermomixEnrichSection() {
             className="mt-3 flex items-center gap-2 text-xs"
           >
             {result.updated > 0
-              ? <><CheckCircle2 size={13} className="text-sage-500" /><span className="text-ink-600">{result.updated} recipe{result.updated !== 1 ? "s" : ""} updated{result.skipped > 0 ? `, ${result.skipped} skipped` : ""}</span></>
-              : <><AlertCircle size={13} className="text-ink-400" /><span className="text-ink-400">No recipes could be adapted</span></>
+              ? <><CheckCircle2 size={13} className="text-sage-500" /><span className="text-ink-600">{result.updated} updated{result.noSteps > 0 ? ` · ${result.noSteps} no TM steps` : ""}{result.failed > 0 ? ` · ${result.failed} failed` : ""}</span></>
+              : result.failed > 0
+                ? <><AlertCircle size={13} className="text-amber-400" /><span className="text-amber-700">{result.failed} timed out — try again</span></>
+                : <><AlertCircle size={13} className="text-ink-400" /><span className="text-ink-400">Steps not suitable for Thermomix</span></>
             }
           </motion.div>
         )}
