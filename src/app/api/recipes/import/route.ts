@@ -99,7 +99,7 @@ export async function POST(req: Request) {
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
         Accept: "text/html,application/xhtml+xml",
       },
-      signal: AbortSignal.timeout(12_000),
+      signal: AbortSignal.timeout(8_000),
       redirect: "follow",
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -119,13 +119,17 @@ export async function POST(req: Request) {
     return !r.calories && !r.protein;
   }
 
-  async function finalise(recipe: ReturnType<typeof parseRecipeFromHtml> & object, pageText?: string) {
+  async function finalise(
+    recipe: ReturnType<typeof parseRecipeFromHtml> & object,
+    pageText?: string,
+    { skipThermomix = false }: { skipThermomix?: boolean } = {},
+  ) {
     const r = recipe as import("@/types/recipe").Recipe;
     const unsplashKey = process.env.UNSPLASH_ACCESS_KEY;
     const [imageResult, nutrition, thermomixSteps, classification] = await Promise.all([
       resolveRecipeImage(r.heroImageUrl, r.title, r.cuisine, unsplashKey),
       apiKey && needsNutrition(r) ? estimateNutrition(r, apiKey) : Promise.resolve({}),
-      apiKey ? generateThermomixSteps(r.steps, apiKey) : Promise.resolve(null),
+      apiKey && !skipThermomix ? generateThermomixSteps(r.steps, apiKey) : Promise.resolve(null),
       apiKey ? classifyRecipe(r, apiKey, pageText) : Promise.resolve({ typeTags: [] as string[], dietaryTags: [] as import("@/types/recipe").DietaryTag[], chefNotes: undefined, cuisine: undefined }),
     ]);
     const nutritionAdded = Object.keys(nutrition).length > 0;
@@ -177,16 +181,27 @@ export async function POST(req: Request) {
   const jsonLdRecipe = parseRecipeFromHtml(html, url, id);
   if (jsonLdRecipe && jsonLdRecipe.steps.length > 0) return finalise(jsonLdRecipe, pageText);
 
-  // JSON-LD has metadata but no steps — try Claude for steps, merge with JSON-LD metadata
+  // JSON-LD has metadata but no steps — try Claude for steps, skip Thermomix to fit budget
+  // (Thermomix can be added retroactively via Settings → Thermomix enrichment)
   if (jsonLdRecipe && apiKey) {
     try {
       const claudeRecipe = await extractWithClaude(pageText, url, id, apiKey);
       if (claudeRecipe && claudeRecipe.steps.length > 0) {
-        const merged = { ...jsonLdRecipe, steps: claudeRecipe.steps };
-        return finalise(merged, pageText);
+        // Also take times from Claude if JSON-LD had 0 times
+        const merged = {
+          ...jsonLdRecipe,
+          steps: claudeRecipe.steps,
+          ...(jsonLdRecipe.prepTimeMinutes === 0 && claudeRecipe.prepTimeMinutes > 0
+            ? { prepTimeMinutes: claudeRecipe.prepTimeMinutes } : {}),
+          ...(jsonLdRecipe.cookTimeMinutes === 0 && claudeRecipe.cookTimeMinutes > 0
+            ? { cookTimeMinutes: claudeRecipe.cookTimeMinutes } : {}),
+          ...(jsonLdRecipe.totalTimeMinutes <= 30 && claudeRecipe.totalTimeMinutes > 0
+            ? { totalTimeMinutes: claudeRecipe.totalTimeMinutes } : {}),
+        };
+        return finalise(merged, pageText, { skipThermomix: true });
       }
     } catch {}
-    return finalise(jsonLdRecipe, pageText);
+    return finalise(jsonLdRecipe, pageText, { skipThermomix: true });
   }
   if (jsonLdRecipe) return finalise(jsonLdRecipe, pageText);
 

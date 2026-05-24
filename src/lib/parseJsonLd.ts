@@ -2,25 +2,30 @@ import type { Recipe, Ingredient, CookingStep, MealTime, DietaryTag, Difficulty,
 
 function parseDuration(iso: string | number | undefined): number {
   if (!iso && iso !== 0) return 0;
-  // Plain number → treat as minutes
   if (typeof iso === "number") return Math.round(iso);
-  const s = String(iso).trim();
-  // ISO 8601: PT10M, PT1H30M, P0DT10M etc.
-  const iso8601 = s.match(/PT?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/i);
-  if (iso8601) {
-    const mins = (parseInt(iso8601[1] ?? "0") * 60) + parseInt(iso8601[2] ?? "0");
-    if (mins > 0) return mins;
+  const s = String(iso).trim().toUpperCase();
+
+  // ISO 8601: split at T to avoid confusing date-part M (months) with time-part M (minutes).
+  // Handles PT10M, PT1H30M, P0DT10M, P0Y0M0DT0H10M0.000S, etc.
+  if (s.includes("P")) {
+    const tIdx = s.indexOf("T");
+    const timePart = tIdx >= 0 ? s.slice(tIdx + 1) : (s.startsWith("PT") ? s.slice(2) : "");
+    const h = timePart.match(/(\d+)H/)?.[1];
+    const m = timePart.match(/(\d+)M/)?.[1];
+    const total = (h ? parseInt(h) : 0) * 60 + (m ? parseInt(m) : 0);
+    if (total > 0) return total;
   }
+
   // Plain number string: "10"
-  const plain = parseInt(s);
-  if (!isNaN(plain) && plain > 0) return plain;
-  // "10 minutes", "10 mins", "1 hour 30 minutes" etc.
-  let total = 0;
-  const hours = s.match(/(\d+)\s*h/i);
-  const mins  = s.match(/(\d+)\s*m/i);
-  if (hours) total += parseInt(hours[1]) * 60;
-  if (mins)  total += parseInt(mins[1]);
-  return total;
+  if (/^\d+$/.test(s)) return parseInt(s);
+
+  // Natural language: "10 minutes", "1 hour 30 minutes", "1h30m"
+  const hours = s.match(/(\d+)\s*H(?:OUR)?S?/);
+  const mins  = s.match(/(\d+)\s*M(?:IN(?:UTE)?S?)?(?:\b|$)/);
+  if (hours || mins) {
+    return (hours ? parseInt(hours[1]) : 0) * 60 + (mins ? parseInt(mins[1]) : 0);
+  }
+  return 0;
 }
 
 function mapCuisine(values: string | string[] | undefined): string {
