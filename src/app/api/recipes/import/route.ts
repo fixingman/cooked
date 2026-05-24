@@ -174,11 +174,20 @@ export async function POST(req: Request) {
 
   const pageText = stripHtmlToText(html);
 
-  // Try JSON-LD first; if it succeeds but has no steps, still try Claude for step extraction
   const jsonLdRecipe = parseRecipeFromHtml(html, url, id);
   if (jsonLdRecipe && jsonLdRecipe.steps.length > 0) return finalise(jsonLdRecipe, pageText);
 
-  // If JSON-LD gave metadata but no steps, finalise it directly (steps may be JS-rendered)
+  // JSON-LD has metadata but no steps — try Claude for steps, merge with JSON-LD metadata
+  if (jsonLdRecipe && apiKey) {
+    try {
+      const claudeRecipe = await extractWithClaude(pageText, url, id, apiKey);
+      if (claudeRecipe && claudeRecipe.steps.length > 0) {
+        const merged = { ...jsonLdRecipe, steps: claudeRecipe.steps };
+        return finalise(merged, pageText);
+      }
+    } catch {}
+    return finalise(jsonLdRecipe, pageText);
+  }
   if (jsonLdRecipe) return finalise(jsonLdRecipe, pageText);
 
   // Full Claude fallback — only if API key is configured

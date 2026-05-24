@@ -50,6 +50,7 @@ Three files must always match:
 - `0.15.1` Logo → home nav · compact single-row category chips · High-protein + Freezable filters
 - `0.15.2` Retroactive Thermomix enrichment in Settings · tighter API timeouts · Netlify 26s function timeout
 - `0.15.3` HF swin2SR upscaling in image refresh · image URL revert-on-non-image · Unsplash on unknown quality · Dropbox offline resilience + merge strategies
+- `0.15.4` Fix HowToStep `name` fallback in parseSteps · Claude step extraction for 0-step JSON-LD recipes
 
 ---
 
