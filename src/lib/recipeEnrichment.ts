@@ -1,6 +1,6 @@
 import type { CookingStep, DietaryTag } from "@/types/recipe";
 
-const TYPE_TAGS = ["soup", "pasta", "bake", "salad"] as const;
+const TYPE_TAGS = ["soup", "pasta", "bake", "salad", "freezable"] as const;
 
 const API_BASE = "https://api.anthropic.com/v1/messages";
 const HEADERS = (key: string) => ({
@@ -138,7 +138,7 @@ Recipe: "${recipe.title}"
 Description: ${recipe.description}
 Ingredients (sample): ${ingredientSample}${context}
 
-1. "typeTags": array of applicable type tags from this list only — ["soup","pasta","bake","salad"]. Include a tag only if it clearly describes the dish. Can be empty.
+1. "typeTags": array of applicable type tags from this list only — ["soup","pasta","bake","salad","freezable"]. Include a tag only if it clearly describes the dish. Use "freezable" only if the recipe explicitly says it freezes well. Can be empty.
 
 2. "dietaryTags": array of applicable tags from ["vegetarian","vegan","gluten-free","dairy-free","pescatarian"]. Only include if clearly true based on ingredients.
 

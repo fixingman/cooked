@@ -2,9 +2,8 @@
 import { Chip } from "@/components/ui/Chip";
 import type { CategoryFilter } from "@/hooks/useRecipeFilter";
 
-const GROUPS: { label: string; items: { value: CategoryFilter; label: string }[] }[] = [
+const GROUPS: { items: { value: CategoryFilter; label: string }[] }[] = [
   {
-    label: "Meal time",
     items: [
       { value: "breakfast", label: "Breakfast" },
       { value: "lunch",     label: "Lunch" },
@@ -14,29 +13,28 @@ const GROUPS: { label: string; items: { value: CategoryFilter; label: string }[]
     ],
   },
   {
-    label: "Type",
     items: [
-      { value: "quick",     label: "Quick ≤30m" },
+      { value: "quick",     label: "Quick" },
       { value: "soup",      label: "Soup" },
       { value: "pasta",     label: "Pasta" },
       { value: "bake",      label: "Bake" },
       { value: "salad",     label: "Salad" },
+      { value: "freezable", label: "Freezable" },
       { value: "thermomix", label: "Thermomix" },
     ],
   },
   {
-    label: "Diet",
     items: [
-      { value: "vegetarian",  label: "Vegetarian" },
-      { value: "vegan",       label: "Vegan" },
-      { value: "gluten-free", label: "Gluten-free" },
-      { value: "dairy-free",  label: "Dairy-free" },
+      { value: "high-protein", label: "High-protein" },
+      { value: "vegetarian",   label: "Vegetarian" },
+      { value: "vegan",        label: "Vegan" },
+      { value: "gluten-free",  label: "Gluten-free" },
+      { value: "dairy-free",   label: "Dairy-free" },
     ],
   },
   {
-    label: "My list",
     items: [
-      { value: "want-to-cook", label: "Want to Cook" },
+      { value: "want-to-cook", label: "My list" },
       { value: "cooked",       label: "Cooked" },
     ],
   },
@@ -50,27 +48,20 @@ interface CategoryChipsProps {
 
 export function CategoryChips({ active, onToggle, onClear }: CategoryChipsProps) {
   return (
-    <div className="space-y-2.5">
-      {/* All chip */}
-      <div className="flex gap-2">
-        <Chip label="All" active={active.length === 0} onClick={onClear} />
-      </div>
-
-      {GROUPS.map(({ label, items }) => (
-        <div key={label} className="flex items-center gap-2.5">
-          <span className="text-[10px] font-medium uppercase tracking-widest text-ink-300 w-14 shrink-0 text-right">
-            {label}
-          </span>
-          <div className="flex gap-1.5 overflow-x-auto hide-scrollbar">
-            {items.map(({ value, label: chipLabel }) => (
-              <Chip
-                key={value}
-                label={chipLabel}
-                active={active.includes(value)}
-                onClick={() => onToggle(value)}
-              />
-            ))}
-          </div>
+    <div className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar pb-0.5">
+      <Chip label="All" active={active.length === 0} onClick={onClear} className="shrink-0 px-3 py-1 text-xs" />
+      {GROUPS.map((group, gi) => (
+        <div key={gi} className="flex items-center gap-1.5 shrink-0">
+          <span className="w-px h-4 bg-parchment-300 shrink-0 mx-0.5" aria-hidden />
+          {group.items.map(({ value, label }) => (
+            <Chip
+              key={value}
+              label={label}
+              active={active.includes(value)}
+              onClick={() => onToggle(value)}
+              className="shrink-0 px-3 py-1 text-xs"
+            />
+          ))}
         </div>
       ))}
     </div>

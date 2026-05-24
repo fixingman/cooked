@@ -35,6 +35,8 @@ function matchesCategory(recipe: Recipe, cat: CategoryFilter, wantToCookIds?: Se
   if (cat === "cooked")       return cookedIds?.has(recipe.id) ?? false;
   if (cat === "quick")        return recipe.totalTimeMinutes <= 30;
   if (cat === "thermomix")    return !!recipe.thermomixAvailable;
+  if (cat === "freezable")    return recipe.tags.some(t => /freez/i.test(t));
+  if (cat === "high-protein") return (recipe.protein ?? 0) >= 20;
   if (cat === "vegetarian")   return recipe.dietaryTags.includes("vegetarian" as DietaryTag);
   if (cat === "vegan")        return recipe.dietaryTags.includes("vegan" as DietaryTag);
   if (cat === "gluten-free")  return recipe.dietaryTags.includes("gluten-free" as DietaryTag);

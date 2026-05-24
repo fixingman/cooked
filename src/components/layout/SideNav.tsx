@@ -17,14 +17,14 @@ export function SideNav() {
   return (
     <aside className="hidden md:flex flex-col w-[72px] xl:w-56 shrink-0 h-screen sticky top-0 bg-parchment-100 border-r border-parchment-300 z-30">
       {/* Logo */}
-      <div className="flex items-center gap-3 px-4 h-16 border-b border-parchment-300">
+      <Link href="/" className="flex items-center gap-3 px-4 h-16 border-b border-parchment-300 hover:bg-parchment-200 transition-colors">
         <div className="w-9 h-9 bg-saffron-500 rounded-xl flex items-center justify-center shrink-0">
           <Flame size={18} className="text-white" strokeWidth={2.5} />
         </div>
         <span className="font-serif font-semibold text-ink-900 text-lg hidden xl:block tracking-tight">
           Cooked
         </span>
-      </div>
+      </Link>
 
       {/* Nav items */}
       <nav className="flex flex-col gap-1 p-2 pt-4 flex-1">
@@ -60,7 +60,7 @@ export function SideNav() {
 
       {/* Version */}
       <div className="p-4 hidden xl:block">
-        <p className="text-label text-ink-300 tracking-widest uppercase">v0.15.0</p>
+        <p className="text-label text-ink-300 tracking-widest uppercase">v0.15.1</p>
       </div>
     </aside>
   );

@@ -6,9 +6,9 @@ export type CategoryFilter =
   // Meal time
   | "breakfast" | "lunch" | "dinner" | "dessert" | "snack"
   // Type
-  | "quick" | "soup" | "pasta" | "bake" | "salad" | "thermomix"
+  | "quick" | "soup" | "pasta" | "bake" | "salad" | "thermomix" | "freezable"
   // Diet
-  | "vegetarian" | "vegan" | "gluten-free" | "dairy-free"
+  | "vegetarian" | "vegan" | "gluten-free" | "dairy-free" | "high-protein"
   // My list
   | "want-to-cook" | "cooked";
 export type SortOption = "none" | "rating" | "time" | "difficulty";

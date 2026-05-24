@@ -47,6 +47,7 @@ Three files must always match:
 - `0.14.4` Remove built-ins completely (incl. FeaturedHero) · revert chef's notes to amber · toast redesign
 - `0.14.5` Fix Thermomix step matching (index-based, not ID-copy) · handle 0-step JSON-LD (Cookidoo)
 - `0.15.0` Image quality + source — thumbnail URL stripping, Unsplash fallback, retroactive scan in Settings
+- `0.15.1` Logo → home nav · compact single-row category chips · High-protein + Freezable filters
 
 ---
 
