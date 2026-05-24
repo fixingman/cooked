@@ -210,8 +210,8 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
 
         {/* Chef notes */}
         {recipe.chefNotes && (
-          <div className="py-5 bg-saffron-300/15 rounded-card px-4 mt-2 mb-4">
-            <p className="text-label uppercase tracking-widest text-saffron-600 mb-2">Chef&apos;s Notes</p>
+          <div className="py-5 border-b border-parchment-300">
+            <p className="text-label uppercase tracking-widest text-ink-400 mb-2">Chef&apos;s Notes</p>
             <p className="font-serif text-ink-700 text-sm leading-relaxed italic">{recipe.chefNotes}</p>
           </div>
         )}

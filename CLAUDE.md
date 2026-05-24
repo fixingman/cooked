@@ -41,6 +41,9 @@ Three files must always match:
 - `0.13.1` Grouped recipe filter chips — meal time, type, diet, my list · `0.13.2` AI classification + chef's notes on import
 - `0.13.3` Sort icon · `0.13.4` Sticky back nav + PWA top gap (viewport-fit cover)
 - `0.14.0` Extended nutrition panel — sugar/sodium/sat.fat/cholesterol/trans fat with health warnings
+- `0.14.1` Fix nutrition parsing — decimal stripping bug + fiberContent missing from JSON-LD parser
+- `0.14.2` Fix Thermomix step ID matching for imported recipes
+- `0.14.3` Hide built-in recipes from lists · chef's notes UI polish · back button single-press fix
 
 ---
 

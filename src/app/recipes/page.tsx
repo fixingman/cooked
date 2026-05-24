@@ -11,7 +11,6 @@ import { ImportRecipeModal } from "@/components/recipes/ImportRecipeModal";
 import { useRecipeFilter } from "@/hooks/useRecipeFilter";
 import { useUserRecipes } from "@/hooks/useUserRecipes";
 import { useRecipeStates } from "@/hooks/useRecipeStates";
-import { recipes as builtInRecipes } from "@/data/recipes";
 import type { CategoryFilter, SortOption } from "@/hooks/useRecipeFilter";
 import type { MealTime, DietaryTag, Recipe } from "@/types/recipe"; // DietaryTag used in matchesCategory casts
 
@@ -59,7 +58,7 @@ function RecipesContent() {
   const { query, categories, viewMode, sort, setQuery, toggleCategory, clearCategories, setViewMode, setSort } =
     useRecipeFilter({ categories: initialCategory ? [initialCategory] : [] });
 
-  const allRecipes = useMemo(() => [...userRecipes, ...builtInRecipes], [userRecipes]);
+  const allRecipes = useMemo(() => [...userRecipes], [userRecipes]);
 
   const wantToCookIds = useMemo(
     () => new Set(recipeStates.filter(s => s.wantToCook).map(s => s.recipeId)),

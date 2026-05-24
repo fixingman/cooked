@@ -27,7 +27,7 @@ export default function HomePage() {
   const { favouriteIds } = useFavourites();
   const { states, hasCooked } = useRecipeStates();
 
-  const allRecipes = useMemo(() => [...userRecipes, ...builtInRecipes], [userRecipes]);
+  const allRecipes = useMemo(() => [...userRecipes], [userRecipes]);
 
   // Day-seeded featured hero — rotates daily; uses isFeatured pool if ≥ 3 recipes, else all built-ins
   const featuredRecipe = useMemo(() => {

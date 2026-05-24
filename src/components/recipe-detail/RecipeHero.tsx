@@ -48,17 +48,11 @@ export function RecipeHero({ recipe, onEdit, onDelete }: RecipeHeroProps) {
   }, [showMenu]);
 
   function goBack() {
-    try {
-      const ref = document.referrer;
-      if (ref) {
-        const url = new URL(ref);
-        if (url.origin === window.location.origin && !url.pathname.endsWith("/cook")) {
-          router.back();
-          return;
-        }
-      }
-    } catch {}
-    router.push("/recipes");
+    if (window.history.length > 1) {
+      router.back();
+    } else {
+      router.push("/recipes");
+    }
   }
 
   function share() {
