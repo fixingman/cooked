@@ -81,6 +81,23 @@ pantry-match ranking · cook-history signals · "For You" section at top of home
 
 ---
 
+### 🔴 F-10 — Chrome Extension: Save to Cooked
+**What:** A Chrome extension that lets users save a recipe from any webpage directly into the Cooked app with one click — without leaving the tab.
+**Why:** Removes the copy-paste-URL friction from the current import flow. The user browses, sees a recipe they like, clicks the extension icon → recipe is imported and saved. Natural complement to the URL import pipeline already in place.
+**How it works:**
+- Extension captures the current tab URL and sends it to `/api/recipes/import` (same endpoint as the modal)
+- Requires the user to be authenticated — Dropbox token stored in extension `chrome.storage.local`, obtained via the existing PKCE OAuth flow (user logs in once in the extension popup)
+- On success: shows recipe title + thumbnail in the popup with a "View in Cooked" link
+- On failure: surfaces the same error messages the modal already returns
+**Scope:**
+- Manifest V3 extension (Chrome Web Store compatible)
+- Popup UI: URL pre-filled from active tab · Import button · Auth state (connected / connect Dropbox)
+- No background service worker needed — all API calls happen in the popup
+- The extension hits the deployed Netlify URL (needs `NEXT_PUBLIC_APP_URL` env var for CORS)
+**Decisions needed:** host the extension on Chrome Web Store vs. sideload only · whether to support saving directly to Dropbox from the extension vs. always going through the Cooked API · Firefox/Safari support scope
+
+---
+
 ### 🔴 F-8 — Meal Planner
 Weekly calendar. Drag recipes into days. Auto-generates a combined shopping list for the week. High effort, high value — scope carefully before starting.
 

@@ -63,7 +63,9 @@ export async function generateThermomixSteps(
 
   const stepLines = steps.map((s, i) => `${i + 1}. ${s.instruction}`).join("\n");
 
-  const prompt = `You are adapting a recipe for the Thermomix TM6. For each numbered step below, decide if it can meaningfully use the Thermomix. Only include steps where the Thermomix adds real value (mixing, cooking, steaming, blending, chopping, sautéing). Skip steps like plating, resting, marinating, seasoning to taste, or serving.
+  const prompt = `You are adapting a recipe for the Thermomix TM6. For each numbered step below, provide Thermomix parameters if the step involves any mechanical or thermal operation: mixing, blending, chopping, cooking, steaming, sautéing, emulsifying, kneading. Skip ONLY steps that are purely manual with no machine equivalent: plating, resting, marinating, chilling, seasoning to taste, serving.
+
+If a step already describes a Thermomix operation (e.g. "Blend 10 sec/speed 7" or "Cook 5 min/100°C/speed 1"), extract the parameters directly from the text.
 
 Steps:
 ${stepLines}
@@ -82,7 +84,7 @@ Return ONLY a JSON array for steps that CAN use the Thermomix:
 
 Speed guide: 0=no mixing (heat only), 1=gentle stir, 3=mix, 5=blend, 7=chop, 10=crush.
 tempC guide: 0=no heat, 37-100=cooking, "Varoma"=steaming (~115°C).
-Return [] if no steps suit the Thermomix.`;
+Return [] only if truly no steps involve the Thermomix.`;
 
   try {
     const res = await fetch(API_BASE, {
@@ -93,7 +95,7 @@ Return [] if no steps suit the Thermomix.`;
         max_tokens: 1024,
         messages: [{ role: "user", content: prompt }],
       }),
-      signal: AbortSignal.timeout(20_000),
+      signal: AbortSignal.timeout(12_000),
     });
     if (!res.ok) return null;
     const data = await res.json();
@@ -125,14 +127,15 @@ Return [] if no steps suit the Thermomix.`;
 }
 
 export async function classifyRecipe(
-  recipe: { title: string; description: string; tags: string[]; dietaryTags: DietaryTag[]; ingredients: { name: string }[] },
+  recipe: { title: string; description: string; tags: string[]; dietaryTags: DietaryTag[]; ingredients: { name: string }[]; cuisine?: string },
   apiKey: string,
   pageText?: string,
-): Promise<{ typeTags: string[]; dietaryTags: DietaryTag[]; chefNotes?: string }> {
+): Promise<{ typeTags: string[]; dietaryTags: DietaryTag[]; chefNotes?: string; cuisine?: string }> {
   const ingredientSample = recipe.ingredients.slice(0, 8).map(i => i.name).join(", ");
   const context = pageText ? `\n\nPage text excerpt:\n${pageText.slice(0, 2500)}` : "";
+  const needsCuisine = !recipe.cuisine || recipe.cuisine === "any";
 
-  const prompt = `Analyse this recipe and return a JSON object with three fields.
+  const prompt = `Analyse this recipe and return a JSON object with four fields.
 
 Recipe: "${recipe.title}"
 Description: ${recipe.description}
@@ -144,7 +147,9 @@ Ingredients (sample): ${ingredientSample}${context}
 
 3. "chefNotes": any chef tips, notes, variations, or serving suggestions found in the text. Concise prose (2–4 sentences). null if none.
 
-Return ONLY valid JSON: {"typeTags": [...], "dietaryTags": [...], "chefNotes": "..." or null}`;
+4. "cuisine": ${needsCuisine ? 'the cuisine of this dish as a single lowercase word or short phrase (e.g. "italian", "mexican", "middle eastern", "british"). Infer from the dish name, ingredients, and context. Use "any" only if truly impossible to determine.' : 'null (cuisine already known)'}.
+
+Return ONLY valid JSON: {"typeTags": [...], "dietaryTags": [...], "chefNotes": "..." or null, "cuisine": "..." or null}`;
 
   try {
     const res = await fetch(API_BASE, {
@@ -152,7 +157,7 @@ Return ONLY valid JSON: {"typeTags": [...], "dietaryTags": [...], "chefNotes": "
       headers: HEADERS(apiKey),
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
-        max_tokens: 256,
+        max_tokens: 300,
         messages: [{ role: "user", content: prompt }],
       }),
       signal: AbortSignal.timeout(12_000),
@@ -166,7 +171,10 @@ Return ONLY valid JSON: {"typeTags": [...], "dietaryTags": [...], "chefNotes": "
     const dietary = (json.dietaryTags as unknown[])?.filter((t): t is DietaryTag =>
       ["vegetarian","vegan","gluten-free","dairy-free","pescatarian"].includes(t as string)) ?? [];
     const chefNotes = typeof json.chefNotes === "string" && json.chefNotes.trim() ? json.chefNotes.trim() : undefined;
-    return { typeTags, dietaryTags: dietary, chefNotes };
+    const cuisine = needsCuisine && typeof json.cuisine === "string" && json.cuisine.trim() && json.cuisine !== "null"
+      ? json.cuisine.trim().toLowerCase().slice(0, 25)
+      : undefined;
+    return { typeTags, dietaryTags: dietary, chefNotes, cuisine };
   } catch {
     return { typeTags: [], dietaryTags: [] };
   }

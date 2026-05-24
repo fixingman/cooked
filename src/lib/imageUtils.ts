@@ -63,11 +63,45 @@ export async function checkImageQuality(url: string): Promise<"ok" | "low" | "un
   try {
     const res = await fetch(url, { method: "HEAD", signal: AbortSignal.timeout(5_000) });
     if (!res.ok) return "unknown";
+    const ct = res.headers.get("content-type") ?? "";
+    if (!ct.startsWith("image/")) return "unknown";
     const cl = res.headers.get("content-length");
     if (cl && parseInt(cl) < LOW_RES_BYTES) return "low";
     return "ok";
   } catch {
     return "unknown";
+  }
+}
+
+// Upscales an image 2× using Hugging Face swin2SR (free tier, rate-limited).
+// Returns base64 data URL of upscaled image, or null on failure (cold start timeout, rate limit, etc.).
+export async function upscaleImage(imageUrl: string, hfToken: string, timeoutMs = 20_000): Promise<string | null> {
+  try {
+    const imgRes = await fetch(imageUrl, { signal: AbortSignal.timeout(8_000) });
+    if (!imgRes.ok) return null;
+    const ct = imgRes.headers.get("content-type") ?? "";
+    if (!ct.startsWith("image/")) return null;
+    const imageBytes = await imgRes.arrayBuffer();
+
+    const res = await fetch(
+      "https://api-inference.huggingface.co/models/caidas/swin2SR-classical-sr-x2-64",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${hfToken}`,
+          "Content-Type": "application/octet-stream",
+        },
+        body: imageBytes,
+        signal: AbortSignal.timeout(timeoutMs),
+      }
+    );
+    if (!res.ok) return null;
+    const upscaledCt = res.headers.get("content-type") ?? "image/png";
+    if (!upscaledCt.startsWith("image/")) return null;
+    const upscaledBytes = await res.arrayBuffer();
+    return `data:${upscaledCt};base64,${Buffer.from(upscaledBytes).toString("base64")}`;
+  } catch {
+    return null;
   }
 }
 
@@ -85,29 +119,58 @@ export async function searchUnsplash(query: string, accessKey: string): Promise<
   }
 }
 
+export type ImageResolveResult = {
+  url: string | null;
+  source: ImageSource;
+  quality: "ok" | "low";
+  resolvedBase64?: string; // pre-fetched bytes when upscaling was used — avoids a second fetch
+};
+
 export async function resolveRecipeImage(
   rawImageUrl: string | undefined,
   title: string,
   cuisine: string,
   unsplashKey: string | undefined,
-): Promise<{ url: string | null; source: ImageSource; quality: "ok" | "low" }> {
-  const fallback = async (): Promise<{ url: string | null; source: ImageSource; quality: "ok" | "low" }> => {
+  hfToken?: string, // Hugging Face token — enables AI upscaling; omit to skip
+): Promise<ImageResolveResult> {
+  const query = `${title} ${cuisine} food recipe`;
+
+  const unsplashFallback = async (): Promise<ImageResolveResult> => {
     if (!unsplashKey) return { url: null, source: "none", quality: "low" };
-    const found = await searchUnsplash(`${title} ${cuisine} food recipe`, unsplashKey);
+    const found = await searchUnsplash(query, unsplashKey);
     return found ? { url: found, source: "ai-found", quality: "ok" } : { url: null, source: "none", quality: "low" };
   };
 
-  if (!rawImageUrl) return fallback();
+  if (!rawImageUrl) return unsplashFallback();
 
   const fullResUrl = tryFullResUrl(rawImageUrl);
-  const quality = await checkImageQuality(fullResUrl);
+  let resolvedUrl = fullResUrl;
+  let quality: "ok" | "low" | "unknown";
 
-  if (quality === "ok") return { url: fullResUrl, source: "scraped", quality: "ok" };
-
-  if (quality === "low" && unsplashKey) {
-    const found = await searchUnsplash(`${title} ${cuisine} food recipe`, unsplashKey);
-    if (found) return { url: found, source: "ai-found", quality: "ok" };
+  if (fullResUrl !== rawImageUrl) {
+    // URL was modified by stripping — verify it still points to an actual image.
+    // Some sites serve a generic header/banner at the stripped URL (e.g. themodernproper.com).
+    const strippedQuality = await checkImageQuality(fullResUrl);
+    if (strippedQuality === "unknown") {
+      resolvedUrl = rawImageUrl;
+      quality = await checkImageQuality(rawImageUrl);
+    } else {
+      quality = strippedQuality;
+    }
+  } else {
+    quality = await checkImageQuality(rawImageUrl);
   }
 
-  return { url: fullResUrl, source: "scraped", quality: quality === "low" ? "low" : "ok" };
+  if (quality === "ok") return { url: resolvedUrl, source: "scraped", quality: "ok" };
+
+  // Image is low-res or unverifiable — try upscaling first (preserves original photo),
+  // then Unsplash as a last resort (replaces with stock photo).
+  if (hfToken) {
+    const upscaled = await upscaleImage(resolvedUrl, hfToken);
+    if (upscaled) return { url: resolvedUrl, source: "scraped", quality: "ok", resolvedBase64: upscaled };
+  }
+
+  const unsplash = await unsplashFallback();
+  if (unsplash.url) return unsplash;
+  return { url: resolvedUrl, source: "scraped", quality: quality === "low" ? "low" : "ok" };
 }

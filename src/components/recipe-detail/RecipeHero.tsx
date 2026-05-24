@@ -191,10 +191,14 @@ export function RecipeHero({ recipe, onEdit, onDelete }: RecipeHeroProps) {
       {/* Bottom title overlay */}
       <div className="absolute bottom-0 left-0 right-0 p-5 pb-6">
         <div className="flex items-center gap-2 mb-2">
-          <span className="text-label uppercase tracking-widest text-parchment-300/90">
-            {recipe.cuisine}
-          </span>
-          <span className="text-parchment-300/50">·</span>
+          {recipe.cuisine && recipe.cuisine !== "any" && (
+            <>
+              <span className="text-label uppercase tracking-widest text-parchment-300/90">
+                {recipe.cuisine}
+              </span>
+              <span className="text-parchment-300/50">·</span>
+            </>
+          )}
           <span className="text-label uppercase tracking-widest text-parchment-300/90">
             by {recipe.authorName}
           </span>

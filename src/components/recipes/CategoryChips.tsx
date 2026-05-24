@@ -2,8 +2,9 @@
 import { Chip } from "@/components/ui/Chip";
 import type { CategoryFilter } from "@/hooks/useRecipeFilter";
 
-const GROUPS: { items: { value: CategoryFilter; label: string }[] }[] = [
+const GROUPS: { label: string; items: { value: CategoryFilter; label: string }[] }[] = [
   {
+    label: "Meal",
     items: [
       { value: "breakfast", label: "Breakfast" },
       { value: "lunch",     label: "Lunch" },
@@ -13,6 +14,7 @@ const GROUPS: { items: { value: CategoryFilter; label: string }[] }[] = [
     ],
   },
   {
+    label: "Type",
     items: [
       { value: "quick",     label: "Quick" },
       { value: "soup",      label: "Soup" },
@@ -24,6 +26,7 @@ const GROUPS: { items: { value: CategoryFilter; label: string }[] }[] = [
     ],
   },
   {
+    label: "Diet",
     items: [
       { value: "high-protein", label: "High-protein" },
       { value: "vegetarian",   label: "Vegetarian" },
@@ -33,6 +36,7 @@ const GROUPS: { items: { value: CategoryFilter; label: string }[] }[] = [
     ],
   },
   {
+    label: "My",
     items: [
       { value: "want-to-cook", label: "My list" },
       { value: "cooked",       label: "Cooked" },
@@ -53,6 +57,7 @@ export function CategoryChips({ active, onToggle, onClear }: CategoryChipsProps)
       {GROUPS.map((group, gi) => (
         <div key={gi} className="flex items-center gap-1.5 shrink-0">
           <span className="w-px h-4 bg-parchment-300 shrink-0 mx-0.5" aria-hidden />
+          <span className="text-[10px] uppercase tracking-widest font-semibold text-ink-300 shrink-0 select-none">{group.label}</span>
           {group.items.map(({ value, label }) => (
             <Chip
               key={value}

@@ -5,13 +5,21 @@ import { useDropboxSync } from "@/hooks/useDropboxSync";
 import { cookingHistory as mockHistory } from "@/data/cookingHistory";
 import type { CookingHistoryEntry } from "@/types/recipe";
 
+// Union by cookedAt timestamp (already the unique key used throughout the hook).
+function mergeHistory(local: CookingHistoryEntry[], remote: CookingHistoryEntry[]): CookingHistoryEntry[] {
+  const remoteKeys = new Set(remote.map(e => e.cookedAt));
+  const localOnly  = local.filter(e => !remoteKeys.has(e.cookedAt));
+  return [...remote, ...localOnly].sort((a, b) => b.cookedAt.localeCompare(a.cookedAt));
+}
+
 export function useCookingHistory() {
   const { getValidAccessToken } = useDropboxAuth();
   const { value: history, setValue } = useDropboxSync<CookingHistoryEntry[]>({
     dropboxPath:     "/history.json",
     localStorageKey: "cooked-history",
-    defaultValue:    mockHistory, // seeds first-run; overridden by localStorage/Dropbox on mount
+    defaultValue:    mockHistory,
     getValidAccessToken,
+    merge: mergeHistory,
   });
 
   const addEntry = useCallback((entry: CookingHistoryEntry) => {

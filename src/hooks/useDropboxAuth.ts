@@ -67,14 +67,20 @@ export function useDropboxAuth() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ refreshToken: tokens.refreshToken }),
         });
-        if (!res.ok) throw new Error("Refresh failed");
+        if (!res.ok) {
+          // Only disconnect on genuine auth failures — not server/network errors
+          if (res.status === 400 || res.status === 401) {
+            clearTokens();
+            setStatus("disconnected");
+            setAccountName(null);
+          }
+          return null;
+        }
         const { accessToken, expiresAt } = await res.json();
         saveTokens({ ...tokens, accessToken, expiresAt });
         return accessToken as string;
       } catch {
-        clearTokens();
-        setStatus("disconnected");
-        setAccountName(null);
+        // Network error (offline) — keep tokens, user will reconnect when back online
         return null;
       } finally {
         setRefreshPromise(null);

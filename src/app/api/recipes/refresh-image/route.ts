@@ -16,6 +16,7 @@ async function fetchImageAsBase64(imageUrl: string | undefined): Promise<string 
 
 export async function POST(req: Request) {
   const unsplashKey = process.env.UNSPLASH_ACCESS_KEY;
+  const hfToken = process.env.HUGGINGFACE_API_TOKEN;
 
   let body: { imageUrl?: string; title: string; cuisine: string };
   try {
@@ -27,8 +28,10 @@ export async function POST(req: Request) {
   const { imageUrl, title, cuisine } = body;
   if (!title) return Response.json({ error: "title is required" }, { status: 400 });
 
-  const { url, source, quality } = await resolveRecipeImage(imageUrl, title, cuisine, unsplashKey);
-  const heroImageBase64 = await fetchImageAsBase64(url ?? undefined);
+  const { url, source, quality, resolvedBase64 } = await resolveRecipeImage(imageUrl, title, cuisine, unsplashKey, hfToken);
+
+  // Use pre-fetched bytes from upscaling if available — avoids a second network round-trip
+  const heroImageBase64 = resolvedBase64 ?? await fetchImageAsBase64(url ?? undefined);
 
   return Response.json({ imageUrl: url, imageSource: source, imageQuality: quality, ...(heroImageBase64 ? { heroImageBase64 } : {}) });
 }

@@ -10,6 +10,7 @@ export function useFavourites() {
     localStorageKey: "cooked-favourites",
     defaultValue:    [],
     getValidAccessToken,
+    merge: (local, remote) => Array.from(new Set([...remote, ...local])),
   });
 
   const toggle = useCallback((id: string) => {

@@ -7,17 +7,32 @@ function parseDuration(iso: string | undefined): number {
   return (parseInt(m[1] ?? "0") * 60) + parseInt(m[2] ?? "0");
 }
 
-function mapCuisine(values: string | string[] | undefined): Cuisine {
-  const s = (Array.isArray(values) ? values.join(" ") : values ?? "").toLowerCase();
+function mapCuisine(values: string | string[] | undefined): string {
+  const raw = (Array.isArray(values) ? values[0] : values ?? "").trim();
+  if (!raw) return "any";
+  const s = raw.toLowerCase();
   if (s.includes("italian")) return "italian";
   if (s.includes("japanese") || s.includes("sushi")) return "japanese";
   if (s.includes("mexican") || s.includes("tex-mex")) return "mexican";
   if (s.includes("french")) return "french";
   if (s.includes("mediterr") || s.includes("greek")) return "mediterranean";
   if (s.includes("american") || s.includes("southern")) return "american";
-  if (s.includes("indian")) return "indian";
+  if (s.includes("indian") || s.includes("punjabi")) return "indian";
   if (s.includes("thai")) return "thai";
-  return "any";
+  if (s.includes("chinese") || s.includes("cantonese") || s.includes("sichuan") || s.includes("szechuan")) return "chinese";
+  if (s.includes("korean")) return "korean";
+  if (s.includes("vietnamese")) return "vietnamese";
+  if (s.includes("middle east") || s.includes("lebanese") || s.includes("persian") || s.includes("arabic")) return "middle eastern";
+  if (s.includes("turkish")) return "turkish";
+  if (s.includes("moroccan") || s.includes("north african")) return "moroccan";
+  if (s.includes("british") || s.includes("english") || s.includes("irish") || s.includes("scottish")) return "british";
+  if (s.includes("spanish") || s.includes("catalan")) return "spanish";
+  if (s.includes("german") || s.includes("austrian")) return "german";
+  if (s.includes("brazilian") || s.includes("peruvian") || s.includes("latin")) return "latin american";
+  if (s.includes("caribbean")) return "caribbean";
+  if (s.includes("african")) return "african";
+  // Fall back to lowercase raw string (trim to 25 chars)
+  return s.slice(0, 25).trimEnd();
 }
 
 function mapMealTimes(categories: string | string[] | undefined): MealTime[] {

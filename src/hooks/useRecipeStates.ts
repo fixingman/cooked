@@ -4,6 +4,23 @@ import { useDropboxAuth } from "@/hooks/useDropboxAuth";
 import { useDropboxSync } from "@/hooks/useDropboxSync";
 import type { RecipeState } from "@/types/recipe";
 
+// Per-recipe merge: union cookedAt timestamps, OR wantToCook, keep any rating.
+function mergeStates(local: RecipeState[], remote: RecipeState[]): RecipeState[] {
+  const merged = new Map<string, RecipeState>(remote.map(s => [s.recipeId, s]));
+  for (const l of local) {
+    const r = merged.get(l.recipeId);
+    if (!r) { merged.set(l.recipeId, l); continue; }
+    const cookedAt = Array.from(new Set([...(r.cookedAt ?? []), ...(l.cookedAt ?? [])])).sort();
+    merged.set(l.recipeId, {
+      recipeId: l.recipeId,
+      wantToCook: r.wantToCook || l.wantToCook,
+      cookedAt:   cookedAt.length > 0 ? cookedAt : undefined,
+      rating:     r.rating ?? l.rating,
+    });
+  }
+  return Array.from(merged.values());
+}
+
 export function useRecipeStates() {
   const { getValidAccessToken } = useDropboxAuth();
   const { value: states, setValue } = useDropboxSync<RecipeState[]>({
@@ -11,6 +28,7 @@ export function useRecipeStates() {
     localStorageKey: "cooked-recipe-states",
     defaultValue:    [],
     getValidAccessToken,
+    merge: mergeStates,
   });
 
   const getState = useCallback((recipeId: string) =>

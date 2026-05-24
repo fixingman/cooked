@@ -5,6 +5,7 @@ import { DietaryPreferences } from "@/components/settings/DietaryPreferences";
 import { PermissionToggle } from "@/components/settings/PermissionToggle";
 import { AIIntegrationToggle } from "@/components/settings/AIIntegrationToggle";
 import { ThermomixToggle } from "@/components/settings/ThermomixToggle";
+import { ThermomixEnrichSection } from "@/components/settings/ThermomixEnrichSection";
 import { DropboxConnect } from "@/components/settings/DropboxConnect";
 import { ImageRefreshSection } from "@/components/settings/ImageRefreshSection";
 import { useSettings } from "@/hooks/useSettings";
@@ -31,7 +32,7 @@ export default function SettingsPage() {
         </div>
         <div>
           <h1 className="font-serif text-xl font-semibold text-ink-900">Cooked</h1>
-          <p className="text-xs text-ink-400">v0.15.1 — Your cooking companion</p>
+          <p className="text-xs text-ink-400">v0.15.3 — Your cooking companion</p>
         </div>
       </div>
 
@@ -83,6 +84,10 @@ export default function SettingsPage() {
 
       <Section title="Recipe Images">
         <ImageRefreshSection />
+      </Section>
+
+      <Section title="Thermomix">
+        <ThermomixEnrichSection />
       </Section>
 
       <p className="text-center text-xs text-ink-300">Made with care.</p>

@@ -3,14 +3,14 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { downloadFile, uploadFile } from "@/lib/dropbox/client";
 
 interface UseDropboxSyncOptions<T> {
-  dropboxPath:          string;
-  localStorageKey:      string;
-  defaultValue:         T;
-  getValidAccessToken:  () => Promise<string | null>;
+  dropboxPath:         string;
+  localStorageKey:     string;
+  defaultValue:        T;
+  getValidAccessToken: () => Promise<string | null>;
+  // Called when both local and remote data exist. If omitted, remote wins.
+  merge?:              (local: T, remote: T) => T;
 }
 
-// Download at most once per 15 minutes per path, regardless of how many times the
-// hook mounts (tab switches, navigation). Upload still fires on every data change.
 const RESYNC_MS = 15 * 60 * 1000;
 const lastDownloadedAt = new Map<string, number>();
 
@@ -23,7 +23,6 @@ function markDownloaded(path: string) {
   lastDownloadedAt.set(path, Date.now());
 }
 
-// Module-level counter so any hook instance can signal global sync state
 let activeSyncs = 0;
 
 function dispatchSyncEvent(syncing: boolean) {
@@ -38,10 +37,7 @@ function recordLastSync() {
   dispatchSyncEvent(activeSyncs > 0);
 }
 
-function beginSync() {
-  activeSyncs++;
-  dispatchSyncEvent(true);
-}
+function beginSync() { activeSyncs++; dispatchSyncEvent(true); }
 
 function endSync(success: boolean) {
   if (success) recordLastSync();
@@ -54,6 +50,7 @@ export function useDropboxSync<T>({
   localStorageKey,
   defaultValue,
   getValidAccessToken,
+  merge,
 }: UseDropboxSyncOptions<T>) {
   const [value, setValueState] = useState<T>(() => {
     if (typeof window === "undefined") return defaultValue;
@@ -63,11 +60,37 @@ export function useDropboxSync<T>({
     } catch {}
     return defaultValue;
   });
-  const [syncing, setSyncing]   = useState(false);
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
+  const [syncing, setSyncing] = useState(false);
+  const debounceRef    = useRef<NodeJS.Timeout | null>(null);
+  const pendingRef     = useRef<string | null>(null); // value waiting to upload (queued while offline)
+  const mergeRef       = useRef(merge);
+  const getTokenRef    = useRef(getValidAccessToken);
+  mergeRef.current     = merge;
+  getTokenRef.current  = getValidAccessToken;
+
+  // Flush pending upload when connectivity is restored
   useEffect(() => {
-    // Reconcile with Dropbox — only if not already downloaded this session window
+    const handleOnline = async () => {
+      if (!pendingRef.current) return;
+      const token = await getTokenRef.current();
+      if (!token) return;
+      const payload = pendingRef.current;
+      beginSync();
+      let ok = false;
+      try {
+        await uploadFile(token, dropboxPath, payload);
+        pendingRef.current = null;
+        ok = true;
+      } catch {}
+      endSync(ok);
+    };
+    window.addEventListener("online", handleOnline);
+    return () => window.removeEventListener("online", handleOnline);
+  }, [dropboxPath]);
+
+  // Initial reconcile with Dropbox (once per 15 min per path)
+  useEffect(() => {
     if (!shouldDownload(dropboxPath)) return;
     (async () => {
       const token = await getValidAccessToken();
@@ -79,8 +102,24 @@ export function useDropboxSync<T>({
         const remote = await downloadFile(token, dropboxPath);
         if (remote !== null) {
           const parsed = JSON.parse(remote) as T;
-          setValueState(parsed);
-          localStorage.setItem(localStorageKey, remote);
+          const localRaw = localStorage.getItem(localStorageKey);
+          const local = localRaw ? (JSON.parse(localRaw) as T) : null;
+
+          // Merge local additions into remote rather than overwriting
+          const resolved = local !== null && mergeRef.current
+            ? mergeRef.current(local, parsed)
+            : parsed;
+
+          setValueState(resolved);
+          const resolvedStr = JSON.stringify(resolved);
+          localStorage.setItem(localStorageKey, resolvedStr);
+
+          // Push merged result back if it differs from remote (local had new items)
+          if (resolvedStr !== remote) {
+            uploadFile(token, dropboxPath, resolvedStr).catch(() => {
+              pendingRef.current = resolvedStr;
+            });
+          }
         } else {
           // File doesn't exist yet — bootstrap Dropbox with local data
           const local = localStorage.getItem(localStorageKey);
@@ -101,27 +140,32 @@ export function useDropboxSync<T>({
       setValueState((prev) => {
         const next = typeof updater === "function" ? (updater as (p: T) => T)(prev) : updater;
 
-        // Synchronous localStorage write
         try { localStorage.setItem(localStorageKey, JSON.stringify(next)); } catch {}
 
-        // Debounced Dropbox upload (1500ms)
         if (debounceRef.current) clearTimeout(debounceRef.current);
         debounceRef.current = setTimeout(async () => {
-          const token = await getValidAccessToken();
-          if (!token) return;
+          const serialised = JSON.stringify(next);
+          const token = await getTokenRef.current();
+          if (!token) {
+            pendingRef.current = serialised; // queue for when online/reconnected
+            return;
+          }
           beginSync();
           let ok = false;
           try {
-            await uploadFile(token, dropboxPath, JSON.stringify(next));
+            await uploadFile(token, dropboxPath, serialised);
+            pendingRef.current = null;
             ok = true;
-          } catch {}
+          } catch {
+            pendingRef.current = serialised; // network error — retry on online
+          }
           endSync(ok);
         }, 1500);
 
         return next;
       });
     },
-    [dropboxPath, localStorageKey, getValidAccessToken]
+    [dropboxPath, localStorageKey]
   );
 
   return { value, setValue, syncing };

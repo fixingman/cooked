@@ -47,7 +47,7 @@ ${pageText.slice(0, 40_000)}`;
       max_tokens: 2048,
       messages: [{ role: "user", content: prompt }],
     }),
-    signal: AbortSignal.timeout(25_000),
+    signal: AbortSignal.timeout(12_000),
   });
 
   if (!res.ok) return null;
@@ -126,10 +126,14 @@ export async function POST(req: Request) {
       resolveRecipeImage(r.heroImageUrl, r.title, r.cuisine, unsplashKey),
       apiKey && needsNutrition(r) ? estimateNutrition(r, apiKey) : Promise.resolve({}),
       apiKey ? generateThermomixSteps(r.steps, apiKey) : Promise.resolve(null),
-      apiKey ? classifyRecipe(r, apiKey, pageText) : Promise.resolve({ typeTags: [] as string[], dietaryTags: [] as import("@/types/recipe").DietaryTag[], chefNotes: undefined }),
+      apiKey ? classifyRecipe(r, apiKey, pageText) : Promise.resolve({ typeTags: [] as string[], dietaryTags: [] as import("@/types/recipe").DietaryTag[], chefNotes: undefined, cuisine: undefined }),
     ]);
     const nutritionAdded = Object.keys(nutrition).length > 0;
     const thermomixAdded = thermomixSteps !== null;
+    // Track where nutrition came from: AI estimated, already in JSON-LD, or missing
+    const nutritionSource: "ai" | "json-ld" | "none" = nutritionAdded
+      ? "ai"
+      : (r.calories || r.protein ? "json-ld" : "none");
 
     const mergedTags = Array.from(new Set([...r.tags, ...classification.typeTags]));
     const mergedDietary = Array.from(new Set([...r.dietaryTags, ...classification.dietaryTags]));
@@ -158,12 +162,13 @@ export async function POST(req: Request) {
       imageSource: imageResult.source,
       imageQuality: imageResult.quality,
       ...(classification.chefNotes && !r.chefNotes ? { chefNotes: classification.chefNotes } : {}),
+      ...(classification.cuisine && (!r.cuisine || r.cuisine === "any") ? { cuisine: classification.cuisine } : {}),
       ...(thermomixSteps ? { steps: thermomixSteps, thermomixAvailable: true } : {}),
     };
     return Response.json({
       recipe: enriched,
       ...(heroImageBase64 ? { heroImageBase64 } : {}),
-      enrichments: { nutrition: nutritionAdded, thermomix: thermomixAdded },
+      enrichments: { nutrition: nutritionAdded, nutritionSource, thermomix: thermomixAdded },
     });
   }
 

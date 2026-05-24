@@ -33,7 +33,7 @@ export function FeaturedHero({ recipe }: FeaturedHeroProps) {
           <div className="absolute inset-0 bg-hero-scrim transition-opacity duration-400 group-hover:opacity-60" />
           <div className="absolute bottom-0 left-0 right-0 p-5 md:p-7">
             <div className="flex items-center gap-3 mb-2">
-              <Badge label={recipe.cuisine} />
+              {recipe.cuisine && recipe.cuisine !== "any" && <Badge label={recipe.cuisine} />}
               <RecipeRating rating={recipe.rating} size={12} className="text-saffron-400" valueClassName="text-sm text-parchment-200" />
             </div>
             <h2 className="font-serif text-white text-2xl md:text-3xl font-semibold leading-tight text-balance group-hover:text-saffron-300 transition-colors duration-300">

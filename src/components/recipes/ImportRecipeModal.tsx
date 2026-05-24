@@ -28,7 +28,7 @@ interface ImportRecipeModalProps {
 
 export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecipeModalProps) {
   const router = useRouter();
-  const { addRecipe } = useUserRecipes();
+  const { recipes, addRecipe } = useUserRecipes();
   const { status: dropboxStatus, getValidAccessToken } = useDropboxAuth();
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -44,9 +44,10 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
   const [editMealTimes, setEditMealTimes] = useState<MealTime[]>(initialDraft?.mealTimes ?? []);
   const [saving, setSaving] = useState(false);
   const [heroImageBase64, setHeroImageBase64] = useState<string | null>(null);
-  const [enrichments, setEnrichments] = useState<{ nutrition: boolean; thermomix: boolean } | null>(null);
+  const [enrichments, setEnrichments] = useState<{ nutrition: boolean; nutritionSource?: "ai" | "json-ld" | "none"; thermomix: boolean } | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [duplicateOf, setDuplicateOf] = useState<Recipe | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Initialise synchronously from window so animation direction is correct on first render
@@ -95,6 +96,7 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
       setEditMealTimes(data.recipe.mealTimes);
       if (data.heroImageBase64) setHeroImageBase64(data.heroImageBase64);
       if (data.enrichments) setEnrichments(data.enrichments);
+      checkDuplicate(data.recipe);
       setStage("review");
     } catch {
       setError("Network error — check your connection and try again.");
@@ -132,6 +134,7 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
         setEditMealTimes(data.recipe.mealTimes);
         if (data.heroImageBase64) setHeroImageBase64(data.heroImageBase64);
         if (data.enrichments) setEnrichments(data.enrichments);
+        checkDuplicate(data.recipe);
         setStage("review");
       } catch {
         setError("Network error — check your connection and try again.");
@@ -140,6 +143,13 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
     };
     reader.readAsDataURL(file);
   }, []);
+
+  function checkDuplicate(recipe: Recipe & { sourceUrl?: string }) {
+    const sourceUrl = recipe.sourceUrl;
+    const byUrl = sourceUrl ? recipes.find(r => (r as Recipe & { sourceUrl?: string }).sourceUrl === sourceUrl) : null;
+    const byTitle = recipes.find(r => r.title.toLowerCase().trim() === recipe.title.toLowerCase().trim());
+    setDuplicateOf(byUrl ?? byTitle ?? null);
+  }
 
   function toggleMealTime(mt: MealTime) {
     setEditMealTimes(prev =>
@@ -253,6 +263,23 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
 
         {/* Body — flex-1 + min-h-0 = fills remaining height and scrolls */}
         <div className="flex-1 min-h-0 overflow-y-auto">
+
+          {/* Duplicate warning */}
+          {stage === "review" && duplicateOf && (
+            <div className="mx-5 mt-4 flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+              <AlertCircle size={16} className="text-amber-500 shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-amber-900">Already in your collection</p>
+                <p className="text-xs text-amber-700 mt-0.5 truncate">"{duplicateOf.title}" was added before.</p>
+              </div>
+              <button
+                onClick={() => { onClose(); router.push(`/recipes/${duplicateOf.slug}`); }}
+                className="shrink-0 text-xs font-medium text-amber-700 underline underline-offset-2"
+              >
+                View
+              </button>
+            </div>
+          )}
 
           {/* Hero banner (review only) — full-width, part of scroll */}
           {stage === "review" && draft && (
@@ -448,18 +475,23 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
                 </div>
 
                 {/* AI enrichment status */}
-                {enrichments && (
-                  <div className="flex flex-wrap gap-2">
-                    <span className={`inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-medium ${enrichments.nutrition ? "bg-sage-100 text-sage-700" : "bg-parchment-200 text-ink-400"}`}>
-                      <Sparkles size={10} />
-                      {enrichments.nutrition ? "Macros estimated" : "Macros unavailable"}
-                    </span>
-                    <span className={`inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-medium ${enrichments.thermomix ? "bg-saffron-50 text-saffron-700" : "bg-parchment-200 text-ink-400"}`}>
-                      <Sparkles size={10} />
-                      {enrichments.thermomix ? "Thermomix steps added" : "No Thermomix adaptation"}
-                    </span>
-                  </div>
-                )}
+                {enrichments && (() => {
+                  const ns = enrichments.nutritionSource;
+                  const hasMacros = ns === "ai" || ns === "json-ld" || (!ns && enrichments.nutrition) || !!(draft?.calories);
+                  const macroLabel = ns === "ai" ? "Macros estimated" : ns === "json-ld" ? "Macros from recipe" : hasMacros ? "Macros available" : "Macros unavailable";
+                  return (
+                    <div className="flex flex-wrap gap-2">
+                      <span className={`inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-medium ${hasMacros ? "bg-sage-100 text-sage-700" : "bg-parchment-200 text-ink-400"}`}>
+                        <Sparkles size={10} />
+                        {macroLabel}
+                      </span>
+                      <span className={`inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-medium ${enrichments.thermomix ? "bg-saffron-50 text-saffron-700" : "bg-parchment-200 text-ink-400"}`}>
+                        <Sparkles size={10} />
+                        {enrichments.thermomix ? "Thermomix steps added" : "No Thermomix adaptation"}
+                      </span>
+                    </div>
+                  );
+                })()}
 
                 {/* Title */}
                 <div>

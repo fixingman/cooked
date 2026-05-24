@@ -48,6 +48,8 @@ Three files must always match:
 - `0.14.5` Fix Thermomix step matching (index-based, not ID-copy) · handle 0-step JSON-LD (Cookidoo)
 - `0.15.0` Image quality + source — thumbnail URL stripping, Unsplash fallback, retroactive scan in Settings
 - `0.15.1` Logo → home nav · compact single-row category chips · High-protein + Freezable filters
+- `0.15.2` Retroactive Thermomix enrichment in Settings · tighter API timeouts · Netlify 26s function timeout
+- `0.15.3` HF swin2SR upscaling in image refresh · image URL revert-on-non-image · Unsplash on unknown quality · Dropbox offline resilience + merge strategies
 
 ---
 
@@ -57,6 +59,40 @@ Three files must always match:
 - Auth: PKCE OAuth, App folder scope, tokens in localStorage, refresh via `/api/dropbox/refresh`
 - `NEXT_PUBLIC_DROPBOX_APP_KEY` baked at build time — requires "Clear cache and deploy" on Netlify to change
 
+### Offline resilience
+- Token refresh only clears credentials on HTTP 400/401 (revoked token). A network error while offline returns `null` and keeps tokens intact — the user stays "connected."
+- If an upload fails (no token or network error), the value is stored in `pendingRef` inside `useDropboxSync`.
+- `window.online` listener flushes `pendingRef` the moment connectivity restores.
+
+### Multi-device conflict resolution (merge strategies)
+On initial download, if both local and remote data exist, `useDropboxSync` calls a per-hook `merge(local, remote)` function instead of blindly overwriting. This preserves data added on any device.
+
+| Hook | Merge strategy |
+|------|---------------|
+| `useUserRecipes` | Union by `id` — local-only recipes prepended, remote wins for conflicts |
+| `useRecipeStates` | Per `recipeId`: union `cookedAt` timestamps, OR `wantToCook`, first non-null `rating` |
+| `useCookingHistory` | Union by `cookedAt` ISO string, sorted newest-first |
+| `useFavourites` | Union of ID arrays (`Set`) |
+| `useSettings` | Remote wins (no merge — settings are low-conflict) |
+
+After merging, if the result differs from remote, the merged value is pushed back to Dropbox immediately so all devices converge.
+
+### Image resolution pipeline (`resolveRecipeImage`)
+```
+1. tryFullResUrl(url)    — strip WordPress -300x200, Cloudinary transforms, ?w=/h= params
+2. If URL changed: HEAD-check stripped URL for Content-Type: image/*
+   - If not an image (e.g. site header): revert to original URL
+3. checkImageQuality(url) — HEAD for Content-Length < 35KB = "low"; non-image Content-Type = "unknown"
+4. If quality !== "ok":
+   a. HF upscale (if HUGGINGFACE_API_TOKEN set) — swin2SR 2×, preserves original photo
+   b. Unsplash search fallback (if UNSPLASH_ACCESS_KEY set) — replaces with stock photo
+   c. Keep original with quality: "low" if both unavailable
+5. Returns { url, source, quality, resolvedBase64? }
+   - resolvedBase64 is set when upscaling was used — caller skips re-fetching the image bytes
+```
+- HF upscaling only runs in the Settings refresh route (`/api/recipes/refresh-image`), NOT during import — cold-start latency (20-30s) would exceed the Netlify function budget alongside the other parallel AI calls.
+- `"unknown"` (server omits Content-Length, or HEAD not supported) triggers the same fallback chain as `"low"`.
+
 ## User recipes
 - Slugs prefixed `user-` — guard used throughout the app
 - `useUserRecipes.addRecipe` is an upsert (filter by `id`, then prepend)
@@ -64,6 +100,112 @@ Three files must always match:
 - `ImportRecipeModal`: import (default) and edit (`initialDraft` prop) modes; on save calls `onSave?.(recipe)`
 - Photo import: `/api/recipes/import-photo` — POST `{ imageBase64, mimeType }`, returns `{ recipe, heroImageBase64 }`; photo becomes hero image; sets `sourceType: "image"`
 - URL import: `/api/recipes/import` — calls Claude Sonnet for nutrition estimation (fiber included)
+
+---
+
+## Recipe import pipeline
+
+### URL import — `POST /api/recipes/import`
+
+```
+1. Validate URL (HTTP/HTTPS only)
+2. Fetch HTML with browser-like User-Agent, 12s timeout
+3. Try JSON-LD fast path: parseRecipeFromHtml(html, url, id)
+   - If JSON-LD found AND steps.length > 0  → finalise(recipe, pageText)
+   - If JSON-LD found but steps.length === 0 → finalise(recipe, pageText)  ← handles Cookidoo-style client-rendered steps
+   - If JSON-LD not found                   → Claude full-page extraction
+4. Claude fallback (only when ANTHROPIC_API_KEY is set):
+   - Guard: if "ingredient" not in page text → return 422 early
+   - extractWithClaude(pageText, url, id) — sends stripped text (40k char limit) to Claude Sonnet
+   - Prompt asks for a specific JSON schema; buildRecipeFromSchema() normalises output
+5. finalise(recipe, pageText) runs four calls in parallel:
+   a. resolveRecipeImage(heroImageUrl, title, cuisine, UNSPLASH_ACCESS_KEY)
+   b. estimateNutrition(recipe, apiKey)  — only if !r.calories && !r.protein
+   c. generateThermomixSteps(steps, apiKey)
+   d. classifyRecipe(recipe, apiKey, pageText)
+6. After parallel calls: fetch heroImageBase64 for Dropbox storage (separate fetch)
+7. Returns { recipe, heroImageBase64?, enrichments: { nutrition, nutritionSource, thermomix } }
+```
+
+### Photo import — `POST /api/recipes/import-photo`
+
+```
+1. Receive { imageBase64, mimeType }
+2. Send image to Claude vision (claude-sonnet-4-6) with same JSON schema prompt
+3. buildRecipeFromSchema() normalises output; sets imageSource: "photo-import", imageQuality: "ok"
+4. Same finalise() parallel enrichment as URL import (no image resolution needed)
+```
+
+### Thermomix step generation — `generateThermomixSteps(steps, apiKey)`
+
+```
+1. Numbered step list sent to Claude: "1. <instruction>\n2. ..."
+2. Claude returns JSON array of steps that CAN use Thermomix:
+   [{ stepNumber: 1, speed, tempC, timeSeconds, instruction, label }]
+   - stepNumber is 1-indexed, maps to array index via: byIndex = Map(stepNumber-1 → item)
+   - tempC can be a number (37–100) or "Varoma" (~115°C for steaming)
+   - speed: 0=heat only, 1=stir, 3=mix, 5=blend, 7=chop, 10=crush
+3. Original steps are merged: steps.map((s, i) => byIndex.get(i) ? { ...s, thermomix: {...} } : s)
+4. Returns null if no steps matched (or API failure), returns updated steps array if ≥1 matched
+5. Caller sets thermomixAvailable: true on recipe when non-null result is returned
+```
+
+**Key invariant:** step matching is by array index (0-based), not by any ID field. The `stepId` on CookingStep is for UI keying only and is never sent to Claude.
+
+**Failure modes:**
+- Claude returns [] (no Thermomix steps found) → `generateThermomixSteps` returns null → `thermomixAdded = false`
+- API timeout (20s) or error → returns null silently
+- Steps already describe Thermomix operations (e.g. from thermomix-recipes.net) → Claude should still return structured parameters; the prompt explicitly asks for speed/temp/time extraction
+
+### Nutrition estimation — `estimateNutrition(recipe, apiKey)`
+
+```
+- Called only when !r.calories && !r.protein (both falsy)
+- Returns all fields: calories, protein, fat, carbs, fiber, sugar, sodium, saturatedFat, cholesterol, transFat
+- sodium and cholesterol in mg; all others in g except calories in kcal
+- transFat may be decimal (0.1g precision); all others rounded to integer
+- Returns {} on any failure (timeout, parse error, API error) — caller treats {} as "not available"
+```
+
+### Image resolution — `resolveRecipeImage(rawImageUrl, title, cuisine, unsplashKey)`
+
+```
+1. tryFullResUrl(url): strips WordPress -300x200.jpg, Cloudinary transforms, ?w= / ?h= params
+2. checkImageQuality(url): HEAD request, Content-Length < 35 000 bytes → "low"
+3. If URL was modified by tryFullResUrl, re-check quality on the new URL
+4. If quality still "low" AND unsplashKey is set → searchUnsplash(query, key) → imageSource: "unsplash"
+5. If no original URL → searchUnsplash → imageSource: "ai-found"
+6. Returns { url, source: "scraped"|"unsplash"|"ai-found"|"none", quality: "ok"|"low" }
+```
+
+### Enrichments response
+
+```ts
+enrichments: {
+  nutrition: boolean          // true only if AI estimated macros (not JSON-LD)
+  nutritionSource: "ai"       // AI estimated
+               | "json-ld"   // already present in page JSON-LD
+               | "none"      // not available from either source
+  thermomix: boolean          // true if ≥1 step has Thermomix parameters added
+}
+```
+
+**Chip display logic (ImportRecipeModal):**
+```ts
+const ns = enrichments.nutritionSource;
+const hasMacros = ns === "ai" || ns === "json-ld"
+  || (!ns && enrichments.nutrition)   // legacy: older saved enrichments
+  || !!(draft?.calories);             // fallback: recipe object has data regardless of enrichments
+```
+
+### Common failure modes to watch for
+
+| Symptom | Likely cause |
+|---|---|
+| "No Thermomix adaptation" on thermomix-specific site | Steps may be empty in JSON-LD (site uses JS rendering); Claude fallback should catch them |
+| "Macros unavailable" on BBC Good Food / rich sites | Fixed: `nutritionSource: "json-ld"` now detected correctly |
+| Both macros + Thermomix unavailable | Netlify function timeout — page fetch + 4 parallel AI calls can exceed ~26s on heavy pages |
+| Recipe imports with no steps | Cookidoo-style: JSON-LD has metadata but `recipeInstructions` is client-rendered; Claude full-page extraction handles it |
 
 ## Recipe states & history
 - `useRecipeStates` — synced to Dropbox `/recipe-states.json`; shape: `{ recipeId, wantToCook, cookedAt[], rating? }`
