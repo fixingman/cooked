@@ -163,7 +163,10 @@ export async function resolveRecipeImage(
 
   if (quality === "ok") return { url: resolvedUrl, source: "scraped", quality: "ok" };
 
-  // Image is low-res or unverifiable — try upscaling first (preserves original photo),
+  // "unknown" means HEAD was blocked/timed out — the image is likely fine; keep original.
+  if (quality === "unknown") return { url: resolvedUrl, source: "scraped", quality: "ok" };
+
+  // Confirmed low-res — try upscaling first (preserves original photo),
   // then Unsplash as a last resort (replaces with stock photo).
   if (hfToken) {
     const upscaled = await upscaleImage(resolvedUrl, hfToken);
@@ -172,5 +175,5 @@ export async function resolveRecipeImage(
 
   const unsplash = await unsplashFallback();
   if (unsplash.url) return unsplash;
-  return { url: resolvedUrl, source: "scraped", quality: quality === "low" ? "low" : "ok" };
+  return { url: resolvedUrl, source: "scraped", quality: "low" };
 }

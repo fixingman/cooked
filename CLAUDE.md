@@ -96,7 +96,7 @@ After merging, if the result differs from remote, the merged value is pushed bac
    - resolvedBase64 is set when upscaling was used — caller skips re-fetching the image bytes
 ```
 - HF upscaling only runs in the Settings refresh route (`/api/recipes/refresh-image`), NOT during import — cold-start latency (20-30s) would exceed the Netlify function budget alongside the other parallel AI calls.
-- `"unknown"` (server omits Content-Length, or HEAD not supported) triggers the same fallback chain as `"low"`.
+- `"unknown"` (HEAD blocked, timed out, or no Content-Length) → keep original URL as-is. Only confirmed `"low"` triggers the fallback chain.
 
 ## User recipes
 - Slugs prefixed `user-` — guard used throughout the app
