@@ -1,4 +1,4 @@
-import type { Recipe, Ingredient, CookingStep, Cuisine, MealTime, DietaryTag, Difficulty, RecipeSource } from "@/types/recipe";
+import type { Recipe, Ingredient, CookingStep, MealTime, DietaryTag, Difficulty, RecipeSource } from "@/types/recipe";
 
 function parseDuration(iso: string | undefined): number {
   if (!iso) return 0;

@@ -142,6 +142,7 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
       }
     };
     reader.readAsDataURL(file);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function checkDuplicate(recipe: Recipe & { sourceUrl?: string }) {
@@ -270,7 +271,7 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
               <AlertCircle size={16} className="text-amber-500 shrink-0 mt-0.5" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-amber-900">Already in your collection</p>
-                <p className="text-xs text-amber-700 mt-0.5 truncate">"{duplicateOf.title}" was added before.</p>
+                <p className="text-xs text-amber-700 mt-0.5 truncate">&ldquo;{duplicateOf.title}&rdquo; was added before.</p>
               </div>
               <button
                 onClick={() => { onClose(); router.push(`/recipes/${duplicateOf.slug}`); }}
