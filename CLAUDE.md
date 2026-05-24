@@ -54,6 +54,7 @@ Three files must always match:
 - `0.15.5` parseDuration full-ISO fix (T-split) · 0-step time merge from Claude · budget-aware Thermomix skip · BUGS.md
 - `0.15.6` Nutrition: "based on N servings" label + consistent "Show full breakdown" · Cooking mode: contextual ingredients via text-match (no more showing all)
 - `0.15.7` Nutrition: ~Xg per serving from weight ingredients · Back button: router.back() in cook mode · maxDuration=30 on all AI routes · Thermomix enrichment error breakdown
+- `0.15.8` Thermomix enrichment: fix error masking (throws vs null), timeout 12s→24s, max_tokens 1024→2048, prompt fix for pre-adapted steps · BUG-007
 
 ---
 
@@ -113,19 +114,19 @@ After merging, if the result differs from remote, the merged value is pushed bac
 
 ```
 1. Validate URL (HTTP/HTTPS only)
-2. Fetch HTML with browser-like User-Agent, 12s timeout
+2. Fetch HTML with browser-like User-Agent, 8s timeout
 3. Try JSON-LD fast path: parseRecipeFromHtml(html, url, id)
    - If JSON-LD found AND steps.length > 0  → finalise(recipe, pageText)
-   - If JSON-LD found but steps.length === 0 → finalise(recipe, pageText)  ← handles Cookidoo-style client-rendered steps
+   - If JSON-LD found but steps.length === 0 → Claude extraction for steps; merges steps + times onto JSON-LD metadata; finalise with skipThermomix: true
    - If JSON-LD not found                   → Claude full-page extraction
 4. Claude fallback (only when ANTHROPIC_API_KEY is set):
    - Guard: if "ingredient" not in page text → return 422 early
    - extractWithClaude(pageText, url, id) — sends stripped text (40k char limit) to Claude Sonnet
    - Prompt asks for a specific JSON schema; buildRecipeFromSchema() normalises output
-5. finalise(recipe, pageText) runs four calls in parallel:
+5. finalise(recipe, pageText, { skipThermomix? }) runs four calls in parallel:
    a. resolveRecipeImage(heroImageUrl, title, cuisine, UNSPLASH_ACCESS_KEY)
    b. estimateNutrition(recipe, apiKey)  — only if !r.calories && !r.protein
-   c. generateThermomixSteps(steps, apiKey)
+   c. generateThermomixSteps(steps, apiKey).catch(() => null)  — skipped if skipThermomix
    d. classifyRecipe(recipe, apiKey, pageText)
 6. After parallel calls: fetch heroImageBase64 for Dropbox storage (separate fetch)
 7. Returns { recipe, heroImageBase64?, enrichments: { nutrition, nutritionSource, thermomix } }
@@ -158,8 +159,8 @@ After merging, if the result differs from remote, the merged value is pushed bac
 
 **Failure modes:**
 - Claude returns [] (no Thermomix steps found) → `generateThermomixSteps` returns null → `thermomixAdded = false`
-- API timeout (20s) or error → returns null silently
-- Steps already describe Thermomix operations (e.g. from thermomix-recipes.net) → Claude should still return structured parameters; the prompt explicitly asks for speed/temp/time extraction
+- API timeout (24s) or error → function throws; import route's `.catch(() => null)` treats as "not added"; enrich-thermomix route returns 500 (client shows "timed out — try again")
+- Steps already describe Thermomix operations (thermomix-recipes.net) → Claude extracts speed/temp/time directly from text; prompt clarified "do not skip pre-adapted steps"
 
 ### Nutrition estimation — `estimateNutrition(recipe, apiKey)`
 
@@ -206,9 +207,10 @@ const hasMacros = ns === "ai" || ns === "json-ld"
 
 | Symptom | Likely cause |
 |---|---|
-| "No Thermomix adaptation" on thermomix-specific site | Steps may be empty in JSON-LD (site uses JS rendering); Claude fallback should catch them |
+| "No Thermomix adaptation" on thermomix-specific site | Steps empty in JSON-LD (site uses JS rendering) → Claude fallback extracts them; or genuine timeout → enrich via Settings |
 | "Macros unavailable" on BBC Good Food / rich sites | Fixed: `nutritionSource: "json-ld"` now detected correctly |
-| Both macros + Thermomix unavailable | Netlify function timeout — page fetch + 4 parallel AI calls can exceed ~26s on heavy pages |
+| Both macros + Thermomix unavailable | Netlify function timeout — `maxDuration = 30` on all AI routes should prevent this |
+| "Steps not suitable for Thermomix" in Settings enrichment | Could be genuine (simple recipe) or was a timeout masquerading as 422 — fixed in v0.15.8 (throws vs null) |
 | Recipe imports with no steps | Cookidoo-style: JSON-LD has metadata but `recipeInstructions` is client-rendered; Claude full-page extraction handles it |
 
 ## Recipe states & history

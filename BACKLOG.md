@@ -5,7 +5,7 @@
 ---
 
 ## Bugs
-*None.*
+See `BUGS.md` for active bug tracking.
 
 ---
 
@@ -14,14 +14,6 @@ Ordered by impact. Each item is self-contained and shippable independently.
 
 | # | Description | Area | Why now |
 |---|-------------|------|---------|
-| ✅ U-20 | "Mark as Cooked" + rate from recipe detail — v0.11.0 | Recipe detail | |
-| ✅ U-21 | Keep screen awake during cooking (`navigator.wakeLock`) — v0.10.1 | Cooking mode | |
-| ✅ U-22 | Cooking notes field on CompletionScreen — v0.11.0 | Cooking mode | |
-| ✅ U-13 | "Coming soon" label on AI toggle — v0.10.3 | Settings | |
-| ✅ U-19 | Nutritional values panel — v0.10.3 | Recipe detail | calories/protein/fat/carbs/fiber; AI (Sonnet) fills in missing values on import. Full macros on all 12 built-in recipes added v0.12.7. |
-| ✅ U-25 | Undo "Mark as Cooked" — v0.12.6 | Recipe detail | × button on cooked badge removes last cook entry + clears rating if no cooks remain. |
-| ✅ U-26 | Toast feedback on recipe detail CTAs — v0.12.2 | Recipe detail | Bookmark, copy link, cook-for-later all show a dismissing pill toast on tap. |
-| ✅ U-27 | Cooking mode de-clutter — v0.12.3–v0.12.5 | Cooking mode | Removed redundant step counters; replaced recipe image with ingredient list per step; flip-clock timer redesign. |
 | U-28 | Hide built-in recipes | Recipe detail | Delete button (no edit) on built-in recipe detail pages. Stores hidden IDs in `cooked-hidden-recipes` localStorage key. Filters out of all lists, carousels, and returns 404 on direct URL. No restore UI in v1 — Settings "Reset" clears all localStorage as nuclear option. |
 | U-4  | Progress ring / step counter label | Cooking mode | Label is ambiguous — reads as timer progress, not step progress. Quick copy fix. |
 | U-16 | Related recipes at bottom of recipe detail | Recipe detail | Increases session depth. Uses existing `getRelatedRecipes()` in `src/lib/recipes.ts`. |
@@ -39,11 +31,6 @@ Ordered by user value × feasibility. Phase B features (F-5, H-1B) depend on Pan
 **UX:** "Add to list" button on recipe detail → bottom-sheet checklist. Combine ingredients from multiple recipes. Clear list action.
 **Data:** `cooked-shopping-list` in localStorage + Dropbox `/shopping-list.json`. Shape: `{ items: { id, name, recipeId, checked }[] }`.
 **Decisions needed:** single global list or per-recipe lists · merge duplicates across recipes.
-
----
-
-### ✅ F-4 — Photo Import — v0.12.0
-Claude vision extracts a recipe from a photo (cookbook page, handwritten card, screenshot). URL/Photo tab switcher in ImportRecipeModal; `/api/recipes/import-photo` route; photo becomes hero image.
 
 ---
 
@@ -68,11 +55,6 @@ Two modes: *Suggest from library* (Claude ranks existing recipes from prompt) ·
 
 ### 🔴 F-5 — Recipe Ranking ("For You" sort)
 Signals: pantry match · favourited · cooked before · want to cook · recency penalty. Only activates when user has enough signal. **Depends on F-1 (Pantry).**
-
----
-
-### ✅ H-1A — Smart Homepage Carousels Phase A — v0.10.0
-Day-seeded featured hero rotation (cycles all `isFeatured` recipes daily). User-imported recipes appear in meal-time carousels. "In Your List" section (wantToCook recipes, hidden when empty). "From Your Favourites" section (favourited + uncooked, hidden when empty). ContinueCooking resolves user recipe titles. `MealTimeSection` gained optional `seeAllHref` prop.
 
 ---
 
@@ -110,26 +92,6 @@ Supabase Auth (magic link or Google). Needed for social features, multi-device w
 
 ### 🔴 F-7 — Database
 Supabase Postgres. Needed for server-side querying, multi-user, recipe search at scale. **Depends on F-6.**
-
----
-
-## Infrastructure / Tech
-
-| # | Description | Notes |
-|---|-------------|-------|
-| ✅ I-1 | Background timer (Web Worker) — v0.10.2 | Timestamp-based accuracy; worker ticks every 500ms, main thread computes elapsed from `Date.now()`. |
-| ✅ I-2 | PWA offline recipe cache — v0.10.2 | NetworkFirst for pages + cooking mode; CacheFirst for all remote images. |
-| ✅ I-3 | Stale history cleanup — v0.10.2 | `deleteRecipeHistory` + `deleteState` called from `handleDelete` in recipe detail. |
-
----
-
-## Recipe Content
-
-**Current:** 12 built-in. **Target:** 30+ before user testing.
-
-Import sources: BBC Good Food ✅ · AllRecipes ✅ · Food52 ✅ · Serious Eats ✅ · Jamie Oliver ✅ · Bon Appétit ⚠️ · Epicurious ⚠️ · NYT Cooking ❌ (paywall) · Ottolenghi ⚠️ (untested)
-
-Quality checklist per recipe: 5–12 steps · ingredient IDs cross-referenced to steps · `durationSeconds` on timed steps · Thermomix variant if applicable · hero photo in Dropbox · accurate difficulty/timing
 
 ---
 

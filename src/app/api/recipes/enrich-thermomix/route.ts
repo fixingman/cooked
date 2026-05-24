@@ -18,7 +18,12 @@ export async function POST(req: Request) {
     return Response.json({ error: "steps array required" }, { status: 400 });
   }
 
-  const enrichedSteps = await generateThermomixSteps(steps, apiKey);
+  let enrichedSteps: Awaited<ReturnType<typeof generateThermomixSteps>>;
+  try {
+    enrichedSteps = await generateThermomixSteps(steps, apiKey);
+  } catch {
+    return Response.json({ error: "AI call failed or timed out" }, { status: 500 });
+  }
   if (!enrichedSteps) {
     return Response.json({ error: "No Thermomix steps could be generated" }, { status: 422 });
   }

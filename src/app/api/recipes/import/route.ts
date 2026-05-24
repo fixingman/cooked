@@ -131,7 +131,7 @@ export async function POST(req: Request) {
     const [imageResult, nutrition, thermomixSteps, classification] = await Promise.all([
       resolveRecipeImage(r.heroImageUrl, r.title, r.cuisine, unsplashKey),
       apiKey && needsNutrition(r) ? estimateNutrition(r, apiKey) : Promise.resolve({}),
-      apiKey && !skipThermomix ? generateThermomixSteps(r.steps, apiKey) : Promise.resolve(null),
+      apiKey && !skipThermomix ? generateThermomixSteps(r.steps, apiKey).catch(() => null) : Promise.resolve(null),
       apiKey ? classifyRecipe(r, apiKey, pageText) : Promise.resolve({ typeTags: [] as string[], dietaryTags: [] as import("@/types/recipe").DietaryTag[], chefNotes: undefined, cuisine: undefined }),
     ]);
     const nutritionAdded = Object.keys(nutrition).length > 0;

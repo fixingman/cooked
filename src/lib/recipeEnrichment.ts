@@ -55,6 +55,7 @@ Use 0 for transFat if negligible. sodium is in mg, cholesterol is in mg, all oth
   }
 }
 
+// Sentinel: distinguishes "Claude found no TM steps" (null) from API/parse error (throws).
 export async function generateThermomixSteps(
   steps: CookingStep[],
   apiKey: string,
@@ -65,7 +66,7 @@ export async function generateThermomixSteps(
 
   const prompt = `You are adapting a recipe for the Thermomix TM6. For each numbered step below, provide Thermomix parameters if the step involves any mechanical or thermal operation: mixing, blending, chopping, cooking, steaming, sautéing, emulsifying, kneading. Skip ONLY steps that are purely manual with no machine equivalent: plating, resting, marinating, chilling, seasoning to taste, serving.
 
-If a step already describes a Thermomix operation (e.g. "Blend 10 sec/speed 7" or "Cook 5 min/100°C/speed 1"), extract the parameters directly from the text.
+If a step already describes a Thermomix operation (e.g. "Blend 10 sec/speed 7" or "Cook 5 min/100°C/speed 1"), extract the parameters directly from the text — do not skip it.
 
 Steps:
 ${stepLines}
@@ -84,46 +85,43 @@ Return ONLY a JSON array for steps that CAN use the Thermomix:
 
 Speed guide: 0=no mixing (heat only), 1=gentle stir, 3=mix, 5=blend, 7=chop, 10=crush.
 tempC guide: 0=no heat, 37-100=cooking, "Varoma"=steaming (~115°C).
+timeSeconds: extract from text (e.g. "5 sec" → 5, "2 min" → 120). Use 30 if unspecified but the step clearly uses the machine.
 Return [] only if truly no steps involve the Thermomix.`;
 
-  try {
-    const res = await fetch(API_BASE, {
-      method: "POST",
-      headers: HEADERS(apiKey),
-      body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 1024,
-        messages: [{ role: "user", content: prompt }],
-      }),
-      signal: AbortSignal.timeout(12_000),
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    const text = (data?.content?.[0]?.text as string | undefined) ?? "";
-    const raw = text.match(/\[[\s\S]*\]/)?.[0] ?? text.trim();
-    const items = JSON.parse(raw) as { stepNumber: number; speed: number; tempC: number | "Varoma"; timeSeconds: number; instruction: string; label?: string }[];
-    if (!Array.isArray(items) || items.length === 0) return null;
+  const res = await fetch(API_BASE, {
+    method: "POST",
+    headers: HEADERS(apiKey),
+    body: JSON.stringify({
+      model: "claude-sonnet-4-6",
+      max_tokens: 2048,
+      messages: [{ role: "user", content: prompt }],
+    }),
+    signal: AbortSignal.timeout(24_000),
+  });
+  if (!res.ok) throw new Error(`Claude API error ${res.status}`);
+  const data = await res.json();
+  const text = (data?.content?.[0]?.text as string | undefined) ?? "";
+  const raw = text.match(/\[[\s\S]*\]/)?.[0] ?? text.trim();
+  const items = JSON.parse(raw) as { stepNumber: number; speed: number; tempC: number | "Varoma"; timeSeconds: number; instruction: string; label?: string }[];
+  if (!Array.isArray(items) || items.length === 0) return null;
 
-    const byIndex = new Map(items.map(t => [t.stepNumber - 1, t]));
-    const updated = steps.map((s, i) => {
-      const tm = byIndex.get(i);
-      if (!tm) return s;
-      return {
-        ...s,
-        thermomix: {
-          speed: tm.speed,
-          tempC: tm.tempC,
-          timeSeconds: tm.timeSeconds,
-          instruction: tm.instruction,
-          label: tm.label,
-        },
-      };
-    });
-    if (!updated.some(s => s.thermomix)) return null;
-    return updated;
-  } catch {
-    return null;
-  }
+  const byIndex = new Map(items.map(t => [t.stepNumber - 1, t]));
+  const updated = steps.map((s, i) => {
+    const tm = byIndex.get(i);
+    if (!tm) return s;
+    return {
+      ...s,
+      thermomix: {
+        speed: tm.speed,
+        tempC: tm.tempC,
+        timeSeconds: tm.timeSeconds,
+        instruction: tm.instruction,
+        label: tm.label,
+      },
+    };
+  });
+  if (!updated.some(s => s.thermomix)) return null;
+  return updated;
 }
 
 export async function classifyRecipe(
