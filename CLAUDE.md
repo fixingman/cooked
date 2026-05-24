@@ -51,6 +51,7 @@ Three files must always match:
 - `0.15.2` Retroactive Thermomix enrichment in Settings · tighter API timeouts · Netlify 26s function timeout
 - `0.15.3` HF swin2SR upscaling in image refresh · image URL revert-on-non-image · Unsplash on unknown quality · Dropbox offline resilience + merge strategies
 - `0.15.4` Fix HowToStep `name` fallback in parseSteps · Claude step extraction for 0-step JSON-LD recipes
+- `0.15.5` parseDuration full-ISO fix (T-split) · 0-step time merge from Claude · budget-aware Thermomix skip · BUGS.md
 
 ---
 
