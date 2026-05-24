@@ -5,8 +5,27 @@ import type { Ingredient } from "@/types/recipe";
 interface StepIngredientsProps {
   allIngredients: Ingredient[];
   stepIngredientIds?: string[];
+  stepInstruction?: string;
   stepId: string;
   direction: number;
+}
+
+// Adjectives and prep words that aren't useful for matching
+const STOP_WORDS = new Set([
+  "fresh", "dried", "large", "small", "medium", "extra", "finely", "thinly",
+  "roughly", "coarsely", "chopped", "sliced", "diced", "grated", "minced",
+  "ground", "whole", "ripe", "raw", "cooked", "frozen", "canned", "boneless",
+]);
+
+function matchByText(instruction: string, ingredients: Ingredient[]): Ingredient[] {
+  const text = instruction.toLowerCase();
+  return ingredients.filter(ing => {
+    const name = ing.name.toLowerCase();
+    if (text.includes(name)) return true;
+    // Try each significant word in the ingredient name
+    const keywords = name.split(/\s+/).filter(w => w.length > 3 && !STOP_WORDS.has(w));
+    return keywords.some(kw => text.includes(kw));
+  });
 }
 
 const variants = {
@@ -43,15 +62,18 @@ function IngredientRow({ ing }: { ing: Ingredient }) {
 export function StepIngredients({
   allIngredients,
   stepIngredientIds,
+  stepInstruction,
   stepId,
   direction,
 }: StepIngredientsProps) {
-  const stepIngredients = stepIngredientIds?.length
+  // Priority: explicit IDs (built-in recipes) → text match → nothing
+  const ingredients = stepIngredientIds?.length
     ? allIngredients.filter((i) => stepIngredientIds.includes(i.id))
-    : [];
+    : stepInstruction
+      ? matchByText(stepInstruction, allIngredients)
+      : [];
 
-  const showAll = stepIngredients.length === 0;
-  const ingredients = showAll ? allIngredients : stepIngredients;
+  if (ingredients.length === 0) return null;
 
   return (
     <AnimatePresence mode="wait" custom={direction}>
@@ -66,7 +88,7 @@ export function StepIngredients({
         className="w-full max-w-[300px]"
       >
         <p className="text-label text-ink-400 uppercase tracking-widest text-[10px] mb-3">
-          {showAll ? "Ingredients" : "You'll need"}
+          You&apos;ll need
         </p>
         <div className="flex flex-col gap-2 overflow-y-auto max-h-[40vh]">
           {ingredients.map((ing) => (

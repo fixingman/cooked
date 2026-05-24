@@ -3,7 +3,7 @@ import { useState } from "react";
 import { AlertTriangle, ChevronDown, ChevronUp } from "lucide-react";
 import type { Recipe } from "@/types/recipe";
 
-type NutritionKeys = "calories" | "protein" | "fat" | "carbs" | "fiber" | "sugar" | "sodium" | "saturatedFat" | "cholesterol" | "transFat";
+type NutritionKeys = "calories" | "protein" | "fat" | "carbs" | "fiber" | "sugar" | "sodium" | "saturatedFat" | "cholesterol" | "transFat" | "servings";
 type NutritionPanelProps = { recipe: Pick<Recipe, NutritionKeys> };
 
 type WarningLevel = "amber" | "red";
@@ -63,7 +63,7 @@ function Stat({
 }
 
 export function NutritionPanel({ recipe }: NutritionPanelProps) {
-  const { calories, protein, fat, carbs, fiber, sugar, sodium, saturatedFat, cholesterol, transFat } = recipe;
+  const { calories, protein, fat, carbs, fiber, sugar, sodium, saturatedFat, cholesterol, transFat, servings } = recipe;
   const [expanded, setExpanded] = useState(false);
 
   if (!calories && !protein && !fat && !carbs) return null;
@@ -82,7 +82,12 @@ export function NutritionPanel({ recipe }: NutritionPanelProps) {
 
   return (
     <div className="py-5 border-b border-parchment-300">
-      <p className="text-label uppercase tracking-widest text-ink-400 mb-3">Nutrition per serving</p>
+      <div className="flex items-baseline gap-2 mb-3">
+        <p className="text-label uppercase tracking-widest text-ink-400">Nutrition per serving</p>
+        {servings > 1 && (
+          <span className="text-[10px] text-ink-300">based on {servings} servings</span>
+        )}
+      </div>
 
       <div className="flex gap-2">
         {calories && <Stat label="Cal"     value={calories} unit="kcal" />}
@@ -95,19 +100,15 @@ export function NutritionPanel({ recipe }: NutritionPanelProps) {
         <>
           <button
             onClick={() => setExpanded(e => !e)}
-            className={`mt-3 flex items-center gap-1.5 text-xs font-medium transition-colors ${
-              flagCount > 0 && !expanded
-                ? "text-amber-600 hover:text-amber-700"
-                : "text-ink-400 hover:text-ink-600"
-            }`}
+            className="mt-3 flex items-center gap-1.5 text-xs font-medium text-ink-400 hover:text-ink-600 transition-colors"
           >
             {flagCount > 0 && !expanded && (
               <AlertTriangle size={12} className="text-amber-500" />
             )}
-            {flagCount > 0 && !expanded
-              ? `${flagCount} value${flagCount > 1 ? "s" : ""} to review — see details`
-              : expanded ? "Less" : "More"
-            }
+            {expanded ? "Less" : "Show full breakdown"}
+            {flagCount > 0 && !expanded && (
+              <span className="text-amber-600">· {flagCount} to review</span>
+            )}
             {expanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
           </button>
 

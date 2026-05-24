@@ -111,6 +111,7 @@ export function CookingShell({ recipe, thermomixMode = false }: CookingShellProp
           <StepIngredients
             allIngredients={recipe.ingredients}
             stepIngredientIds={step.ingredients}
+            stepInstruction={step.instruction}
             stepId={step.id}
             direction={direction}
           />
