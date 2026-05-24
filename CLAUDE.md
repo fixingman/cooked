@@ -44,6 +44,9 @@ Three files must always match:
 - `0.14.1` Fix nutrition parsing — decimal stripping bug + fiberContent missing from JSON-LD parser
 - `0.14.2` Fix Thermomix step ID matching for imported recipes
 - `0.14.3` Hide built-in recipes from lists · chef's notes UI polish · back button single-press fix
+- `0.14.4` Remove built-ins completely (incl. FeaturedHero) · revert chef's notes to amber · toast redesign
+- `0.14.5` Fix Thermomix step matching (index-based, not ID-copy) · handle 0-step JSON-LD (Cookidoo)
+- `0.15.0` Image quality + source — thumbnail URL stripping, Unsplash fallback, retroactive scan in Settings
 
 ---
 

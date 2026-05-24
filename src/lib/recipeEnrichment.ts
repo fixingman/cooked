@@ -61,9 +61,9 @@ export async function generateThermomixSteps(
 ): Promise<CookingStep[] | null> {
   if (steps.length === 0) return null;
 
-  const stepLines = steps.map(s => `[${s.id}] ${s.instruction}`).join("\n");
+  const stepLines = steps.map((s, i) => `${i + 1}. ${s.instruction}`).join("\n");
 
-  const prompt = `You are adapting a recipe for the Thermomix TM6. For each step below, decide if it can meaningfully use the Thermomix. Only include steps where the Thermomix adds real value (mixing, cooking, steaming, blending, chopping, sautéing). Skip steps like plating, resting, marinating, seasoning to taste, or serving.
+  const prompt = `You are adapting a recipe for the Thermomix TM6. For each numbered step below, decide if it can meaningfully use the Thermomix. Only include steps where the Thermomix adds real value (mixing, cooking, steaming, blending, chopping, sautéing). Skip steps like plating, resting, marinating, seasoning to taste, or serving.
 
 Steps:
 ${stepLines}
@@ -71,7 +71,7 @@ ${stepLines}
 Return ONLY a JSON array for steps that CAN use the Thermomix:
 [
   {
-    "stepId": "copy the exact step ID from the brackets above e.g. step-0",
+    "stepNumber": 1,
     "speed": 0,
     "tempC": 0,
     "timeSeconds": 0,
@@ -99,12 +99,12 @@ Return [] if no steps suit the Thermomix.`;
     const data = await res.json();
     const text = (data?.content?.[0]?.text as string | undefined) ?? "";
     const raw = text.match(/\[[\s\S]*\]/)?.[0] ?? text.trim();
-    const items = JSON.parse(raw) as { stepId: string; speed: number; tempC: number | "Varoma"; timeSeconds: number; instruction: string; label?: string }[];
+    const items = JSON.parse(raw) as { stepNumber: number; speed: number; tempC: number | "Varoma"; timeSeconds: number; instruction: string; label?: string }[];
     if (!Array.isArray(items) || items.length === 0) return null;
 
-    const map = new Map(items.map(t => [t.stepId, t]));
-    const updated = steps.map(s => {
-      const tm = map.get(s.id);
+    const byIndex = new Map(items.map(t => [t.stepNumber - 1, t]));
+    const updated = steps.map((s, i) => {
+      const tm = byIndex.get(i);
       if (!tm) return s;
       return {
         ...s,

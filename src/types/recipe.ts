@@ -87,6 +87,8 @@ export interface Recipe {
   sourceType?: RecipeSource;
   sourceUrl?: string;
   heroImageDropboxPath?: string;
+  imageSource?: "scraped" | "photo-import" | "ai-found" | "none";
+  imageQuality?: "ok" | "low";
 }
 
 export interface CookingHistoryEntry {

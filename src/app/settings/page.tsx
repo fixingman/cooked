@@ -6,6 +6,7 @@ import { PermissionToggle } from "@/components/settings/PermissionToggle";
 import { AIIntegrationToggle } from "@/components/settings/AIIntegrationToggle";
 import { ThermomixToggle } from "@/components/settings/ThermomixToggle";
 import { DropboxConnect } from "@/components/settings/DropboxConnect";
+import { ImageRefreshSection } from "@/components/settings/ImageRefreshSection";
 import { useSettings } from "@/hooks/useSettings";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -30,7 +31,7 @@ export default function SettingsPage() {
         </div>
         <div>
           <h1 className="font-serif text-xl font-semibold text-ink-900">Cooked</h1>
-          <p className="text-xs text-ink-400">v0.14.3 — Your cooking companion</p>
+          <p className="text-xs text-ink-400">v0.15.0 — Your cooking companion</p>
         </div>
       </div>
 
@@ -78,6 +79,10 @@ export default function SettingsPage() {
 
       <Section title="Cloud Sync">
         <DropboxConnect />
+      </Section>
+
+      <Section title="Recipe Images">
+        <ImageRefreshSection />
       </Section>
 
       <p className="text-center text-xs text-ink-300">Made with care.</p>

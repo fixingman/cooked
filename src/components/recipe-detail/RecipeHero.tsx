@@ -175,13 +175,15 @@ export function RecipeHero({ recipe, onEdit, onDelete }: RecipeHeroProps) {
         {toast && (
           <motion.div
             key={toast}
-            initial={{ opacity: 0, y: 6 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 6 }}
-            transition={{ duration: 0.18 }}
-            className="absolute top-16 left-1/2 -translate-x-1/2 bg-ink-900/85 text-parchment-100 text-xs px-3.5 py-1.5 rounded-full backdrop-blur-sm whitespace-nowrap z-20 pointer-events-none"
+            exit={{ opacity: 0, y: 12 }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            className="fixed bottom-[calc(var(--nav-h)+1.25rem)] left-1/2 -translate-x-1/2 z-50 pointer-events-none"
           >
-            {toast}
+            <div className="bg-ink-900 text-parchment-100 text-sm font-medium px-5 py-3 rounded-xl shadow-card-lg whitespace-nowrap">
+              {toast}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -200,6 +202,18 @@ export function RecipeHero({ recipe, onEdit, onDelete }: RecipeHeroProps) {
             <>
               <span className="text-parchment-300/50">·</span>
               <span className="text-label uppercase tracking-widest text-sage-400">✓ Cooked</span>
+            </>
+          )}
+          {recipe.imageSource === "ai-found" && (
+            <>
+              <span className="text-parchment-300/50">·</span>
+              <span className="text-label uppercase tracking-widest text-parchment-400/70">AI image</span>
+            </>
+          )}
+          {recipe.imageQuality === "low" && recipe.imageSource !== "ai-found" && (
+            <>
+              <span className="text-parchment-300/50">·</span>
+              <span className="text-label uppercase tracking-widest text-amber-400/80">Low res</span>
             </>
           )}
         </div>

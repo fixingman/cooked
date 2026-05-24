@@ -7,7 +7,6 @@ import { ContinueCooking } from "@/components/home/ContinueCooking";
 import { useUserRecipes } from "@/hooks/useUserRecipes";
 import { useFavourites } from "@/hooks/useFavourites";
 import { useRecipeStates } from "@/hooks/useRecipeStates";
-import { recipes as builtInRecipes } from "@/data/recipes";
 import type { MealTime } from "@/types/recipe";
 
 function getCurrentMeal(): { mealTime: MealTime; label: string } {
@@ -29,13 +28,7 @@ export default function HomePage() {
 
   const allRecipes = useMemo(() => [...userRecipes], [userRecipes]);
 
-  // Day-seeded featured hero — rotates daily; uses isFeatured pool if ≥ 3 recipes, else all built-ins
-  const featuredRecipe = useMemo(() => {
-    const featured = builtInRecipes.filter(r => r.isFeatured);
-    const pool = featured.length >= 3 ? featured : builtInRecipes;
-    const dayIndex = Math.floor(Date.now() / 86_400_000);
-    return pool[dayIndex % pool.length];
-  }, []);
+  const featuredRecipe = userRecipes[0];
 
   const primary = getCurrentMeal();
   const secondary = getSecondaryMeal(primary.mealTime);

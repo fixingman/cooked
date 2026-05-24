@@ -137,6 +137,8 @@ export async function POST(req: Request) {
     ...nutrition,
     tags: mergedTags,
     dietaryTags: mergedDietary,
+    imageSource: "photo-import" as const,
+    imageQuality: "ok" as const,
     ...(classification.chefNotes ? { chefNotes: classification.chefNotes } : {}),
     ...(thermomixSteps ? { steps: thermomixSteps, thermomixAvailable: true } : {}),
   };

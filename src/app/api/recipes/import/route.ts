@@ -1,22 +1,8 @@
 import { parseRecipeFromHtml, buildRecipeFromSchema, stripHtmlToText } from "@/lib/parseJsonLd";
 import { estimateNutrition, generateThermomixSteps, classifyRecipe } from "@/lib/recipeEnrichment";
+import { resolveRecipeImage } from "@/lib/imageUtils";
 
 const ALLOWED_PROTOCOLS = ["http:", "https:"];
-
-async function fetchImageAsBase64(imageUrl: string | undefined): Promise<string | null> {
-  if (!imageUrl) return null;
-  try {
-    const res = await fetch(imageUrl, { signal: AbortSignal.timeout(5_000) });
-    if (!res.ok) return null;
-    const contentType = res.headers.get("content-type") ?? "image/jpeg";
-    if (!contentType.startsWith("image/")) return null;
-    const buffer = await res.arrayBuffer();
-    const base64 = Buffer.from(buffer).toString("base64");
-    return `data:${contentType};base64,${base64}`;
-  } catch {
-    return null;
-  }
-}
 
 async function extractWithClaude(
   pageText: string,
@@ -135,8 +121,9 @@ export async function POST(req: Request) {
 
   async function finalise(recipe: ReturnType<typeof parseRecipeFromHtml> & object, pageText?: string) {
     const r = recipe as import("@/types/recipe").Recipe;
-    const [heroImageBase64, nutrition, thermomixSteps, classification] = await Promise.all([
-      fetchImageAsBase64(r.heroImageUrl),
+    const unsplashKey = process.env.UNSPLASH_ACCESS_KEY;
+    const [imageResult, nutrition, thermomixSteps, classification] = await Promise.all([
+      resolveRecipeImage(r.heroImageUrl, r.title, r.cuisine, unsplashKey),
       apiKey && needsNutrition(r) ? estimateNutrition(r, apiKey) : Promise.resolve({}),
       apiKey ? generateThermomixSteps(r.steps, apiKey) : Promise.resolve(null),
       apiKey ? classifyRecipe(r, apiKey, pageText) : Promise.resolve({ typeTags: [] as string[], dietaryTags: [] as import("@/types/recipe").DietaryTag[], chefNotes: undefined }),
@@ -147,11 +134,29 @@ export async function POST(req: Request) {
     const mergedTags = Array.from(new Set([...r.tags, ...classification.typeTags]));
     const mergedDietary = Array.from(new Set([...r.dietaryTags, ...classification.dietaryTags]));
 
+    // Fetch base64 of resolved image for Dropbox storage
+    let heroImageBase64: string | null = null;
+    if (imageResult.url) {
+      try {
+        const imgRes = await fetch(imageResult.url, { signal: AbortSignal.timeout(8_000) });
+        if (imgRes.ok) {
+          const ct = imgRes.headers.get("content-type") ?? "image/jpeg";
+          if (ct.startsWith("image/")) {
+            const buf = await imgRes.arrayBuffer();
+            heroImageBase64 = `data:${ct};base64,${Buffer.from(buf).toString("base64")}`;
+          }
+        }
+      } catch {}
+    }
+
     const enriched = {
       ...recipe,
       ...nutrition,
       tags: mergedTags,
       dietaryTags: mergedDietary,
+      heroImageUrl: imageResult.url ?? r.heroImageUrl,
+      imageSource: imageResult.source,
+      imageQuality: imageResult.quality,
       ...(classification.chefNotes && !r.chefNotes ? { chefNotes: classification.chefNotes } : {}),
       ...(thermomixSteps ? { steps: thermomixSteps, thermomixAvailable: true } : {}),
     };
@@ -164,11 +169,14 @@ export async function POST(req: Request) {
 
   const pageText = stripHtmlToText(html);
 
-  // Try JSON-LD first
+  // Try JSON-LD first; if it succeeds but has no steps, still try Claude for step extraction
   const jsonLdRecipe = parseRecipeFromHtml(html, url, id);
+  if (jsonLdRecipe && jsonLdRecipe.steps.length > 0) return finalise(jsonLdRecipe, pageText);
+
+  // If JSON-LD gave metadata but no steps, finalise it directly (steps may be JS-rendered)
   if (jsonLdRecipe) return finalise(jsonLdRecipe, pageText);
 
-  // Claude fallback — only if API key is configured
+  // Full Claude fallback — only if API key is configured
   if (apiKey) {
     try {
       if (!pageText.toLowerCase().includes("ingredient")) {
