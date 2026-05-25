@@ -14,7 +14,6 @@ Ordered by impact. Each item is self-contained and shippable independently.
 
 | # | Description | Area | Why now |
 |---|-------------|------|---------|
-| U-28 | Hide built-in recipes | Recipe detail | Delete button (no edit) on built-in recipe detail pages. Stores hidden IDs in `cooked-hidden-recipes` localStorage key. Filters out of all lists, carousels, and returns 404 on direct URL. No restore UI in v1 — Settings "Reset" clears all localStorage as nuclear option. |
 | U-4  | Progress ring / step counter label | Cooking mode | Label is ambiguous — reads as timer progress, not step progress. Quick copy fix. |
 | U-16 | Related recipes at bottom of recipe detail | Recipe detail | Increases session depth. Uses existing `getRelatedRecipes()` in `src/lib/recipes.ts`. |
 | U-23 | Quick-bookmark from recipe card (long-press / hover action) | Recipe list | Currently bookmark only accessible from detail. Small discoverability improvement. |
