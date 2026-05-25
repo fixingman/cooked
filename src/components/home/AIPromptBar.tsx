@@ -3,6 +3,7 @@ import { useState, useRef } from "react";
 import { Sparkles, ArrowRight, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useUserRecipes } from "@/hooks/useUserRecipes";
 import { useSettings } from "@/hooks/useSettings";
@@ -150,10 +151,12 @@ export function AIPromptBar() {
                     className="flex items-center gap-3 bg-parchment-200 border border-parchment-300 rounded-xl px-4 py-3 hover:bg-parchment-300 transition-colors group"
                   >
                     {recipe.heroImageUrl && (
-                      <img
+                      <Image
                         src={recipe.heroImageUrl}
                         alt=""
-                        className="w-11 h-11 rounded-lg object-cover shrink-0"
+                        width={44}
+                        height={44}
+                        className="rounded-lg object-cover shrink-0"
                       />
                     )}
                     <div className="flex-1 min-w-0">

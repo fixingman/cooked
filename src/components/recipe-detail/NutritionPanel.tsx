@@ -75,7 +75,7 @@ function Stat({
 }
 
 export function NutritionPanel({ recipe }: NutritionPanelProps) {
-  const { calories, protein, fat, carbs, fiber, sugar, sodium, saturatedFat, cholesterol, transFat, servings } = recipe;
+  const { calories, protein, fat, carbs, fiber, sugar, sodium, saturatedFat, cholesterol, transFat } = recipe;
   const [expanded, setExpanded] = useState(false);
   const servingGrams = estimateServingGrams(recipe);
 
