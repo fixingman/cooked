@@ -10,15 +10,33 @@ interface PantryModalProps {
   onClose: () => void;
 }
 
+const EXIT_EASE: [number, number, number, number] = [0.4, 0, 1, 1];
+
 export function PantryModal({ onClose }: PantryModalProps) {
   const { items, addItem, removeItem, toggleLow } = usePantry();
   const [query, setQuery] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const [isDesktop, setIsDesktop] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth >= 768 : false
+  );
   useEffect(() => {
-    inputRef.current?.focus();
+    const mq = window.matchMedia("(min-width: 768px)");
+    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
   }, []);
+
+  useEffect(() => { inputRef.current?.focus(); }, []);
+
+  const panelVariants = isDesktop ? {
+    hidden: { x: "100%", transition: { duration: 0.22, ease: EXIT_EASE } },
+    visible: { x: 0, transition: { type: "spring" as const, stiffness: 340, damping: 38 } },
+  } : {
+    hidden: { y: "100%", transition: { duration: 0.22, ease: EXIT_EASE } },
+    visible: { y: 0, transition: { type: "spring" as const, stiffness: 340, damping: 38 } },
+  };
 
   const suggestions = query.trim().length > 0
     ? COMMON_INGREDIENTS
@@ -35,9 +53,7 @@ export function PantryModal({ onClose }: PantryModalProps) {
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "Enter" && query.trim()) {
-      handleAdd(query.trim());
-    }
+    if (e.key === "Enter" && query.trim()) handleAdd(query.trim());
     if (e.key === "Escape") onClose();
   }
 
@@ -48,26 +64,39 @@ export function PantryModal({ onClose }: PantryModalProps) {
   });
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
+    <>
       {/* Backdrop */}
       <motion.div
+        key="backdrop"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="absolute inset-0 bg-ink-900/40 backdrop-blur-sm"
+        transition={{ duration: 0.2 }}
+        className="fixed inset-0 z-50 bg-ink-900/40 backdrop-blur-sm"
         onClick={onClose}
       />
 
-      {/* Sheet */}
+      {/* Panel — mobile: bottom sheet · desktop: right-side panel */}
       <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 40 }}
-        transition={{ type: "spring", bounce: 0.18, duration: 0.4 }}
-        className="relative z-10 w-full max-w-lg bg-parchment-100 rounded-t-2xl md:rounded-2xl shadow-xl max-h-[85vh] flex flex-col"
+        key="panel"
+        variants={panelVariants}
+        initial="hidden"
+        animate="visible"
+        exit="hidden"
+        className={[
+          "fixed z-50 flex flex-col bg-parchment-100 overflow-hidden",
+          "bottom-0 left-0 right-0 max-h-[90dvh] rounded-t-[1.5rem] shadow-[0_-8px_40px_rgba(0,0,0,0.12)]",
+          "md:top-0 md:bottom-0 md:right-0 md:left-auto md:w-[420px] md:max-h-none md:rounded-none md:rounded-tl-[1.5rem] md:rounded-bl-[1.5rem] md:shadow-[-8px_0_48px_rgba(0,0,0,0.14)]",
+        ].join(" ")}
+        onClick={e => e.stopPropagation()}
       >
+        {/* Mobile drag handle */}
+        <div className="flex justify-center pt-3 pb-1 shrink-0 md:hidden">
+          <div className="w-10 h-1 bg-parchment-300 rounded-full" />
+        </div>
+
         {/* Header */}
-        <div className="flex items-center justify-between px-5 pt-5 pb-3 shrink-0">
+        <div className="flex items-center justify-between px-5 pt-4 pb-3 shrink-0">
           <h2 className="font-serif text-lg font-semibold text-ink-900">Pantry</h2>
           <button onClick={onClose} className="text-ink-400 hover:text-ink-700 transition-colors">
             <X size={18} />
@@ -180,6 +209,6 @@ export function PantryModal({ onClose }: PantryModalProps) {
           </div>
         )}
       </motion.div>
-    </div>
+    </>
   );
 }

@@ -1,5 +1,7 @@
 "use client";
-import { Mic, Camera, Flame } from "lucide-react";
+import { useState } from "react";
+import { Mic, Camera, Flame, ShoppingBasket } from "lucide-react";
+import { AnimatePresence } from "framer-motion";
 import { UnitToggle } from "@/components/settings/UnitToggle";
 import { DietaryPreferences } from "@/components/settings/DietaryPreferences";
 import { PermissionToggle } from "@/components/settings/PermissionToggle";
@@ -8,7 +10,9 @@ import { ThermomixToggle } from "@/components/settings/ThermomixToggle";
 import { ThermomixEnrichSection } from "@/components/settings/ThermomixEnrichSection";
 import { DropboxConnect } from "@/components/settings/DropboxConnect";
 import { ImageRefreshSection } from "@/components/settings/ImageRefreshSection";
+import { PantryModal } from "@/components/pantry/PantryModal";
 import { useSettings } from "@/hooks/useSettings";
+import { usePantry } from "@/hooks/usePantry";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -23,6 +27,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 export default function SettingsPage() {
   const { settings, update, toggleDietary } = useSettings();
+  const { items: pantryItems } = usePantry();
+  const [pantryOpen, setPantryOpen] = useState(false);
 
   return (
     <div className="px-4 py-6 md:px-8 max-w-lg mx-auto">
@@ -32,7 +38,7 @@ export default function SettingsPage() {
         </div>
         <div>
           <h1 className="font-serif text-xl font-semibold text-ink-900">Cooked</h1>
-          <p className="text-xs text-ink-400">v0.19.1 — Your cooking companion</p>
+          <p className="text-xs text-ink-400">v0.19.2 — Your cooking companion</p>
         </div>
       </div>
 
@@ -65,6 +71,31 @@ export default function SettingsPage() {
         </div>
       </Section>
 
+      {/* Pantry */}
+      <Section title="Pantry">
+        <div className="py-4">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <ShoppingBasket size={18} className="text-ink-500 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-ink-800">My Pantry</p>
+                <p className="text-xs text-ink-400 mt-0.5">
+                  {pantryItems.length === 0
+                    ? "No items yet"
+                    : `${pantryItems.length} item${pantryItems.length !== 1 ? "s" : ""}${pantryItems.filter(i => i.low).length > 0 ? ` · ${pantryItems.filter(i => i.low).length} running low` : ""}`}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setPantryOpen(true)}
+              className="shrink-0 text-xs font-medium px-3 py-1.5 rounded-lg bg-ink-900 text-parchment-100 transition-opacity"
+            >
+              Manage
+            </button>
+          </div>
+        </div>
+      </Section>
+
       {/* Device — mic & camera permissions */}
       <Section title="Device">
         <PermissionToggle
@@ -94,6 +125,10 @@ export default function SettingsPage() {
       </Section>
 
       <p className="text-center text-xs text-ink-300">Made with care.</p>
+
+      <AnimatePresence>
+        {pantryOpen && <PantryModal onClose={() => setPantryOpen(false)} />}
+      </AnimatePresence>
     </div>
   );
 }
