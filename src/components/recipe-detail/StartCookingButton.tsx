@@ -55,8 +55,7 @@ export function StartCookingButton({ slug, thermomixAvailable }: StartCookingBut
               <Link href={`/recipes/${slug}/cook?tm=1`} className="flex-[1.6]" title="Start cooking with Thermomix">
                 <motion.div
                   whileTap={{ scale: 0.97 }}
-                  className="w-full bg-sage-500 text-white rounded-2xl py-3.5 px-4 flex items-center justify-center gap-2 font-semibold text-sm hover:bg-sage-600 transition-colors"
-                  style={{ boxShadow: "0 4px 20px rgba(107, 140, 95, 0.35)" }}
+                  className="w-full bg-sage-500 text-white rounded-2xl py-3.5 px-4 flex items-center justify-center gap-2 font-semibold text-sm hover:bg-sage-600 transition-colors shadow-sage-cta"
                 >
                   <TmIcon />
                   Cook with Thermomix
@@ -67,8 +66,7 @@ export function StartCookingButton({ slug, thermomixAvailable }: StartCookingBut
             <Link href={`/recipes/${slug}/cook`} className="block" title="Start step-by-step cooking mode">
               <motion.div
                 whileTap={{ scale: 0.97 }}
-                className="w-full bg-sage-500 text-white rounded-2xl py-4 px-6 flex items-center justify-center gap-3 font-semibold text-base"
-                style={{ boxShadow: "0 4px 24px rgba(107, 140, 95, 0.4)" }}
+                className="w-full bg-sage-500 text-white rounded-2xl py-4 px-6 flex items-center justify-center gap-3 font-semibold text-base shadow-sage-cta-lg"
               >
                 <ChefHat size={20} />
                 Start Cooking

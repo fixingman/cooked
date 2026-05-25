@@ -37,22 +37,3 @@ export function getRecipes(filter?: {
   }
   return result;
 }
-
-export function getFeaturedRecipe(): Recipe | undefined {
-  return recipes.find((r) => r.isFeatured);
-}
-
-export function getRecipesByMealTime(mealTime: MealTime): Recipe[] {
-  return recipes.filter((r) => r.mealTimes.includes(mealTime));
-}
-
-export function getRelatedRecipes(recipe: Recipe, limit = 4): Recipe[] {
-  return recipes
-    .filter(
-      (r) =>
-        r.id !== recipe.id &&
-        (r.cuisine === recipe.cuisine ||
-          r.mealTimes.some((m) => recipe.mealTimes.includes(m)))
-    )
-    .slice(0, limit);
-}

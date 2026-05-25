@@ -1,7 +1,7 @@
 "use client";
 import { ChevronLeft, ChevronRight, Pause, Play, ChefHat } from "lucide-react";
 import { motion } from "framer-motion";
-import { ProgressRing } from "@/components/ui/ProgressRing";
+import { ProgressRing, RING_COLOR, RING_TRACK_COLOR } from "@/components/ui/ProgressRing";
 
 interface StepNavControlsProps {
   currentStep: number;
@@ -37,7 +37,7 @@ export function StepNavControls({
       </motion.button>
 
       {/* Centre: progress ring + play/pause */}
-      <ProgressRing progress={progress} size={72} strokeWidth={3.5} color="#6B8C5F" trackColor="#EDE5D8">
+      <ProgressRing progress={progress} size={72} strokeWidth={3.5} color={RING_COLOR} trackColor={RING_TRACK_COLOR}>
         {hasTimer ? (
           <motion.button
             whileTap={{ scale: 0.88 }}

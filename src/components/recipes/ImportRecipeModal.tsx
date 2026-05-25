@@ -391,7 +391,7 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
                         const file = e.dataTransfer.files[0];
                         if (file) handlePhotoImport(file);
                       }}
-                      animate={{ borderColor: isDragging ? "#E8A020" : "#D4C9B0" }}
+                      animate={{ borderColor: isDragging ? "#E8890C" : "#EDE5D8" }}
                       className="relative flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-parchment-300 bg-parchment-200 py-10 cursor-pointer hover:border-saffron-400 hover:bg-parchment-300/50 transition-colors overflow-hidden"
                     >
                       {photoPreview ? (

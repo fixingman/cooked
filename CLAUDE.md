@@ -59,6 +59,8 @@ Three files must always match:
 - `0.15.10` Fix ingredient unit "gr" not recognised → name corruption · Thermomix panel order: Time|Temp|Speed
 - `0.15.11` Fix recipe card showing Unsplash stock when Dropbox original exists · needsRefresh flags ai-found+Dropbox recipes
 - `0.15.12` Fix CompletionScreen buttons pushing cook mode onto history — use router.replace()
+- `0.15.13` Sort no-amount ingredients to bottom · TM zero-value badges show "—" · ingredient sort in StepIngredients
+- `0.15.14` Code cleanup: remove dead recipe lib functions · consistent design tokens (ProgressRing constants, shadow-sage-cta, min-h-0) · type guard in import-photo route
 
 ---
 

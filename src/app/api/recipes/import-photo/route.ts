@@ -97,7 +97,7 @@ export async function POST(req: Request) {
   if (!imageBase64 || typeof imageBase64 !== "string") {
     return Response.json({ error: "imageBase64 is required" }, { status: 400 });
   }
-  if (!ALLOWED_MIME.includes(mimeType)) {
+  if (typeof mimeType !== "string" || !ALLOWED_MIME.includes(mimeType)) {
     return Response.json({ error: "Unsupported image format. Use JPEG, PNG, or WebP." }, { status: 400 });
   }
 

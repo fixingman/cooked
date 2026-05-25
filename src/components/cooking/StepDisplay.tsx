@@ -112,7 +112,7 @@ export function StepDisplay({ step, direction, overrideInstruction, overrideLabe
         <p className="font-medium text-ink-500 text-sm">{label}</p>
       </div>
 
-      <div className="flex-1 relative overflow-hidden" style={{ minHeight: 0 }}>
+      <div className="flex-1 relative overflow-hidden min-h-0">
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
             key={step.id + (isTm ? "-tm" : "")}

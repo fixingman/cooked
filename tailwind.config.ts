@@ -97,8 +97,10 @@ const config: Config = {
         "card":     "0 2px 12px rgba(26, 18, 8, 0.06), 0 1px 3px rgba(26, 18, 8, 0.04)",
         "card-md":  "0 4px 24px rgba(26, 18, 8, 0.10), 0 1px 4px rgba(26, 18, 8, 0.06)",
         "card-lg":  "0 12px 48px rgba(26, 18, 8, 0.14), 0 2px 8px rgba(26, 18, 8, 0.08)",
-        "glow-sage":"0 0 0 3px rgba(107, 140, 95, 0.3)",
-        "inset-top":"inset 0 2px 8px rgba(26, 18, 8, 0.06)",
+        "glow-sage":    "0 0 0 3px rgba(107, 140, 95, 0.3)",
+        "sage-cta":     "0 4px 20px rgba(107, 140, 95, 0.35)",
+        "sage-cta-lg":  "0 4px 24px rgba(107, 140, 95, 0.4)",
+        "inset-top":    "inset 0 2px 8px rgba(26, 18, 8, 0.06)",
       },
       backgroundImage: {
         "shimmer-gradient": "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.6) 50%, transparent 100%)",
