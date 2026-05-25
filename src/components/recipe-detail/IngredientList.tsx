@@ -53,11 +53,16 @@ export function IngredientList({ ingredients, scale, units = "metric" }: Ingredi
                     ing.optional && "opacity-70"
                   )}
                 >
-                  {hasAmount && (
-                    <span className="font-medium text-ink-900 text-sm min-w-[3.5rem] tabular-nums shrink-0">
-                      {qty}{displayUnit ? ` ${displayUnit}` : ""}
-                    </span>
-                  )}
+                  <span className="w-20 shrink-0 text-right text-sm tabular-nums">
+                    {hasAmount && (
+                      <>
+                        <span className="font-medium text-ink-900">{qty}</span>
+                        {displayUnit && (
+                          <em className="italic font-normal text-ink-400 ml-1">{displayUnit}</em>
+                        )}
+                      </>
+                    )}
+                  </span>
                   <span className="text-ink-700 text-sm flex-1">
                     {ing.name}
                     {ing.optional && (
