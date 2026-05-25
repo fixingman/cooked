@@ -44,80 +44,33 @@ Active bugs only. Resolved bugs kept for reference with their fix summary.
 
 ---
 
-### BUG-004 — Thermomix cooking mode never appears on imported recipes
-
-**Status:** Fix shipped v0.15.7–v0.15.8, pending confirmation
-
-**Symptom:** "No Thermomix adaptation" on import digest. "Cook with Thermomix" button never appears.
-
-**Architecture:** `generateThermomixSteps(steps, apiKey)` runs in `finalise()`. On success, recipe gets `thermomixAvailable: true` and steps gain `.thermomix` data. `StartCookingButton` renders dual CTA only when `thermomixAvailable && settings.thermomixEnabled`.
-
-**Hypotheses and status:**
-
-| # | Hypothesis | Status |
-|---|---|---|
-| H1 | Steps empty → `generateThermomixSteps` returns null immediately | Fix shipped v0.15.4 (parseSteps name fix + 0-step Claude fallback) |
-| H2 | `thermomixEnabled` setting off | Unlikely — user sees Settings Thermomix section (gated on that flag) |
-| H3 | Netlify default 10s function timeout kills Claude call before 12s completes | Fix shipped v0.15.7 — `maxDuration = 30` on all AI routes |
-| H4 | Claude returns `[]` — steps genuinely not Thermomix-suitable | Still possible for simple/manual recipes |
-| H5 | Dropbox "remote wins" merge overwrites enriched recipe on reconnect | Still possible if Dropbox has a pre-enrichment copy |
-| H6 | `generateThermomixSteps` catch block returned null on timeout/parse error, indistinguishable from "no TM steps" | Fix shipped v0.15.8 — function now throws on error; route returns 500 vs 422 |
-
-**What to verify after v0.15.8 deploys:**
-1. Import any recipe from BBC Good Food or Allrecipes
-2. Import chip should say "Thermomix steps added" (not "No Thermomix adaptation")
-3. On recipe detail, scroll down — "Cook with Thermomix" button should appear
-4. For thermomix-recipes.net recipes: Settings → Thermomix → Generate should now succeed (not show "Steps not suitable")
-
-**Files:** `src/app/api/recipes/import/route.ts`, `src/lib/recipeEnrichment.ts`, `src/components/recipe-detail/StartCookingButton.tsx`
-
----
-
-### BUG-005 — Settings Thermomix enrichment: "No recipes could be adapted"
-
-**Status:** Fix shipped v0.15.7, pending confirmation
-
-**Root cause:** Netlify 10s timeout killed `generateThermomixSteps` before Claude responded. Client caught network error, showed "No recipes could be adapted."  
-**Fix:** `maxDuration = 30` on enrich-thermomix route. Client-side fetch timeout set to 28s. Result display now distinguishes "timed out — try again" from "steps not suitable for Thermomix" (422).
-
----
-
-### BUG-007 — Thermomix enrichment: "Steps not suitable" for genuine Thermomix recipes
-
-**Site:** thermomix-recipes.net (e.g. Zucchini Pesto)  
-**Status:** Fix shipped v0.15.8, pending confirmation
-
-**Symptom:** Settings → Thermomix → Generate shows "Steps not suitable for Thermomix" for a recipe whose steps are already written in Thermomix format (e.g. "Chop 5 sec/speed 5").
-
-**Root causes:**
-
-1. **Error masking:** `generateThermomixSteps` catch block returned `null` on timeout/parse error. The route returned 422 ("no steps") instead of 500 ("error"). The client displayed "Steps not suitable" for what was actually a timeout or JSON parse failure.
-
-2. **Claude API timeout too short:** 12s `AbortSignal.timeout` inside a 30s Netlify function. Under load, Claude could exceed 12s, hitting the timeout → catch → null → 422.
-
-3. **`max_tokens: 1024` too low:** For a multi-step recipe with verbose Thermomix instructions, Claude's JSON output could be truncated, causing `JSON.parse` to throw → catch → null → 422.
-
-4. **Prompt ambiguity:** Steps from thermomix-recipes.net are already written as Thermomix operations. The prompt said "extract parameters directly" but also "Skip steps with no machine equivalent" — Claude may have skipped pre-adapted steps.
-
-**Fixes (v0.15.8):**
-- `generateThermomixSteps` now throws on API/parse errors instead of returning null. null = genuinely no TM steps; throw = error.
-- `enrich-thermomix` route returns 500 on throw, 422 only on genuine null.
-- Claude timeout raised 12s → 24s. `max_tokens` raised 1024 → 2048.
-- Prompt: added "do not skip it" for pre-adapted steps; `timeSeconds` fallback of 30 if unspecified.
-- Import route wraps with `.catch(() => null)` so a thrown error doesn't fail the whole import.
-
-**Files:** `src/lib/recipeEnrichment.ts`, `src/app/api/recipes/enrich-thermomix/route.ts`, `src/app/api/recipes/import/route.ts`
-
----
-
 ## Resolved
+
+### BUG-004 — Thermomix cooking mode never appears on imported recipes ✅ Confirmed fixed v0.15.7–v0.15.8
+
+**Root causes:** (H1) Steps empty in JSON-LD — fixed v0.15.4. (H3) Netlify 10s timeout killing Claude call — fixed v0.15.7 (`maxDuration = 30`). (H6) Catch block returned null on timeout/parse error, masking errors as "no TM steps" — fixed v0.15.8 (throws instead of null; route returns 500 vs 422).
+
+---
+
+### BUG-005 — Settings Thermomix enrichment: "No recipes could be adapted" ✅ Confirmed fixed v0.15.7
+
+**Root cause:** Netlify 10s timeout killed `generateThermomixSteps` before Claude responded.  
+**Fix:** `maxDuration = 30` on enrich-thermomix route. Client-side fetch timeout set to 28s. Result display distinguishes timeout from "not suitable" (422).
+
+---
 
 ### BUG-006 — Back button: cook mode stuck in history ✅ Confirmed fixed v0.15.7
 
-**Symptom:** recipe → cook → X → recipe → browser back → cook (instead of list/home).
-
-**Root cause:** Cook mode exit used `<Link href={...}>` which pushes a new history entry. History became `[..., list, recipe, cook, recipe]`. Back from recipe goes to cook.
-
-**Fix:** Exit button now calls `router.back()`. History stays `[..., list, recipe, cook]` → back() → `[..., list, recipe]` → back → list. Clean stack.
+**Root cause:** Cook mode exit used `<Link href={...}>` which pushes a new history entry.  
+**Fix:** Exit button now calls `router.back()`. Clean history stack.
 
 **File:** `src/components/cooking/CookingShell.tsx`
+
+---
+
+### BUG-007 — Thermomix enrichment: "Steps not suitable" for genuine Thermomix recipes ✅ Confirmed fixed v0.15.8
+
+**Root causes:** Error masking (catch → null → 422 looked like "not suitable"); 12s Claude timeout too short; `max_tokens: 1024` truncating JSON output; prompt ambiguity on pre-adapted steps.  
+**Fix:** `generateThermomixSteps` now throws on errors (route returns 500 vs 422); timeout raised to 24s; `max_tokens` raised to 2048; prompt clarified.
+
+**Files:** `src/lib/recipeEnrichment.ts`, `src/app/api/recipes/enrich-thermomix/route.ts`

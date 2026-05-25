@@ -83,11 +83,14 @@ function mapDietaryTags(diet: string | string[] | undefined): DietaryTag[] {
 
 const UNIT_WORDS = new Set([
   "cup", "cups", "tbsp", "tsp", "tablespoon", "tablespoons", "teaspoon", "teaspoons",
-  "g", "gram", "grams", "kg", "ml", "l", "liter", "liters", "oz", "ounce", "ounces",
+  "g", "gr", "gram", "grams", "kg", "ml", "l", "liter", "liters", "oz", "ounce", "ounces",
   "lb", "lbs", "pound", "pounds", "clove", "cloves", "slice", "slices", "piece",
   "pieces", "bunch", "bunches", "can", "cans", "package", "packages", "pinch", "dash",
   "sprig", "sprigs", "head", "heads", "stalk", "stalks",
 ]);
+
+// Normalise non-standard unit abbreviations to canonical forms
+const UNIT_NORMALISE: Record<string, string> = { gr: "g" };
 
 const FRACTION_MAP: Record<string, number> = {
   "½": 0.5, "¼": 0.25, "¾": 0.75, "⅓": 0.3333, "⅔": 0.6667, "⅛": 0.125,
@@ -109,7 +112,7 @@ function parseIngredients(strs: string[]): Ingredient[] {
           : parseFloat(rawQty) || 0);
       const potentialUnit = (m[2] ?? "").toLowerCase().replace(/[.,]$/, "");
       if (UNIT_WORDS.has(potentialUnit)) {
-        unit = potentialUnit;
+        unit = UNIT_NORMALISE[potentialUnit] ?? potentialUnit;
         name = m[3] ?? potentialUnit;
       } else {
         name = [m[2], m[3]].filter(Boolean).join(" ") || s;

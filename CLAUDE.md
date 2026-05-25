@@ -55,6 +55,8 @@ Three files must always match:
 - `0.15.6` Nutrition: "based on N servings" label + consistent "Show full breakdown" · Cooking mode: contextual ingredients via text-match (no more showing all)
 - `0.15.7` Nutrition: ~Xg per serving from weight ingredients · Back button: router.back() in cook mode · maxDuration=30 on all AI routes · Thermomix enrichment error breakdown
 - `0.15.8` Thermomix enrichment: fix error masking (throws vs null), timeout 12s→24s, max_tokens 1024→2048, prompt fix for pre-adapted steps · BUG-007
+- `0.15.9` Fix image replacement: "unknown" HEAD quality no longer triggers Unsplash fallback — only confirmed "low" does
+- `0.15.10` Fix ingredient unit "gr" not recognised → name corruption · Thermomix panel order: Time|Temp|Speed
 
 ---
 

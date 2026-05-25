@@ -51,11 +51,11 @@ function TmSettingsPanel({ tm }: { tm: ThermomixStep }) {
           {tm.label ?? "Thermomix"}
         </span>
       </div>
-      {/* Slots */}
+      {/* Slots — Time | Temp | Speed matches TM6 notation (X min/Y°C/speed Z) */}
       <div className="flex items-center gap-2">
-        <StatBadge label="Speed" value={`${tm.speed}`} />
-        <StatBadge label="Temp"  value={tempDisplay} />
         <StatBadge label="Time"  value={timeDisplay} />
+        <StatBadge label="Temp"  value={tempDisplay} />
+        <StatBadge label="Speed" value={`${tm.speed}`} />
       </div>
     </div>
   );
