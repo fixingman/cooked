@@ -1,6 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Star, ChefHat } from "lucide-react";
 import { useState, useEffect } from "react";
 import type { Recipe } from "@/types/recipe";
@@ -12,6 +12,7 @@ interface CompletionScreenProps {
 }
 
 export function CompletionScreen({ recipe }: CompletionScreenProps) {
+  const router = useRouter();
   const [rating, setRating] = useState(0);
   const [notes, setNotes] = useState("");
   const { addEntry } = useCookingHistory();
@@ -108,16 +109,16 @@ export function CompletionScreen({ recipe }: CompletionScreenProps) {
         transition={{ delay: 0.7 }}
         className="flex gap-3 w-full max-w-xs"
       >
-        <Link href="/recipes" className="flex-1">
+        <button onClick={() => router.replace("/recipes")} className="flex-1">
           <div className="w-full py-3 px-4 bg-parchment-200 border border-parchment-300 rounded-xl text-center text-sm font-medium text-ink-700">
             Browse More
           </div>
-        </Link>
-        <Link href={`/recipes/${recipe.slug}`} className="flex-1">
+        </button>
+        <button onClick={() => router.replace(`/recipes/${recipe.slug}`)} className="flex-1">
           <div className="w-full py-3 px-4 bg-sage-500 rounded-xl text-center text-sm font-medium text-white">
             View Recipe
           </div>
-        </Link>
+        </button>
       </motion.div>
     </motion.div>
   );

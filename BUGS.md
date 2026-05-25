@@ -55,6 +55,20 @@ The `needsRefresh` check only flags `imageQuality === "low"` — `imageSource ==
 
 ---
 
+### BUG-009 — CompletionScreen buttons push cook mode onto history
+
+**Status:** Fixed v0.15.12
+
+**Symptom:** After finishing a recipe, clicking "View Recipe" then pressing back returns to cooking mode.
+
+**Root cause:** "Browse More" and "View Recipe" used `<Link>` which pushes history. Stack became `[..., recipe, cook, recipe]` — back goes to cook.
+
+**Fix:** Both buttons use `router.replace()`, swapping cook out of history. Stack becomes `[..., recipe, recipes-or-detail]` — back goes cleanly to wherever the user came from.
+
+**File:** `src/components/cooking/CompletionScreen.tsx`
+
+---
+
 ## Resolved
 
 ### BUG-004 ✅ v0.15.7–v0.15.8 — Thermomix cooking mode never appears

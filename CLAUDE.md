@@ -58,6 +58,7 @@ Three files must always match:
 - `0.15.9` Fix image replacement: "unknown" HEAD quality no longer triggers Unsplash fallback — only confirmed "low" does
 - `0.15.10` Fix ingredient unit "gr" not recognised → name corruption · Thermomix panel order: Time|Temp|Speed
 - `0.15.11` Fix recipe card showing Unsplash stock when Dropbox original exists · needsRefresh flags ai-found+Dropbox recipes
+- `0.15.12` Fix CompletionScreen buttons pushing cook mode onto history — use router.replace()
 
 ---
 
