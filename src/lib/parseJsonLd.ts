@@ -1,5 +1,20 @@
 import type { Recipe, Ingredient, CookingStep, MealTime, DietaryTag, Difficulty, RecipeSource } from "@/types/recipe";
 
+function cleanText(s: string): string {
+  return s
+    .replace(/<[^>]+>/g, " ")                                          // strip inline HTML tags
+    .replace(/&amp;/gi, "&")
+    .replace(/&nbsp;|&#160;/gi, " ")
+    .replace(/&frac12;|&#189;/gi, "½")
+    .replace(/&frac14;|&#188;/gi, "¼")
+    .replace(/&frac34;|&#190;/gi, "¾")
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(parseInt(n))) // decimal entities e.g. &#8217; → '
+    .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCharCode(parseInt(h, 16))) // hex entities
+    .replace(/&[a-z]+;/gi, " ")                                        // remaining named entities → space
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
 function parseDuration(iso: string | number | undefined): number {
   if (!iso && iso !== 0) return 0;
   if (typeof iso === "number") return Math.round(iso);
@@ -98,7 +113,7 @@ const FRACTION_MAP: Record<string, number> = {
 
 function parseIngredients(strs: string[]): Ingredient[] {
   return strs.map((str, i) => {
-    const s = str.trim();
+    const s = cleanText(str);
     let quantity = 0;
     let unit = "";
     let name = s;
@@ -129,15 +144,15 @@ function parseSteps(instructions: unknown[]): CookingStep[] {
   function extract(items: unknown[]) {
     for (const item of items) {
       if (typeof item === "string") {
-        texts.push(item);
+        texts.push(cleanText(item));
       } else if (item && typeof item === "object") {
         const obj = item as Record<string, unknown>;
         if (obj["@type"] === "HowToSection" && Array.isArray(obj.itemListElement)) {
           extract(obj.itemListElement as unknown[]);
         } else if (typeof obj.text === "string") {
-          texts.push(obj.text);
+          texts.push(cleanText(obj.text));
         } else if (typeof obj.name === "string" && obj.name.length > 10) {
-          texts.push(obj.name);
+          texts.push(cleanText(obj.name));
         }
       }
     }
@@ -297,10 +312,11 @@ export function parseRecipeFromHtml(html: string, sourceUrl: string, id: string)
 }
 
 export function stripHtmlToText(html: string): string {
-  return html
+  const stripped = html
     .replace(/<script[\s\S]*?<\/script>/gi, " ")
     .replace(/<style[\s\S]*?<\/style>/gi, " ")
     .replace(/<[^>]+>/g, " ")
     .replace(/\s{2,}/g, " ")
     .trim();
+  return cleanText(stripped);
 }
