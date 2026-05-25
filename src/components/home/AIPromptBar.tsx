@@ -91,12 +91,10 @@ export function AIPromptBar() {
   return (
     <>
       <div className="space-y-2">
-        <div className={`flex items-center gap-3 bg-parchment-200 border rounded-2xl px-4 py-3 transition-colors duration-200 ${
-          isBusy ? "border-saffron-300" : "border-parchment-300 focus-within:border-saffron-400"
-        }`}>
+        <div className="relative">
           <Sparkles
-            size={15}
-            className={`shrink-0 transition-colors ${isBusy ? "text-saffron-500 animate-pulse" : "text-ink-400"}`}
+            size={16}
+            className={`absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none transition-colors ${isBusy ? "text-saffron-500 animate-pulse" : "text-ink-400"}`}
           />
           <input
             ref={inputRef}
@@ -106,7 +104,9 @@ export function AIPromptBar() {
             onKeyDown={e => { if (e.key === "Enter") handleSubmit(); }}
             placeholder="What are you craving?"
             disabled={isBusy}
-            className="flex-1 bg-transparent text-sm text-ink-900 placeholder-ink-400 outline-none min-w-0"
+            className={`w-full pl-10 pr-10 py-3 bg-parchment-200 border rounded-xl text-sm text-ink-900 placeholder:text-ink-300 focus:outline-none focus:bg-parchment-100 transition-all duration-200 ${
+              isBusy ? "border-saffron-300" : "border-parchment-300 focus:border-saffron-400"
+            }`}
           />
           <AnimatePresence mode="wait">
             {(prompt || results.length > 0 || state === "error") && !isBusy ? (
@@ -116,19 +116,24 @@ export function AIPromptBar() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
                 onClick={clear}
-                className="shrink-0 text-ink-400 hover:text-ink-600 transition-colors"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-400 hover:text-ink-700 transition-colors"
               >
-                <X size={14} />
+                <X size={16} />
               </motion.button>
-            ) : null}
+            ) : (
+              <motion.button
+                key="submit"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                onClick={handleSubmit}
+                disabled={!prompt.trim() || isBusy}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-400 hover:text-ink-700 disabled:opacity-30 transition-colors"
+              >
+                <ArrowRight size={16} />
+              </motion.button>
+            )}
           </AnimatePresence>
-          <button
-            onClick={handleSubmit}
-            disabled={!prompt.trim() || isBusy}
-            className="shrink-0 w-7 h-7 bg-saffron-500 rounded-full flex items-center justify-center disabled:opacity-40 hover:bg-saffron-600 transition-all"
-          >
-            <ArrowRight size={13} className="text-white" />
-          </button>
         </div>
 
         <AnimatePresence>
