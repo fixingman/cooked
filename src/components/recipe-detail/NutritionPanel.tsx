@@ -48,8 +48,6 @@ function Stat({
   label: string; value: number; unit: string;
   warning?: WarningLevel | null; reason?: string;
 }) {
-  const [open, setOpen] = useState(false);
-
   const bg    = warning === "red"   ? "bg-red-50 border-red-200"
               : warning === "amber" ? "bg-amber-50 border-amber-200"
               : "bg-parchment-200 border-parchment-300";
@@ -59,10 +57,7 @@ function Stat({
   const iconCl = warning === "red" ? "text-red-500" : "text-amber-500";
 
   return (
-    <div
-      className={`flex flex-col items-center border rounded-2xl px-3 py-3 min-w-[64px] flex-1 transition-colors ${bg} ${warning ? "cursor-pointer" : ""}`}
-      onClick={() => warning && setOpen(o => !o)}
-    >
+    <div className={`flex flex-col items-center border rounded-2xl px-3 py-3 min-w-[64px] flex-1 ${bg}`}>
       <div className="flex items-center gap-1">
         <span className={`font-serif text-lg font-medium ${valCl}`}>
           {value}<span className="text-sm font-sans font-normal text-ink-400 ml-0.5">{unit}</span>
@@ -70,7 +65,7 @@ function Stat({
         {warning && <AlertTriangle size={11} className={iconCl} />}
       </div>
       <span className="text-[10px] uppercase tracking-widest text-ink-400 font-semibold">{label}</span>
-      {open && reason && (
+      {warning && reason && (
         <p className={`text-[10px] leading-snug text-center mt-1.5 ${warning === "red" ? "text-red-700" : "text-amber-700"}`}>
           {reason}
         </p>
@@ -102,10 +97,7 @@ export function NutritionPanel({ recipe }: NutritionPanelProps) {
     <div className="py-5 border-b border-parchment-300">
       <div className="flex items-baseline gap-2 mb-3">
         <p className="text-label uppercase tracking-widest text-ink-400">Nutrition per serving</p>
-        <span className="text-[10px] text-ink-300">
-          {servings > 1 ? `based on ${servings} servings` : ""}
-          {servingGrams ? `${servings > 1 ? " · " : ""}~${servingGrams}g` : ""}
-        </span>
+        {servingGrams ? <span className="text-[10px] text-ink-300">~{servingGrams}g per serving</span> : null}
       </div>
 
       <div className="flex gap-2">

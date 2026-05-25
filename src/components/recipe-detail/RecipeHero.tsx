@@ -191,35 +191,17 @@ export function RecipeHero({ recipe, onEdit, onDelete }: RecipeHeroProps) {
       {/* Bottom title overlay */}
       <div className="absolute bottom-0 left-0 right-0 p-5 pb-6">
         <div className="flex items-center gap-2 mb-2">
-          {recipe.cuisine && recipe.cuisine !== "any" && (
-            <>
-              <span className="text-label uppercase tracking-widest text-parchment-300/90">
-                {recipe.cuisine}
-              </span>
-              <span className="text-parchment-300/50">·</span>
-            </>
-          )}
-          <span className="text-label uppercase tracking-widest text-parchment-300/90">
-            by {recipe.authorName}
-          </span>
-          {cooked && (
-            <>
-              <span className="text-parchment-300/50">·</span>
-              <span className="text-label uppercase tracking-widest text-sage-400">✓ Cooked</span>
-            </>
-          )}
-          {recipe.imageSource === "ai-found" && (
-            <>
-              <span className="text-parchment-300/50">·</span>
-              <span className="text-label uppercase tracking-widest text-parchment-400/70">AI image</span>
-            </>
-          )}
-          {recipe.imageQuality === "low" && recipe.imageSource !== "ai-found" && (
-            <>
-              <span className="text-parchment-300/50">·</span>
-              <span className="text-label uppercase tracking-widest text-amber-400/80">Low res</span>
-            </>
-          )}
+          {[
+            recipe.cuisine && recipe.cuisine !== "any" ? { text: recipe.cuisine, cl: "text-parchment-300/90" } : null,
+            cooked ? { text: "✓ Cooked", cl: "text-sage-400" } : null,
+            recipe.imageSource === "ai-found" ? { text: "AI image", cl: "text-parchment-400/70" } : null,
+            recipe.imageQuality === "low" && recipe.imageSource !== "ai-found" ? { text: "Low res", cl: "text-amber-400/80" } : null,
+          ].filter(Boolean).map((bit, i) => (
+            <span key={i} className="flex items-center gap-2">
+              {i > 0 && <span className="text-parchment-300/50">·</span>}
+              <span className={`text-label uppercase tracking-widest ${bit!.cl}`}>{bit!.text}</span>
+            </span>
+          ))}
         </div>
         <h1 className="font-serif text-white text-2xl md:text-3xl font-semibold leading-tight text-balance">
           {recipe.title}
