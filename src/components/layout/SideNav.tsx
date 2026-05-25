@@ -60,7 +60,7 @@ export function SideNav() {
 
       {/* Version */}
       <div className="p-4 hidden xl:block">
-        <p className="text-label text-ink-300 tracking-widest uppercase">v0.15.14</p>
+        <p className="text-label text-ink-300 tracking-widest uppercase">v0.15.15</p>
       </div>
     </aside>
   );
