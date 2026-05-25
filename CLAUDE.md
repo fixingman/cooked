@@ -69,6 +69,10 @@ Three files must always match:
 - `0.16.3` Import fetch layer: full Chrome headers + Google Referer, 3-attempt retry on 4xx, streaming early-exit on </head>+JSON-LD, 18s timeout, friendly error messages
 - `0.16.4` Non-English recipe import: diacritic-based language detection + parallel translateRecipe() call; Claude extraction prompt also translates; multi-language ingredient guard
 - `0.17.0` F-3 AI Suggestions & Creation — prompt bar on homepage (aiEnabled only); suggest mode ranks library recipes; generate mode creates new recipe via Claude, opens in review modal; generatedDraft prop on ImportRecipeModal
+- `0.17.1` fix: nutrition + recipe hero UI polish — remove author line, nutrition label cleanup, dot separator refactor
+- `0.17.2` fix: HTML entity decoding + inline tag stripping in recipe parser
+- `0.17.3` fix: Netlify build errors — unused var + img element
+- `0.17.4` fix: unlock AI toggle + tidy settings layout; remove nutrition warning reason text; fix duplicate search clear button
 
 ---
 
