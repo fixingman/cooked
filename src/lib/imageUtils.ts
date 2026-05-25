@@ -66,7 +66,27 @@ export async function checkImageQuality(url: string): Promise<"ok" | "low" | "un
     const ct = res.headers.get("content-type") ?? "";
     if (!ct.startsWith("image/")) return "unknown";
     const cl = res.headers.get("content-length");
-    if (cl && parseInt(cl) < LOW_RES_BYTES) return "low";
+    if (cl) return parseInt(cl) < LOW_RES_BYTES ? "low" : "ok";
+
+    // CDNs often omit content-length on HEAD — do a range GET to measure actual size.
+    // Request exactly LOW_RES_BYTES: if the server returns less, the file is that small.
+    const rangeRes = await fetch(url, {
+      headers: { Range: `bytes=0-${LOW_RES_BYTES - 1}` },
+      signal: AbortSignal.timeout(5_000),
+    });
+    if (rangeRes.status === 206) {
+      // Server supports range — content-range tells us the total file size
+      const cr = rangeRes.headers.get("content-range");
+      const total = cr?.match(/\/(\d+)$/)?.[1];
+      if (total) return parseInt(total) < LOW_RES_BYTES ? "low" : "ok";
+      // No total in content-range — if the returned chunk is < LOW_RES_BYTES, file is that small
+      const rcl = rangeRes.headers.get("content-length");
+      if (rcl && parseInt(rcl) < LOW_RES_BYTES) return "low";
+    } else if (rangeRes.ok) {
+      // Server ignored Range and returned the full file — check content-length now
+      const rcl = rangeRes.headers.get("content-length");
+      if (rcl) return parseInt(rcl) < LOW_RES_BYTES ? "low" : "ok";
+    }
     return "ok";
   } catch {
     return "unknown";

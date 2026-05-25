@@ -9,6 +9,42 @@ const HEADERS = (key: string) => ({
   "content-type": "application/json",
 });
 
+export async function estimateTimeSplit(
+  recipe: { title: string; steps: { instruction: string }[] },
+  totalTimeMinutes: number,
+  apiKey: string,
+): Promise<{ prepTimeMinutes: number; cookTimeMinutes: number } | null> {
+  const prompt = `Recipe: "${recipe.title}" — total time ${totalTimeMinutes} min, ${recipe.steps.length} steps.
+Estimate prep time vs cook/bake time. Return ONLY JSON: {"prepTimeMinutes": number, "cookTimeMinutes": number}
+Both must sum close to ${totalTimeMinutes}. Use multiples of 5.`;
+
+  try {
+    const res = await fetch(API_BASE, {
+      method: "POST",
+      headers: HEADERS(apiKey),
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 50,
+        messages: [{ role: "user", content: prompt }],
+      }),
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const text = (data?.content?.[0]?.text as string | undefined) ?? "";
+    const raw = text.match(/\{[\s\S]+\}/)?.[0] ?? text.trim();
+    const json = JSON.parse(raw);
+    const prep = typeof json.prepTimeMinutes === "number" ? Math.round(json.prepTimeMinutes) : null;
+    const cook = typeof json.cookTimeMinutes === "number" ? Math.round(json.cookTimeMinutes) : null;
+    if (prep !== null && cook !== null && prep >= 0 && cook >= 0) {
+      return { prepTimeMinutes: prep, cookTimeMinutes: cook };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export async function estimateNutrition(
   recipe: { title: string; servings: number; ingredients: { quantity: number; unit: string; name: string }[] },
   apiKey: string,
@@ -59,6 +95,7 @@ Use 0 for transFat if negligible. sodium is in mg, cholesterol is in mg, all oth
 export async function generateThermomixSteps(
   steps: CookingStep[],
   apiKey: string,
+  { timeoutMs = 20_000 }: { timeoutMs?: number } = {},
 ): Promise<CookingStep[] | null> {
   if (steps.length === 0) return null;
 
@@ -96,7 +133,7 @@ Return [] only if truly no steps involve the Thermomix.`;
       max_tokens: 2048,
       messages: [{ role: "user", content: prompt }],
     }),
-    signal: AbortSignal.timeout(24_000),
+    signal: AbortSignal.timeout(timeoutMs),
   });
   if (!res.ok) throw new Error(`Claude API error ${res.status}`);
   const data = await res.json();

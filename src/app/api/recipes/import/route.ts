@@ -1,5 +1,5 @@
 import { parseRecipeFromHtml, buildRecipeFromSchema, stripHtmlToText } from "@/lib/parseJsonLd";
-import { estimateNutrition, generateThermomixSteps, classifyRecipe } from "@/lib/recipeEnrichment";
+import { estimateNutrition, estimateTimeSplit, generateThermomixSteps, classifyRecipe } from "@/lib/recipeEnrichment";
 import { resolveRecipeImage } from "@/lib/imageUtils";
 
 export const maxDuration = 30;
@@ -128,11 +128,14 @@ export async function POST(req: Request) {
   ) {
     const r = recipe as import("@/types/recipe").Recipe;
     const unsplashKey = process.env.UNSPLASH_ACCESS_KEY;
-    const [imageResult, nutrition, thermomixSteps, classification] = await Promise.all([
+    const needsTimeSplit = r.prepTimeMinutes === 0 && r.cookTimeMinutes === 0 && r.totalTimeMinutes > 0;
+    const [imageResult, nutrition, thermomixSteps, classification, timeSplit] = await Promise.all([
       resolveRecipeImage(r.heroImageUrl, r.title, r.cuisine, unsplashKey),
       apiKey && needsNutrition(r) ? estimateNutrition(r, apiKey) : Promise.resolve({}),
-      apiKey && !skipThermomix ? generateThermomixSteps(r.steps, apiKey).catch(() => null) : Promise.resolve(null),
+      // Use tighter timeout (18s) to stay within Netlify's 26s function limit
+      apiKey && !skipThermomix ? generateThermomixSteps(r.steps, apiKey, { timeoutMs: 18_000 }).catch(() => null) : Promise.resolve(null),
       apiKey ? classifyRecipe(r, apiKey, pageText) : Promise.resolve({ typeTags: [] as string[], dietaryTags: [] as import("@/types/recipe").DietaryTag[], chefNotes: undefined, cuisine: undefined }),
+      apiKey && needsTimeSplit ? estimateTimeSplit(r, r.totalTimeMinutes, apiKey) : Promise.resolve(null),
     ]);
     const nutritionAdded = Object.keys(nutrition).length > 0;
     const thermomixAdded = thermomixSteps !== null;
@@ -170,6 +173,12 @@ export async function POST(req: Request) {
       ...(classification.chefNotes && !r.chefNotes ? { chefNotes: classification.chefNotes } : {}),
       ...(classification.cuisine && (!r.cuisine || r.cuisine === "any") ? { cuisine: classification.cuisine } : {}),
       ...(thermomixSteps ? { steps: thermomixSteps, thermomixAvailable: true } : {}),
+      // Time split: AI estimate first, fallback to totalTime as cookTime if both are missing
+      ...(needsTimeSplit
+        ? timeSplit
+          ? { prepTimeMinutes: timeSplit.prepTimeMinutes, cookTimeMinutes: timeSplit.cookTimeMinutes }
+          : { cookTimeMinutes: r.totalTimeMinutes }
+        : {}),
     };
     return Response.json({
       recipe: enriched,

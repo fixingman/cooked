@@ -63,6 +63,7 @@ Three files must always match:
 - `0.15.14` Code cleanup: remove dead recipe lib functions · consistent design tokens (ProgressRing constants, shadow-sage-cta, min-h-0) · type guard in import-photo route
 - `0.15.15` Fix IngredientList Map for-of TS error breaking Netlify build
 - `0.15.16` Ingredient list: right-aligned qty column, unit in italic
+- `0.16.0` Import: AI prep/cook time split + totalTime fallback · Thermomix timeout 18s in import · image quality Range-GET fallback for missing content-length
 
 ---
 
