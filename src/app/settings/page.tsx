@@ -36,32 +36,37 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <Section title="Measurement Units">
+      {/* Preferences — how you like to cook */}
+      <Section title="Preferences">
         <div className="py-4">
           <UnitToggle value={settings.units} onChange={(v) => update({ units: v })} />
         </div>
-      </Section>
-
-      <Section title="Dietary Preferences">
-        <div className="py-4">
+        <div className="border-t border-parchment-300 py-4">
           <DietaryPreferences selected={settings.dietaryPreferences} onToggle={toggleDietary} />
         </div>
       </Section>
 
-      <Section title="Cooking Modes">
+      {/* AI — suggestions & generation */}
+      <Section title="AI">
+        <AIIntegrationToggle
+          enabled={settings.aiEnabled}
+          onToggle={() => update({ aiEnabled: !settings.aiEnabled })}
+        />
+      </Section>
+
+      {/* Thermomix — toggle + retroactive enrichment */}
+      <Section title="Thermomix">
         <ThermomixToggle
           enabled={settings.thermomixEnabled}
           onToggle={() => update({ thermomixEnabled: !settings.thermomixEnabled })}
         />
         <div className="border-t border-parchment-300">
-          <AIIntegrationToggle
-            enabled={settings.aiEnabled}
-            onToggle={() => update({ aiEnabled: !settings.aiEnabled })}
-          />
+          <ThermomixEnrichSection />
         </div>
       </Section>
 
-      <Section title="Permissions">
+      {/* Device — mic & camera permissions */}
+      <Section title="Device">
         <PermissionToggle
           icon={Mic}
           label="Microphone"
@@ -69,25 +74,23 @@ export default function SettingsPage() {
           enabled={settings.microphoneEnabled}
           onToggle={() => update({ microphoneEnabled: !settings.microphoneEnabled })}
         />
-        <PermissionToggle
-          icon={Camera}
-          label="Camera"
-          description="Capture photos of your dishes"
-          enabled={settings.cameraEnabled}
-          onToggle={() => update({ cameraEnabled: !settings.cameraEnabled })}
-        />
+        <div className="border-t border-parchment-300">
+          <PermissionToggle
+            icon={Camera}
+            label="Camera"
+            description="Capture photos of your dishes"
+            enabled={settings.cameraEnabled}
+            onToggle={() => update({ cameraEnabled: !settings.cameraEnabled })}
+          />
+        </div>
       </Section>
 
-      <Section title="Cloud Sync">
+      {/* Sync — cloud storage & images */}
+      <Section title="Sync">
         <DropboxConnect />
-      </Section>
-
-      <Section title="Recipe Images">
-        <ImageRefreshSection />
-      </Section>
-
-      <Section title="Thermomix">
-        <ThermomixEnrichSection />
+        <div className="border-t border-parchment-300">
+          <ImageRefreshSection />
+        </div>
       </Section>
 
       <p className="text-center text-xs text-ink-300">Made with care.</p>

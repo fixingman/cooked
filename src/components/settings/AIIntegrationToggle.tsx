@@ -15,20 +15,16 @@ export function AIIntegrationToggle({ enabled, onToggle }: AIIntegrationTogglePr
           <Sparkles size={18} className="text-saffron-600" />
         </div>
         <div>
-          <div className="flex items-center gap-2">
-            <p className="text-sm font-medium text-ink-900">AI Recipe Suggestions</p>
-            <span className="text-[10px] font-semibold uppercase tracking-wide text-saffron-600 bg-saffron-300/30 px-1.5 py-0.5 rounded-full">Coming soon</span>
-          </div>
+          <p className="text-sm font-medium text-ink-900">AI Suggestions</p>
           <p className="text-xs text-ink-400 mt-0.5 max-w-[220px]">
-            Suggest and generate recipes based on your pantry and preferences
+            Suggest recipes from your library or generate new ones
           </p>
         </div>
       </div>
       <motion.button
         whileTap={{ scale: 0.9 }}
         onClick={onToggle}
-        disabled
-        className="relative w-12 h-6 rounded-full transition-colors duration-300 bg-parchment-300 opacity-40 cursor-not-allowed"
+        className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${enabled ? "bg-saffron-500" : "bg-parchment-300"}`}
       >
         <motion.div
           animate={{ x: enabled ? 24 : 2 }}
