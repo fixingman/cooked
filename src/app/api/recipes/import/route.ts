@@ -1,5 +1,5 @@
 import { parseRecipeFromHtml, buildRecipeFromSchema, stripHtmlToText } from "@/lib/parseJsonLd";
-import { estimateNutrition, estimateTimeSplit, generateThermomixSteps, classifyRecipe } from "@/lib/recipeEnrichment";
+import { estimateNutrition, estimateTimeSplit, classifyRecipe } from "@/lib/recipeEnrichment";
 import { resolveRecipeImage } from "@/lib/imageUtils";
 
 export const maxDuration = 30;
@@ -124,21 +124,20 @@ export async function POST(req: Request) {
   async function finalise(
     recipe: ReturnType<typeof parseRecipeFromHtml> & object,
     pageText?: string,
-    { skipThermomix = false }: { skipThermomix?: boolean } = {},
   ) {
     const r = recipe as import("@/types/recipe").Recipe;
     const unsplashKey = process.env.UNSPLASH_ACCESS_KEY;
     const needsTimeSplit = r.prepTimeMinutes === 0 && r.cookTimeMinutes === 0 && r.totalTimeMinutes > 0;
-    const [imageResult, nutrition, thermomixSteps, classification, timeSplit] = await Promise.all([
+    // Thermomix enrichment is deferred to client-side post-save (see ImportRecipeModal).
+    // This frees ~18s of the Netlify function budget for faster, more reliable imports.
+    const [imageResult, nutrition, classification, timeSplit] = await Promise.all([
       resolveRecipeImage(r.heroImageUrl, r.title, r.cuisine, unsplashKey),
       apiKey && needsNutrition(r) ? estimateNutrition(r, apiKey) : Promise.resolve({}),
-      // Use tighter timeout (18s) to stay within Netlify's 26s function limit
-      apiKey && !skipThermomix ? generateThermomixSteps(r.steps, apiKey, { timeoutMs: 18_000 }).catch(() => null) : Promise.resolve(null),
       apiKey ? classifyRecipe(r, apiKey, pageText) : Promise.resolve({ typeTags: [] as string[], dietaryTags: [] as import("@/types/recipe").DietaryTag[], mealTimes: [] as import("@/types/recipe").MealTime[], chefNotes: undefined, cuisine: undefined }),
       apiKey && needsTimeSplit ? estimateTimeSplit(r, r.totalTimeMinutes, apiKey) : Promise.resolve(null),
     ]);
     const nutritionAdded = Object.keys(nutrition).length > 0;
-    const thermomixAdded = thermomixSteps !== null;
+    const thermomixAdded = false; // Deferred to client — see ImportRecipeModal
     // Track where nutrition came from: AI estimated, already in JSON-LD, or missing
     const nutritionSource: "ai" | "json-ld" | "none" = nutritionAdded
       ? "ai"
@@ -182,7 +181,6 @@ export async function POST(req: Request) {
       imageQuality: imageResult.quality,
       ...(classification.chefNotes && !r.chefNotes ? { chefNotes: classification.chefNotes } : {}),
       ...(classification.cuisine && (!r.cuisine || r.cuisine === "any") ? { cuisine: classification.cuisine } : {}),
-      ...(thermomixSteps ? { steps: thermomixSteps, thermomixAvailable: true } : {}),
       // Time split: AI estimate first, fallback to totalTime as cookTime if both are missing
       ...(needsTimeSplit
         ? timeSplit
@@ -202,8 +200,7 @@ export async function POST(req: Request) {
   const jsonLdRecipe = parseRecipeFromHtml(html, url, id);
   if (jsonLdRecipe && jsonLdRecipe.steps.length > 0) return finalise(jsonLdRecipe, pageText);
 
-  // JSON-LD has metadata but no steps — try Claude for steps, skip Thermomix to fit budget
-  // (Thermomix can be added retroactively via Settings → Thermomix enrichment)
+  // JSON-LD has metadata but no steps — try Claude for steps
   if (jsonLdRecipe && apiKey) {
     try {
       const claudeRecipe = await extractWithClaude(pageText, url, id, apiKey);
@@ -219,10 +216,10 @@ export async function POST(req: Request) {
           ...(jsonLdRecipe.totalTimeMinutes <= 30 && claudeRecipe.totalTimeMinutes > 0
             ? { totalTimeMinutes: claudeRecipe.totalTimeMinutes } : {}),
         };
-        return finalise(merged, pageText, { skipThermomix: true });
+        return finalise(merged, pageText);
       }
     } catch {}
-    return finalise(jsonLdRecipe, pageText, { skipThermomix: true });
+    return finalise(jsonLdRecipe, pageText);
   }
   if (jsonLdRecipe) return finalise(jsonLdRecipe, pageText);
 

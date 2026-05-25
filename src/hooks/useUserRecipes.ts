@@ -26,6 +26,10 @@ export function useUserRecipes() {
     setValue(prev => [recipe, ...prev.filter(r => r.id !== recipe.id)]);
   }, [setValue]);
 
+  const updateRecipe = useCallback((id: string, patch: Partial<Recipe>) => {
+    setValue(prev => prev.map(r => r.id === id ? { ...r, ...patch } : r));
+  }, [setValue]);
+
   const removeRecipe = useCallback((id: string) => {
     setValue(prev => prev.filter(r => r.id !== id));
   }, [setValue]);
@@ -34,5 +38,5 @@ export function useUserRecipes() {
     return recipes.find(r => r.slug === slug);
   }, [recipes]);
 
-  return { recipes, addRecipe, removeRecipe, getUserRecipe, syncing };
+  return { recipes, addRecipe, updateRecipe, removeRecipe, getUserRecipe, syncing };
 }

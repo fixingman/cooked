@@ -65,6 +65,7 @@ Three files must always match:
 - `0.15.16` Ingredient list: right-aligned qty column, unit in italic
 - `0.16.0` Import: AI prep/cook time split + totalTime fallback · Thermomix timeout 18s in import · image quality Range-GET fallback for missing content-length
 - `0.16.1` classifyRecipe now infers mealTimes · page fetch timeout 8s→12s (Waitrose fix) · photo import mealTimes merged
+- `0.16.2` Greeting: remove subtitle, 5 time states (night/morning/afternoon/evening) · Deferred TM enrichment post-save · updateRecipe on useUserRecipes
 
 ---
 

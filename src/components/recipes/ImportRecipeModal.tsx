@@ -28,7 +28,7 @@ interface ImportRecipeModalProps {
 
 export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecipeModalProps) {
   const router = useRouter();
-  const { recipes, addRecipe } = useUserRecipes();
+  const { recipes, addRecipe, updateRecipe } = useUserRecipes();
   const { status: dropboxStatus, getValidAccessToken } = useDropboxAuth();
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -47,6 +47,7 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
   const [enrichments, setEnrichments] = useState<{ nutrition: boolean; nutritionSource?: "ai" | "json-ld" | "none"; thermomix: boolean } | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [tmEnrichState, setTmEnrichState] = useState<"idle" | "pending" | "done" | "failed">("idle");
   const [duplicateOf, setDuplicateOf] = useState<Recipe | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -179,6 +180,27 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
           addRecipe(finalRecipe);
         }
       } catch {}
+    }
+
+    // Fire Thermomix enrichment in the background after save — doesn't block modal close.
+    if (!isEditMode && finalRecipe.steps.length > 0) {
+      setTmEnrichState("pending");
+      const recipeId = finalRecipe.id;
+      fetch("/api/recipes/enrich-thermomix", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ steps: finalRecipe.steps }),
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (data.steps) {
+            updateRecipe(recipeId, { steps: data.steps, thermomixAvailable: true });
+            setTmEnrichState("done");
+          } else {
+            setTmEnrichState("failed");
+          }
+        })
+        .catch(() => setTmEnrichState("failed"));
     }
 
     onSave?.(finalRecipe);
@@ -486,10 +508,12 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
                         <Sparkles size={10} />
                         {macroLabel}
                       </span>
-                      <span className={`inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-medium ${enrichments.thermomix ? "bg-saffron-50 text-saffron-700" : "bg-parchment-200 text-ink-400"}`}>
-                        <Sparkles size={10} />
-                        {enrichments.thermomix ? "Thermomix steps added" : "No Thermomix adaptation"}
-                      </span>
+                      {draft?.steps && draft.steps.length > 0 && (
+                        <span className={`inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-medium ${tmEnrichState === "done" ? "bg-saffron-50 text-saffron-700" : tmEnrichState === "failed" ? "bg-parchment-200 text-ink-400" : "bg-parchment-200 text-ink-500"}`}>
+                          <Sparkles size={10} />
+                          {tmEnrichState === "done" ? "Thermomix steps added" : tmEnrichState === "failed" ? "No Thermomix adaptation" : tmEnrichState === "pending" ? "Adding Thermomix steps…" : "Thermomix steps — added after save"}
+                        </span>
+                      )}
                     </div>
                   );
                 })()}
