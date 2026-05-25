@@ -73,6 +73,14 @@ Three files must always match:
 - `0.17.2` fix: HTML entity decoding + inline tag stripping in recipe parser
 - `0.17.3` fix: Netlify build errors — unused var + img element
 - `0.17.4` fix: unlock AI toggle + tidy settings layout; remove nutrition warning reason text; fix duplicate search clear button
+- `0.17.5` fix: image refresh honest feedback — only count genuine improvements, show recipe names
+- `0.17.6` fix: AI prompt bar layout matches recipe search bar
+- `0.17.7` fix: unescaped apostrophe in ImageRefreshSection (Netlify build)
+- `0.17.8` fix: remove submit arrow from AI prompt bar
+- `0.17.9` feat: HF upscaler cold-start retry — client waits, retries before Unsplash fallback
+- `0.18.0` feat: U-25 richer greeting variety — 10-12 greetings per time slot, daily rotation
+- `0.18.1` fix: expand greeting pools to 10-12 per slot
+- `0.19.0` F-1 Pantry — homepage widget + management modal; binary presence + manual "low" flag; Dropbox-synced at /pantry.json
 
 ---
 

@@ -36,8 +36,8 @@ Ordered by user value × feasibility. Phase B features (F-5, H-1B) depend on Pan
 
 ---
 
-### 🔴 F-1 — Pantry
-Dedicated tab (4th nav item). Binary presence — no quantities in v1.
+### ✅ F-1 — Pantry (v0.19.0)
+Homepage widget + modal. Binary presence + manual "low" flag. Dropbox-synced.
 
 **Data:** Dropbox `/pantry.json` · key `cooked-pantry`
 ```ts
