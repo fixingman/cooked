@@ -101,7 +101,7 @@ export async function POST(req: Request) {
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
         Accept: "text/html,application/xhtml+xml",
       },
-      signal: AbortSignal.timeout(8_000),
+      signal: AbortSignal.timeout(12_000),
       redirect: "follow",
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -134,7 +134,7 @@ export async function POST(req: Request) {
       apiKey && needsNutrition(r) ? estimateNutrition(r, apiKey) : Promise.resolve({}),
       // Use tighter timeout (18s) to stay within Netlify's 26s function limit
       apiKey && !skipThermomix ? generateThermomixSteps(r.steps, apiKey, { timeoutMs: 18_000 }).catch(() => null) : Promise.resolve(null),
-      apiKey ? classifyRecipe(r, apiKey, pageText) : Promise.resolve({ typeTags: [] as string[], dietaryTags: [] as import("@/types/recipe").DietaryTag[], chefNotes: undefined, cuisine: undefined }),
+      apiKey ? classifyRecipe(r, apiKey, pageText) : Promise.resolve({ typeTags: [] as string[], dietaryTags: [] as import("@/types/recipe").DietaryTag[], mealTimes: [] as import("@/types/recipe").MealTime[], chefNotes: undefined, cuisine: undefined }),
       apiKey && needsTimeSplit ? estimateTimeSplit(r, r.totalTimeMinutes, apiKey) : Promise.resolve(null),
     ]);
     const nutritionAdded = Object.keys(nutrition).length > 0;
@@ -146,6 +146,15 @@ export async function POST(req: Request) {
 
     const mergedTags = Array.from(new Set([...r.tags, ...classification.typeTags]));
     const mergedDietary = Array.from(new Set([...r.dietaryTags, ...classification.dietaryTags]));
+    // Prefer AI mealTimes when JSON-LD only returned the ["dinner"] default (no explicit category)
+    const aiMealTimes = classification.mealTimes ?? [];
+    const mergedMealTimes = aiMealTimes.length > 0
+      ? Array.from(new Set([
+          // Keep JSON-LD meals only if they weren't just the default fallback
+          ...r.mealTimes.filter(m => !(r.mealTimes.length === 1 && m === "dinner" && !aiMealTimes.includes("dinner"))),
+          ...aiMealTimes,
+        ]))
+      : r.mealTimes;
 
     // Fetch base64 of resolved image for Dropbox storage
     let heroImageBase64: string | null = null;
@@ -167,6 +176,7 @@ export async function POST(req: Request) {
       ...nutrition,
       tags: mergedTags,
       dietaryTags: mergedDietary,
+      mealTimes: mergedMealTimes,
       heroImageUrl: imageResult.url ?? r.heroImageUrl,
       imageSource: imageResult.source,
       imageQuality: imageResult.quality,

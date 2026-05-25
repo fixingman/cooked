@@ -1,4 +1,4 @@
-import type { CookingStep, DietaryTag } from "@/types/recipe";
+import type { CookingStep, DietaryTag, MealTime } from "@/types/recipe";
 
 const TYPE_TAGS = ["soup", "pasta", "bake", "salad", "freezable"] as const;
 
@@ -162,15 +162,15 @@ Return [] only if truly no steps involve the Thermomix.`;
 }
 
 export async function classifyRecipe(
-  recipe: { title: string; description: string; tags: string[]; dietaryTags: DietaryTag[]; ingredients: { name: string }[]; cuisine?: string },
+  recipe: { title: string; description: string; tags: string[]; dietaryTags: DietaryTag[]; mealTimes: MealTime[]; ingredients: { name: string }[]; cuisine?: string },
   apiKey: string,
   pageText?: string,
-): Promise<{ typeTags: string[]; dietaryTags: DietaryTag[]; chefNotes?: string; cuisine?: string }> {
+): Promise<{ typeTags: string[]; dietaryTags: DietaryTag[]; mealTimes: MealTime[]; chefNotes?: string; cuisine?: string }> {
   const ingredientSample = recipe.ingredients.slice(0, 8).map(i => i.name).join(", ");
   const context = pageText ? `\n\nPage text excerpt:\n${pageText.slice(0, 2500)}` : "";
   const needsCuisine = !recipe.cuisine || recipe.cuisine === "any";
 
-  const prompt = `Analyse this recipe and return a JSON object with four fields.
+  const prompt = `Analyse this recipe and return a JSON object with five fields.
 
 Recipe: "${recipe.title}"
 Description: ${recipe.description}
@@ -180,11 +180,13 @@ Ingredients (sample): ${ingredientSample}${context}
 
 2. "dietaryTags": array of applicable tags from ["vegetarian","vegan","gluten-free","dairy-free","pescatarian"]. Only include if clearly true based on ingredients.
 
-3. "chefNotes": any chef tips, notes, variations, or serving suggestions found in the text. Concise prose (2–4 sentences). null if none.
+3. "mealTimes": array of applicable meal times from ["breakfast","lunch","dinner","snack","dessert"]. A salad or light dish → lunch. A hearty main → dinner. Sweet dish → dessert. Snack/finger food → snack. Can include multiple. Must include at least one.
 
-4. "cuisine": ${needsCuisine ? 'the cuisine of this dish as a single lowercase word or short phrase (e.g. "italian", "mexican", "middle eastern", "british"). Infer from the dish name, ingredients, and context. Use "any" only if truly impossible to determine.' : 'null (cuisine already known)'}.
+4. "chefNotes": any chef tips, notes, variations, or serving suggestions found in the text. Concise prose (2–4 sentences). null if none.
 
-Return ONLY valid JSON: {"typeTags": [...], "dietaryTags": [...], "chefNotes": "..." or null, "cuisine": "..." or null}`;
+5. "cuisine": ${needsCuisine ? 'the cuisine of this dish as a single lowercase word or short phrase (e.g. "italian", "mexican", "middle eastern", "british"). Infer from the dish name, ingredients, and context. Use "any" only if truly impossible to determine.' : 'null (cuisine already known)'}.
+
+Return ONLY valid JSON: {"typeTags": [...], "dietaryTags": [...], "mealTimes": [...], "chefNotes": "..." or null, "cuisine": "..." or null}`;
 
   try {
     const res = await fetch(API_BASE, {
@@ -197,20 +199,22 @@ Return ONLY valid JSON: {"typeTags": [...], "dietaryTags": [...], "chefNotes": "
       }),
       signal: AbortSignal.timeout(12_000),
     });
-    if (!res.ok) return { typeTags: [], dietaryTags: [] };
+    if (!res.ok) return { typeTags: [], dietaryTags: [], mealTimes: [] };
     const data = await res.json();
     const text = (data?.content?.[0]?.text as string | undefined) ?? "";
     const raw = text.match(/\{[\s\S]+\}/)?.[0] ?? text.trim();
     const json = JSON.parse(raw);
+    const MEAL_TIMES = ["breakfast", "lunch", "dinner", "snack", "dessert"] as const;
     const typeTags = (json.typeTags as unknown[])?.filter((t): t is string => TYPE_TAGS.includes(t as never)) ?? [];
     const dietary = (json.dietaryTags as unknown[])?.filter((t): t is DietaryTag =>
       ["vegetarian","vegan","gluten-free","dairy-free","pescatarian"].includes(t as string)) ?? [];
+    const mealTimes = (json.mealTimes as unknown[])?.filter((t): t is MealTime => MEAL_TIMES.includes(t as never)) ?? [];
     const chefNotes = typeof json.chefNotes === "string" && json.chefNotes.trim() ? json.chefNotes.trim() : undefined;
     const cuisine = needsCuisine && typeof json.cuisine === "string" && json.cuisine.trim() && json.cuisine !== "null"
       ? json.cuisine.trim().toLowerCase().slice(0, 25)
       : undefined;
-    return { typeTags, dietaryTags: dietary, chefNotes, cuisine };
+    return { typeTags, dietaryTags: dietary, mealTimes, chefNotes, cuisine };
   } catch {
-    return { typeTags: [], dietaryTags: [] };
+    return { typeTags: [], dietaryTags: [], mealTimes: [] };
   }
 }

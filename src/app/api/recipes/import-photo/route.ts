@@ -125,7 +125,7 @@ export async function POST(req: Request) {
       ? estimateNutrition(recipeWithSource as Parameters<typeof estimateNutrition>[0], apiKey)
       : Promise.resolve({}),
     generateThermomixSteps(recipeWithSource.steps, apiKey),
-    classifyRecipe(recipeWithSource as Parameters<typeof classifyRecipe>[0], apiKey) as Promise<{ typeTags: string[]; dietaryTags: import("@/types/recipe").DietaryTag[]; chefNotes?: string }>,
+    classifyRecipe(recipeWithSource as Parameters<typeof classifyRecipe>[0], apiKey),
   ]);
 
   const nutritionAdded = Object.keys(nutrition).length > 0;
@@ -133,12 +133,14 @@ export async function POST(req: Request) {
 
   const mergedTags = Array.from(new Set([...recipeWithSource.tags, ...classification.typeTags]));
   const mergedDietary = Array.from(new Set([...recipeWithSource.dietaryTags, ...classification.dietaryTags]));
+  const mergedMealTimes = Array.from(new Set([...recipeWithSource.mealTimes, ...(classification.mealTimes ?? [])]));
 
   const enriched = {
     ...recipeWithSource,
     ...nutrition,
     tags: mergedTags,
     dietaryTags: mergedDietary,
+    mealTimes: mergedMealTimes,
     imageSource: "photo-import" as const,
     imageQuality: "ok" as const,
     ...(classification.chefNotes ? { chefNotes: classification.chefNotes } : {}),
