@@ -104,7 +104,7 @@ export function AIPromptBar() {
             onKeyDown={e => { if (e.key === "Enter") handleSubmit(); }}
             placeholder="What are you craving?"
             disabled={isBusy}
-            className={`w-full pl-10 pr-10 py-3 bg-parchment-200 border rounded-xl text-sm text-ink-900 placeholder:text-ink-300 focus:outline-none focus:bg-parchment-100 transition-all duration-200 ${
+            className={`w-full pl-10 pr-4 py-3 bg-parchment-200 border rounded-xl text-sm text-ink-900 placeholder:text-ink-300 focus:outline-none focus:bg-parchment-100 transition-all duration-200 ${
               isBusy ? "border-saffron-300" : "border-parchment-300 focus:border-saffron-400"
             }`}
           />
@@ -120,19 +120,7 @@ export function AIPromptBar() {
               >
                 <X size={16} />
               </motion.button>
-            ) : (
-              <motion.button
-                key="submit"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                onClick={handleSubmit}
-                disabled={!prompt.trim() || isBusy}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-400 hover:text-ink-700 disabled:opacity-30 transition-colors"
-              >
-                <ArrowRight size={16} />
-              </motion.button>
-            )}
+            ) : null}
           </AnimatePresence>
         </div>
 
