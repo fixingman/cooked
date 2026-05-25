@@ -20,6 +20,7 @@ Ordered by impact. Each item is self-contained and shippable independently.
 | U-16 | Related recipes at bottom of recipe detail | Recipe detail | Increases session depth. Uses existing `getRelatedRecipes()` in `src/lib/recipes.ts`. |
 | U-23 | Quick-bookmark from recipe card (long-press / hover action) | Recipe list | Currently bookmark only accessible from detail. Small discoverability improvement. |
 | U-24 | Microphone & camera PWA permission flows | Settings | Wire the existing toggles to the real `navigator.mediaDevices.getUserMedia` / `navigator.permissions.query` APIs. Show a browser prompt, reflect live state. Needed so the toggles aren't dead UI. |
+| U-28 | Unified AI + recipe search bar | Homepage | Merge the AI prompt bar and the recipe search bar on the homepage into a single input. The bar would detect intent: a short keyword/ingredient query filters the library; a natural-language sentence ("something spicy for dinner") triggers the AI suggest/generate flow. Requires designing a clear mode-switch UX (e.g. auto-detect or a toggle pill). Currently the two bars are separate — kept that way for simplicity. |
 
 ---
 
