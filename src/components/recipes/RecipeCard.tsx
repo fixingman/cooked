@@ -6,6 +6,7 @@ import { Clock } from "lucide-react";
 import { FoodImage } from "@/components/ui/FoodImage";
 import { Badge } from "@/components/ui/Badge";
 import { RecipeRating } from "@/components/ui/RecipeRating";
+import { useDropboxImage } from "@/hooks/useDropboxImage";
 import { cn } from "@/lib/cn";
 import { formatMinutes } from "@/lib/formatTime";
 import type { Recipe } from "@/types/recipe";
@@ -18,6 +19,12 @@ interface RecipeCardProps {
 }
 
 export const RecipeCard = memo(function RecipeCard({ recipe, viewMode = "grid", index = 0, isCooked = false }: RecipeCardProps) {
+  // When Unsplash replaced the original (ai-found) but the original is in Dropbox, prefer Dropbox.
+  const dropboxImage = useDropboxImage(
+    recipe.imageSource === "ai-found" && recipe.heroImageDropboxPath ? recipe.heroImageDropboxPath : undefined
+  );
+  const imageSrc = dropboxImage ?? recipe.heroImageUrl;
+
   if (viewMode === "list") {
     return (
       <motion.div
@@ -29,7 +36,7 @@ export const RecipeCard = memo(function RecipeCard({ recipe, viewMode = "grid", 
           <div className="flex gap-4 p-4 bg-parchment-200 rounded-card border border-parchment-300 hover:shadow-card-md transition-shadow duration-300 group">
             <div className="relative w-20 h-20 rounded-xl overflow-hidden shrink-0">
               <FoodImage
-                src={recipe.heroImageUrl}
+                src={imageSrc}
                 alt={recipe.title}
                 fill
                 sizes="80px"
@@ -72,7 +79,7 @@ export const RecipeCard = memo(function RecipeCard({ recipe, viewMode = "grid", 
         <div className="group bg-parchment-200 rounded-card overflow-hidden border border-parchment-300 hover:shadow-card-md transition-shadow duration-300 cursor-pointer">
           <div className="relative aspect-[4/3] overflow-hidden">
             <FoodImage
-              src={recipe.heroImageUrl}
+              src={imageSrc}
               alt={recipe.title}
               fill
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"

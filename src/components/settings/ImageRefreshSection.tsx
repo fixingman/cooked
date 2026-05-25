@@ -8,7 +8,10 @@ import { uploadBinary } from "@/lib/dropbox/client";
 import type { Recipe } from "@/types/recipe";
 
 function needsRefresh(r: Recipe): boolean {
-  return !r.imageSource || r.imageSource === "none" || r.imageQuality === "low";
+  if (!r.imageSource || r.imageSource === "none" || r.imageQuality === "low") return true;
+  // Unsplash replaced original but original is stored in Dropbox — restore heroImageUrl
+  if (r.imageSource === "ai-found" && !!r.heroImageDropboxPath) return true;
+  return false;
 }
 
 export function ImageRefreshSection() {

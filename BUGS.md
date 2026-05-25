@@ -9,13 +9,10 @@ Active bugs only. Resolved bugs kept for reference with their fix summary.
 ### BUG-001 — Import: prep/cook time shows 0 min
 
 **Site:** thermomix-recipes.net  
-**Status:** Fix shipped v0.15.5, pending confirmation — page returns 403 to server so cannot verify
+**Status:** Fix shipped v0.15.5, pending confirmation — page returns 403 to server
 
-**Root cause:** `parseDuration` regex matched months-`M` before the ISO 8601 `T` separator instead of minutes-`M` after it. Full-form string `P0Y0M0DT0H10M0.000S` gave 0 minutes.
-
-**Fix (v0.15.5):** Rewrote `parseDuration` to split on `T` first, parse H/M only from the time portion. Handles `P0Y0M0DT0H10M0.000S`, `PT10M`, `PT1H30M`, plain `"30"`, `"30 minutes"`.
-
-**Still unknown:** If thermomix-recipes.net JSON-LD simply omits `prepTime`/`cookTime` entirely (rather than using a malformed format), times would still be 0 — not a parsing bug. The 0-step Claude extraction path (v0.15.5) also merges Claude's inferred times when JSON-LD has zeros.
+**Root cause:** `parseDuration` matched months-`M` before `T` separator instead of minutes-`M` after it. Full-form `P0Y0M0DT0H10M0.000S` gave 0 minutes.  
+**Fix:** Rewrote `parseDuration` to split on `T` first. Also merges Claude's inferred times when JSON-LD has zeros (v0.15.5).
 
 **File:** `src/lib/parseJsonLd.ts` → `parseDuration`
 
@@ -25,13 +22,8 @@ Active bugs only. Resolved bugs kept for reference with their fix summary.
 
 **Status:** Fix shipped v0.15.4–v0.15.5, pending confirmation
 
-**Root cause A:** thermomix-recipes.net uses `{ "name": "Step text" }` on HowToStep instead of `{ "text": "Step text" }`. `parseSteps` only read `.text`.  
-**Fix:** `parseSteps` falls back to `obj.name` when `obj.text` absent (guards `length > 10`).
-
-**Root cause B:** Client-rendered steps (Cookidoo-style) — JSON-LD has metadata but empty `recipeInstructions`. Route returned JSON-LD recipe directly with 0 steps.  
-**Fix:** When `jsonLdRecipe.steps.length === 0`, calls Claude for full-page extraction and merges steps onto JSON-LD metadata. Also takes Claude's times if JSON-LD had zeros.
-
-**Budget:** 0-step path skips Thermomix generation (`skipThermomix: true`) to stay within function budget. Thermomix must be added via Settings retroactive enrichment.
+**Root cause A:** thermomix-recipes.net uses `name` instead of `text` on HowToStep. **Fix:** `parseSteps` falls back to `obj.name`.  
+**Root cause B:** Cookidoo-style client-rendered steps — JSON-LD has metadata but empty `recipeInstructions`. **Fix:** Claude extraction for steps + time merge.
 
 ---
 
@@ -39,38 +31,40 @@ Active bugs only. Resolved bugs kept for reference with their fix summary.
 
 **Status:** Fix shipped v0.15.7, pending confirmation
 
-**Root cause:** Netlify default 10s function timeout killed the parallel AI calls (nutrition, Thermomix, classify) before they completed.  
-**Fix:** `export const maxDuration = 30` on import, import-photo, enrich-thermomix, and refresh-image routes.
+**Root cause:** Netlify 10s timeout killed parallel AI calls.  
+**Fix:** `maxDuration = 30` on all AI routes.
+
+---
+
+### BUG-008 — Recipe card shows stock thumbnail but detail shows correct image
+
+**Status:** Fix shipped v0.15.11, pending confirmation
+
+**Symptom:** Two recipe cards show Unsplash stock photos. Tapping through to the recipe shows the correct original photo in the hero. "Recipe Images → Image Quality" says "All recipe images look good."
+
+**Root cause:** Before v0.15.9, `"unknown"` HEAD quality (CDN blocking HEAD requests) triggered Unsplash replacement. Affected recipes ended up with `heroImageUrl = unsplash URL` + `heroImageDropboxPath = original`. The detail page uses `dropboxImage ?? heroImageUrl` so it correctly shows the Dropbox original. The card only used `heroImageUrl` — the Unsplash stock.
+
+The `needsRefresh` check only flags `imageQuality === "low"` — `imageSource === "ai-found"` recipes were never flagged, so the scan reported "All images look good" even though the card URLs were wrong.
+
+**Fixes (v0.15.11):**
+- `RecipeCard`: calls `useDropboxImage` only when `imageSource === "ai-found" && heroImageDropboxPath` exists — targeted, only fires for affected recipes, cached 4h.
+- `needsRefresh`: now also flags `ai-found + heroImageDropboxPath` recipes so the Settings scan offers to restore them.
+- Root cause already prevented in v0.15.9 (unknown quality keeps original URL).
+
+**Files:** `src/components/recipes/RecipeCard.tsx`, `src/components/settings/ImageRefreshSection.tsx`
 
 ---
 
 ## Resolved
 
-### BUG-004 — Thermomix cooking mode never appears on imported recipes ✅ Confirmed fixed v0.15.7–v0.15.8
+### BUG-004 ✅ v0.15.7–v0.15.8 — Thermomix cooking mode never appears
+H1 (empty steps) fixed v0.15.4. H3 (Netlify 10s timeout) fixed v0.15.7. H6 (catch→null masked timeouts as "not suitable") fixed v0.15.8.
 
-**Root causes:** (H1) Steps empty in JSON-LD — fixed v0.15.4. (H3) Netlify 10s timeout killing Claude call — fixed v0.15.7 (`maxDuration = 30`). (H6) Catch block returned null on timeout/parse error, masking errors as "no TM steps" — fixed v0.15.8 (throws instead of null; route returns 500 vs 422).
+### BUG-005 ✅ v0.15.7 — Settings Thermomix enrichment: "No recipes could be adapted"
+Netlify 10s timeout. Fixed: `maxDuration = 30`, client 28s timeout, error feedback split.
 
----
+### BUG-006 ✅ v0.15.7 — Back button: cook mode stuck in history
+`<Link>` push vs `router.back()`. Fixed: exit button uses `router.back()`.
 
-### BUG-005 — Settings Thermomix enrichment: "No recipes could be adapted" ✅ Confirmed fixed v0.15.7
-
-**Root cause:** Netlify 10s timeout killed `generateThermomixSteps` before Claude responded.  
-**Fix:** `maxDuration = 30` on enrich-thermomix route. Client-side fetch timeout set to 28s. Result display distinguishes timeout from "not suitable" (422).
-
----
-
-### BUG-006 — Back button: cook mode stuck in history ✅ Confirmed fixed v0.15.7
-
-**Root cause:** Cook mode exit used `<Link href={...}>` which pushes a new history entry.  
-**Fix:** Exit button now calls `router.back()`. Clean history stack.
-
-**File:** `src/components/cooking/CookingShell.tsx`
-
----
-
-### BUG-007 — Thermomix enrichment: "Steps not suitable" for genuine Thermomix recipes ✅ Confirmed fixed v0.15.8
-
-**Root causes:** Error masking (catch → null → 422 looked like "not suitable"); 12s Claude timeout too short; `max_tokens: 1024` truncating JSON output; prompt ambiguity on pre-adapted steps.  
-**Fix:** `generateThermomixSteps` now throws on errors (route returns 500 vs 422); timeout raised to 24s; `max_tokens` raised to 2048; prompt clarified.
-
-**Files:** `src/lib/recipeEnrichment.ts`, `src/app/api/recipes/enrich-thermomix/route.ts`
+### BUG-007 ✅ v0.15.8 — Thermomix enrichment: "Steps not suitable" for genuine TM recipes
+Error masking (catch→null→422 looked like "not suitable"). Fixed: throws on error, 500 vs 422, timeout 24s, max_tokens 2048, prompt clarified.
