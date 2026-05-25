@@ -15,8 +15,8 @@ Ordered by impact. Each item is self-contained and shippable independently.
 | # | Description | Area | Why now |
 |---|-------------|------|---------|
 | ~~U-26~~ | ~~Translate non-English imported recipes to English~~ | ~~Import~~ | ✅ Shipped v0.16.4 |
-| U-4  | Progress ring / step counter label | Cooking mode | Label is ambiguous — reads as timer progress, not step progress. Quick copy fix. |
-| U-25 | Richer time-of-day greeting variety | Homepage | Currently only 5 fixed strings ("Good morning" etc.). Expand to a small pool of short, personality-driven greetings per time slot — e.g. "Morning!" · "Rise and shine." · "Evening, chef." · "Hungry?" — rotated daily or randomly. Keeps the header feeling alive without being verbose. Change is isolated to `src/hooks/useTimeOfDay.ts`. |
+| ~~U-4~~ | ~~Progress ring / step counter label~~ | ~~Cooking mode~~ | ✅ Solved — ring shows step fraction `1/5` when no timer is active |
+| ~~U-25~~ | ~~Richer time-of-day greeting variety~~ | ~~Homepage~~ | ✅ Shipped v0.18.0 — 4–5 greetings per time slot, rotated daily |
 | U-16 | Related recipes at bottom of recipe detail | Recipe detail | Increases session depth. Uses existing `getRelatedRecipes()` in `src/lib/recipes.ts`. |
 | U-23 | Quick-bookmark from recipe card (long-press / hover action) | Recipe list | Currently bookmark only accessible from detail. Small discoverability improvement. |
 | U-24 | Microphone & camera PWA permission flows | Settings | Wire the existing toggles to the real `navigator.mediaDevices.getUserMedia` / `navigator.permissions.query` APIs. Show a browser prompt, reflect live state. Needed so the toggles aren't dead UI. |
