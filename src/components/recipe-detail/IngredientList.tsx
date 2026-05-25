@@ -17,6 +17,10 @@ function groupIngredients(ingredients: Ingredient[]): Map<string, Ingredient[]> 
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key)!.push(ing);
   }
+  // Within each group, sort no-amount ingredients to the bottom
+  for (const [key, items] of groups) {
+    groups.set(key, [...items].sort((a, b) => (a.quantity > 0 ? 0 : 1) - (b.quantity > 0 ? 0 : 1)));
+  }
   return groups;
 }
 

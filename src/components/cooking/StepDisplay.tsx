@@ -37,10 +37,10 @@ function TmIcon() {
 }
 
 function TmSettingsPanel({ tm }: { tm: ThermomixStep }) {
-  const tempDisplay = tm.tempC === "Varoma" ? "Varoma" : `${tm.tempC}°C`;
+  const tempDisplay = tm.tempC === "Varoma" ? "Varoma" : tm.tempC === 0 ? "—" : `${tm.tempC}°C`;
   const mins = Math.floor(tm.timeSeconds / 60);
   const secs = tm.timeSeconds % 60;
-  const timeDisplay = secs > 0 ? `${mins}:${String(secs).padStart(2, "0")}` : `${mins} min`;
+  const timeDisplay = tm.timeSeconds === 0 ? "—" : secs > 0 ? `${mins}:${String(secs).padStart(2, "0")}` : `${mins} min`;
 
   return (
     <div className="flex flex-col items-center gap-3 pb-1">

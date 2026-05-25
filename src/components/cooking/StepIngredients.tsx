@@ -67,11 +67,13 @@ export function StepIngredients({
   direction,
 }: StepIngredientsProps) {
   // Priority: explicit IDs (built-in recipes) → text match → nothing
-  const ingredients = stepIngredientIds?.length
+  const rawIngredients = stepIngredientIds?.length
     ? allIngredients.filter((i) => stepIngredientIds.includes(i.id))
     : stepInstruction
       ? matchByText(stepInstruction, allIngredients)
       : [];
+  // No-amount ingredients (salt, pepper etc.) sorted to bottom
+  const ingredients = [...rawIngredients].sort((a, b) => (a.quantity > 0 ? 0 : 1) - (b.quantity > 0 ? 0 : 1));
 
   if (ingredients.length === 0) return null;
 
