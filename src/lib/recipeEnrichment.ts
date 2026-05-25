@@ -9,6 +9,72 @@ const HEADERS = (key: string) => ({
   "content-type": "application/json",
 });
 
+// Detects non-English content by checking for diacritics common in European languages
+// but rare in English. Free, instant — only fires the translation call when needed.
+export function looksNonEnglish(recipe: { title: string; ingredients: { name: string }[] }): boolean {
+  const sample = recipe.title + " " + recipe.ingredients.slice(0, 6).map(i => i.name).join(" ");
+  return /[åäöéèêëàâùûôîïçüßñøæœ]/i.test(sample);
+}
+
+export async function translateRecipe(
+  recipe: {
+    title: string;
+    description: string;
+    ingredients: { name: string }[];
+    steps: { instruction: string }[];
+    chefNotes?: string;
+  },
+  apiKey: string,
+): Promise<{
+  title: string;
+  description: string;
+  ingredientNames: string[];
+  stepInstructions: string[];
+  chefNotes?: string;
+} | null> {
+  const payload = {
+    title: recipe.title,
+    description: recipe.description,
+    ingredientNames: recipe.ingredients.map(i => i.name),
+    stepInstructions: recipe.steps.map(s => s.instruction),
+    ...(recipe.chefNotes ? { chefNotes: recipe.chefNotes } : {}),
+  };
+
+  const prompt = `Translate the following recipe fields to English. Keep ingredient quantities and units as-is (e.g. "2 dl" stays "2 dl"). Return ONLY a JSON object with the same structure.
+
+${JSON.stringify(payload, null, 2)}
+
+Return ONLY valid JSON matching the input structure exactly.`;
+
+  try {
+    const res = await fetch(API_BASE, {
+      method: "POST",
+      headers: HEADERS(apiKey),
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 1500,
+        messages: [{ role: "user", content: prompt }],
+      }),
+      signal: AbortSignal.timeout(12_000),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const text = (data?.content?.[0]?.text as string | undefined) ?? "";
+    const raw = text.match(/\{[\s\S]+\}/)?.[0] ?? text.trim();
+    const json = JSON.parse(raw);
+    if (!json.title || !Array.isArray(json.ingredientNames) || !Array.isArray(json.stepInstructions)) return null;
+    return {
+      title: json.title,
+      description: json.description ?? recipe.description,
+      ingredientNames: json.ingredientNames,
+      stepInstructions: json.stepInstructions,
+      chefNotes: typeof json.chefNotes === "string" ? json.chefNotes : undefined,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function estimateTimeSplit(
   recipe: { title: string; steps: { instruction: string }[] },
   totalTimeMinutes: number,
@@ -165,7 +231,7 @@ export async function classifyRecipe(
   recipe: { title: string; description: string; tags: string[]; dietaryTags: DietaryTag[]; mealTimes: MealTime[]; ingredients: { name: string }[]; cuisine?: string },
   apiKey: string,
   pageText?: string,
-): Promise<{ typeTags: string[]; dietaryTags: DietaryTag[]; mealTimes: MealTime[]; chefNotes?: string; cuisine?: string }> {
+): Promise<{ typeTags: string[]; dietaryTags: DietaryTag[]; mealTimes: MealTime[]; chefNotes?: string; cuisine?: string; thermomixSuitable: boolean }> {
   const ingredientSample = recipe.ingredients.slice(0, 8).map(i => i.name).join(", ");
   const context = pageText ? `\n\nPage text excerpt:\n${pageText.slice(0, 2500)}` : "";
   const needsCuisine = !recipe.cuisine || recipe.cuisine === "any";
@@ -186,7 +252,9 @@ Ingredients (sample): ${ingredientSample}${context}
 
 5. "cuisine": ${needsCuisine ? 'the cuisine of this dish as a single lowercase word or short phrase (e.g. "italian", "mexican", "middle eastern", "british"). Infer from the dish name, ingredients, and context. Use "any" only if truly impossible to determine.' : 'null (cuisine already known)'}.
 
-Return ONLY valid JSON: {"typeTags": [...], "dietaryTags": [...], "mealTimes": [...], "chefNotes": "..." or null, "cuisine": "..." or null}`;
+6. "thermomixSuitable": true if this recipe has steps involving mechanical or thermal operations a Thermomix could perform (mixing, blending, chopping, cooking, steaming, sautéing, kneading). false if it is purely assembly, a salad, or has no cooking operations.
+
+Return ONLY valid JSON: {"typeTags": [...], "dietaryTags": [...], "mealTimes": [...], "chefNotes": "..." or null, "cuisine": "..." or null, "thermomixSuitable": true or false}`;
 
   try {
     const res = await fetch(API_BASE, {
@@ -194,12 +262,12 @@ Return ONLY valid JSON: {"typeTags": [...], "dietaryTags": [...], "mealTimes": [
       headers: HEADERS(apiKey),
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
-        max_tokens: 300,
+        max_tokens: 320,
         messages: [{ role: "user", content: prompt }],
       }),
       signal: AbortSignal.timeout(12_000),
     });
-    if (!res.ok) return { typeTags: [], dietaryTags: [], mealTimes: [] };
+    if (!res.ok) return { typeTags: [], dietaryTags: [], mealTimes: [], thermomixSuitable: true };
     const data = await res.json();
     const text = (data?.content?.[0]?.text as string | undefined) ?? "";
     const raw = text.match(/\{[\s\S]+\}/)?.[0] ?? text.trim();
@@ -213,8 +281,9 @@ Return ONLY valid JSON: {"typeTags": [...], "dietaryTags": [...], "mealTimes": [
     const cuisine = needsCuisine && typeof json.cuisine === "string" && json.cuisine.trim() && json.cuisine !== "null"
       ? json.cuisine.trim().toLowerCase().slice(0, 25)
       : undefined;
-    return { typeTags, dietaryTags: dietary, mealTimes, chefNotes, cuisine };
+    const thermomixSuitable = json.thermomixSuitable !== false;
+    return { typeTags, dietaryTags: dietary, mealTimes, chefNotes, cuisine, thermomixSuitable };
   } catch {
-    return { typeTags: [], dietaryTags: [], mealTimes: [] };
+    return { typeTags: [], dietaryTags: [], mealTimes: [], thermomixSuitable: true };
   }
 }

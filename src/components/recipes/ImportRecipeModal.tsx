@@ -44,7 +44,7 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
   const [editMealTimes, setEditMealTimes] = useState<MealTime[]>(initialDraft?.mealTimes ?? []);
   const [saving, setSaving] = useState(false);
   const [heroImageBase64, setHeroImageBase64] = useState<string | null>(null);
-  const [enrichments, setEnrichments] = useState<{ nutrition: boolean; nutritionSource?: "ai" | "json-ld" | "none"; thermomix: boolean } | null>(null);
+  const [enrichments, setEnrichments] = useState<{ nutrition: boolean; nutritionSource?: "ai" | "json-ld" | "none"; thermomix: boolean; thermomixSuitable?: boolean } | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [tmEnrichState, setTmEnrichState] = useState<"idle" | "pending" | "done" | "failed">("idle");
@@ -182,8 +182,8 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
       } catch {}
     }
 
-    // Fire Thermomix enrichment in the background after save — doesn't block modal close.
-    if (!isEditMode && finalRecipe.steps.length > 0) {
+    // Fire Thermomix enrichment in the background after save — only if classify confirmed suitability.
+    if (!isEditMode && finalRecipe.steps.length > 0 && enrichments?.thermomixSuitable !== false) {
       setTmEnrichState("pending");
       const recipeId = finalRecipe.id;
       fetch("/api/recipes/enrich-thermomix", {
@@ -508,7 +508,7 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
                         <Sparkles size={10} />
                         {macroLabel}
                       </span>
-                      {draft?.steps && draft.steps.length > 0 && (
+                      {draft?.steps && draft.steps.length > 0 && enrichments?.thermomixSuitable !== false && (
                         <span className={`inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-medium ${tmEnrichState === "done" ? "bg-saffron-50 text-saffron-700" : tmEnrichState === "failed" ? "bg-parchment-200 text-ink-400" : "bg-parchment-200 text-ink-500"}`}>
                           <Sparkles size={10} />
                           {tmEnrichState === "done" ? "Thermomix steps added" : tmEnrichState === "failed" ? "No Thermomix adaptation" : tmEnrichState === "pending" ? "Adding Thermomix steps…" : "Thermomix steps — added after save"}

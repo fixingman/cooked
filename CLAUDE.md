@@ -66,6 +66,8 @@ Three files must always match:
 - `0.16.0` Import: AI prep/cook time split + totalTime fallback · Thermomix timeout 18s in import · image quality Range-GET fallback for missing content-length
 - `0.16.1` classifyRecipe now infers mealTimes · page fetch timeout 8s→12s (Waitrose fix) · photo import mealTimes merged
 - `0.16.2` Greeting: remove subtitle, 5 time states (night/morning/afternoon/evening) · Deferred TM enrichment post-save · updateRecipe on useUserRecipes
+- `0.16.3` Import fetch layer: full Chrome headers + Google Referer, 3-attempt retry on 4xx, streaming early-exit on </head>+JSON-LD, 18s timeout, friendly error messages
+- `0.16.4` Non-English recipe import: diacritic-based language detection + parallel translateRecipe() call; Claude extraction prompt also translates; multi-language ingredient guard
 
 ---
 

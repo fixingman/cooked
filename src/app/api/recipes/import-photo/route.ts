@@ -29,6 +29,8 @@ async function extractFromPhoto(
   "suitableForDiet": []
 }
 
+If the recipe is not in English, translate all text fields to English.
+
 Return ONLY the JSON object, no explanation, no markdown fences.`;
 
   const res = await fetch("https://api.anthropic.com/v1/messages", {
@@ -150,6 +152,6 @@ export async function POST(req: Request) {
   return Response.json({
     recipe: enriched,
     heroImageBase64: `data:${mimeType};base64,${imageBase64}`,
-    enrichments: { nutrition: nutritionAdded, thermomix: thermomixAdded },
+    enrichments: { nutrition: nutritionAdded, thermomix: thermomixAdded, thermomixSuitable: classification.thermomixSuitable },
   });
 }

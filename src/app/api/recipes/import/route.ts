@@ -1,10 +1,86 @@
 import { parseRecipeFromHtml, buildRecipeFromSchema, stripHtmlToText } from "@/lib/parseJsonLd";
-import { estimateNutrition, estimateTimeSplit, classifyRecipe } from "@/lib/recipeEnrichment";
+import { estimateNutrition, estimateTimeSplit, classifyRecipe, translateRecipe, looksNonEnglish } from "@/lib/recipeEnrichment";
 import { resolveRecipeImage } from "@/lib/imageUtils";
 
 export const maxDuration = 30;
 
 const ALLOWED_PROTOCOLS = ["http:", "https:"];
+
+// --- Fetch layer -----------------------------------------------------------
+// Full browser-like headers defeat most bot-detection checks (User-Agent,
+// Accept-Language, Referer). Streaming with early-exit prevents timeouts on
+// heavy pages (e.g. Waitrose) where the JSON-LD is in <head> but the full
+// body takes 15–20s to transfer.
+
+const DESKTOP_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36";
+const MOBILE_UA  = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1";
+
+const BASE_HEADERS: Record<string, string> = {
+  "Accept":                  "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+  "Accept-Language":         "en-US,en;q=0.9",
+  "Cache-Control":           "no-cache",
+  "Upgrade-Insecure-Requests": "1",
+};
+
+async function streamFetch(url: string, headers: Record<string, string>): Promise<string> {
+  const res = await fetch(url, {
+    headers,
+    signal: AbortSignal.timeout(18_000),
+    redirect: "follow",
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const ct = res.headers.get("content-type") ?? "";
+  if (!ct.includes("html")) throw new Error("Not an HTML page");
+  if (!res.body) return res.text();
+
+  const reader = res.body.getReader();
+  const dec = new TextDecoder();
+  let html = "";
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      html += dec.decode(value, { stream: true });
+      // Sites like Waitrose embed JSON-LD in <head>. Once we have the full
+      // <head> we have everything we need — no reason to download the body.
+      if (html.length > 80_000 && html.includes("</head>") && html.includes("application/ld+json")) break;
+      if (html.length > 600_000) break; // absolute safety cap
+    }
+  } finally {
+    reader.cancel().catch(() => {});
+  }
+  return html;
+}
+
+function friendlyFetchError(msg: string): string {
+  if (msg.includes("403")) return "This page blocked the import request — try photo import instead.";
+  if (msg.includes("401")) return "This page requires login.";
+  if (msg.includes("404")) return "Page not found.";
+  if (msg.includes("429")) return "This site is rate-limiting requests — try again in a minute.";
+  if (msg.includes("TimeoutError") || msg.includes("timeout")) return "Page took too long to respond.";
+  return `Could not fetch page: ${msg}`;
+}
+
+async function fetchPage(url: string): Promise<string> {
+  const attempts: Record<string, string>[] = [
+    { "User-Agent": DESKTOP_UA, ...BASE_HEADERS, "Referer": "https://www.google.com/" },
+    { "User-Agent": DESKTOP_UA, ...BASE_HEADERS },
+    { "User-Agent": MOBILE_UA,  ...BASE_HEADERS, "Referer": "https://www.google.com/" },
+  ];
+
+  let lastErr: unknown;
+  for (const headers of attempts) {
+    try {
+      return await streamFetch(url, headers);
+    } catch (err) {
+      lastErr = err;
+      const msg = err instanceof Error ? err.message : "";
+      // Only retry on bot-detection 4xx — timeouts and 5xx won't benefit from a retry
+      if (!/^HTTP 40[0-9]$/.test(msg)) break;
+    }
+  }
+  throw lastErr;
+}
 
 async function extractWithClaude(
   pageText: string,
@@ -31,6 +107,8 @@ async function extractWithClaude(
   "typeTags": ["soup"|"pasta"|"bake"|"salad" — only tags that clearly apply, can be empty array],
   "chefNotes": "any chef tips, notes, variations or serving suggestions from the page — concise prose, or null"
 }
+
+If the page content is not in English, translate all text fields (name, description, ingredients, instructions, chefNotes) to English.
 
 Return ONLY the JSON object, no explanation, no markdown fences.
 
@@ -96,23 +174,10 @@ export async function POST(req: Request) {
 
   let html: string;
   try {
-    const res = await fetch(url, {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
-        Accept: "text/html,application/xhtml+xml",
-      },
-      signal: AbortSignal.timeout(12_000),
-      redirect: "follow",
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const contentType = res.headers.get("content-type") ?? "";
-    if (!contentType.includes("html")) throw new Error("Not an HTML page");
-    html = await res.text();
+    html = await fetchPage(url);
   } catch (err) {
-    return Response.json(
-      { error: `Could not fetch page: ${err instanceof Error ? err.message : "Network error"}` },
-      { status: 422 }
-    );
+    const msg = err instanceof Error ? err.message : "Network error";
+    return Response.json({ error: friendlyFetchError(msg) }, { status: 422 });
   }
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -128,13 +193,15 @@ export async function POST(req: Request) {
     const r = recipe as import("@/types/recipe").Recipe;
     const unsplashKey = process.env.UNSPLASH_ACCESS_KEY;
     const needsTimeSplit = r.prepTimeMinutes === 0 && r.cookTimeMinutes === 0 && r.totalTimeMinutes > 0;
+    const needsTranslation = !!apiKey && looksNonEnglish(r);
     // Thermomix enrichment is deferred to client-side post-save (see ImportRecipeModal).
     // This frees ~18s of the Netlify function budget for faster, more reliable imports.
-    const [imageResult, nutrition, classification, timeSplit] = await Promise.all([
+    const [imageResult, nutrition, classification, timeSplit, translation] = await Promise.all([
       resolveRecipeImage(r.heroImageUrl, r.title, r.cuisine, unsplashKey),
       apiKey && needsNutrition(r) ? estimateNutrition(r, apiKey) : Promise.resolve({}),
-      apiKey ? classifyRecipe(r, apiKey, pageText) : Promise.resolve({ typeTags: [] as string[], dietaryTags: [] as import("@/types/recipe").DietaryTag[], mealTimes: [] as import("@/types/recipe").MealTime[], chefNotes: undefined, cuisine: undefined }),
+      apiKey ? classifyRecipe(r, apiKey, pageText) : Promise.resolve({ typeTags: [] as string[], dietaryTags: [] as import("@/types/recipe").DietaryTag[], mealTimes: [] as import("@/types/recipe").MealTime[], chefNotes: undefined, cuisine: undefined, thermomixSuitable: true }),
       apiKey && needsTimeSplit ? estimateTimeSplit(r, r.totalTimeMinutes, apiKey) : Promise.resolve(null),
+      needsTranslation ? translateRecipe(r, apiKey!) : Promise.resolve(null),
     ]);
     const nutritionAdded = Object.keys(nutrition).length > 0;
     const thermomixAdded = false; // Deferred to client — see ImportRecipeModal
@@ -187,11 +254,19 @@ export async function POST(req: Request) {
           ? { prepTimeMinutes: timeSplit.prepTimeMinutes, cookTimeMinutes: timeSplit.cookTimeMinutes }
           : { cookTimeMinutes: r.totalTimeMinutes }
         : {}),
+      // Translation: apply translated fields when non-English content was detected
+      ...(translation ? {
+        title: translation.title,
+        description: translation.description,
+        ingredients: r.ingredients.map((ing, i) => ({ ...ing, name: translation.ingredientNames[i] ?? ing.name })),
+        steps: r.steps.map((step, i) => ({ ...step, instruction: translation.stepInstructions[i] ?? step.instruction })),
+        ...(translation.chefNotes ? { chefNotes: translation.chefNotes } : {}),
+      } : {}),
     };
     return Response.json({
       recipe: enriched,
       ...(heroImageBase64 ? { heroImageBase64 } : {}),
-      enrichments: { nutrition: nutritionAdded, nutritionSource, thermomix: thermomixAdded },
+      enrichments: { nutrition: nutritionAdded, nutritionSource, thermomix: thermomixAdded, thermomixSuitable: classification.thermomixSuitable },
     });
   }
 
@@ -226,7 +301,12 @@ export async function POST(req: Request) {
   // Full Claude fallback — only if API key is configured
   if (apiKey) {
     try {
-      if (!pageText.toLowerCase().includes("ingredient")) {
+      // Guard against non-recipe pages. Check common ingredient words across languages
+      // so Swedish (ingredienser), French (ingrédients), German (zutaten), etc. all pass.
+      const lower = pageText.toLowerCase();
+      const hasRecipeSignal = ["ingredient", "ingredienser", "ingrediënten", "ingrédient",
+        "zutat", "ingrediente", "oppskrift", "recept", "ricetta", "рецепт"].some(w => lower.includes(w));
+      if (!hasRecipeSignal) {
         return Response.json({ error: "This page doesn't appear to contain a recipe." }, { status: 422 });
       }
       const claudeRecipe = await extractWithClaude(pageText, url, id, apiKey);
