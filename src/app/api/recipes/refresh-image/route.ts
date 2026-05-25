@@ -30,7 +30,11 @@ export async function POST(req: Request) {
   const { imageUrl, title, cuisine } = body;
   if (!title) return Response.json({ error: "title is required" }, { status: 400 });
 
-  const { url, source, quality, resolvedBase64 } = await resolveRecipeImage(imageUrl, title, cuisine, unsplashKey, hfToken);
+  const { url, source, quality, resolvedBase64, hfLoading } = await resolveRecipeImage(imageUrl, title, cuisine, unsplashKey, hfToken);
+
+  if (hfLoading) {
+    return Response.json({ hfLoading: true, waitSeconds: hfLoading.waitSeconds });
+  }
 
   // Use pre-fetched bytes from upscaling if available — avoids a second network round-trip
   const heroImageBase64 = resolvedBase64 ?? await fetchImageAsBase64(url ?? undefined);

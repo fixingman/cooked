@@ -93,14 +93,19 @@ export async function checkImageQuality(url: string): Promise<"ok" | "low" | "un
   }
 }
 
+export type UpscaleResult =
+  | { status: "ok"; base64: string }
+  | { status: "loading"; waitSeconds: number }
+  | { status: "failed" };
+
 // Upscales an image 2× using Hugging Face swin2SR (free tier, rate-limited).
-// Returns base64 data URL of upscaled image, or null on failure (cold start timeout, rate limit, etc.).
-export async function upscaleImage(imageUrl: string, hfToken: string, timeoutMs = 20_000): Promise<string | null> {
+// Returns "loading" when the model is cold-starting — caller should wait waitSeconds and retry.
+export async function upscaleImage(imageUrl: string, hfToken: string, timeoutMs = 20_000): Promise<UpscaleResult> {
   try {
     const imgRes = await fetch(imageUrl, { signal: AbortSignal.timeout(8_000) });
-    if (!imgRes.ok) return null;
+    if (!imgRes.ok) return { status: "failed" };
     const ct = imgRes.headers.get("content-type") ?? "";
-    if (!ct.startsWith("image/")) return null;
+    if (!ct.startsWith("image/")) return { status: "failed" };
     const imageBytes = await imgRes.arrayBuffer();
 
     const res = await fetch(
@@ -115,13 +120,24 @@ export async function upscaleImage(imageUrl: string, hfToken: string, timeoutMs 
         signal: AbortSignal.timeout(timeoutMs),
       }
     );
-    if (!res.ok) return null;
+
+    if (res.status === 503) {
+      try {
+        const body = await res.json() as { estimated_time?: number };
+        const waitSeconds = Math.ceil(body.estimated_time ?? 20);
+        return { status: "loading", waitSeconds };
+      } catch {
+        return { status: "loading", waitSeconds: 20 };
+      }
+    }
+
+    if (!res.ok) return { status: "failed" };
     const upscaledCt = res.headers.get("content-type") ?? "image/png";
-    if (!upscaledCt.startsWith("image/")) return null;
+    if (!upscaledCt.startsWith("image/")) return { status: "failed" };
     const upscaledBytes = await res.arrayBuffer();
-    return `data:${upscaledCt};base64,${Buffer.from(upscaledBytes).toString("base64")}`;
+    return { status: "ok", base64: `data:${upscaledCt};base64,${Buffer.from(upscaledBytes).toString("base64")}` };
   } catch {
-    return null;
+    return { status: "failed" };
   }
 }
 
@@ -143,7 +159,8 @@ export type ImageResolveResult = {
   url: string | null;
   source: ImageSource;
   quality: "ok" | "low";
-  resolvedBase64?: string; // pre-fetched bytes when upscaling was used — avoids a second fetch
+  resolvedBase64?: string;
+  hfLoading?: { waitSeconds: number }; // HF model cold-starting — caller should wait and retry
 };
 
 export async function resolveRecipeImage(
@@ -190,7 +207,8 @@ export async function resolveRecipeImage(
   // then Unsplash as a last resort (replaces with stock photo).
   if (hfToken) {
     const upscaled = await upscaleImage(resolvedUrl, hfToken);
-    if (upscaled) return { url: resolvedUrl, source: "scraped", quality: "ok", resolvedBase64: upscaled };
+    if (upscaled.status === "ok") return { url: resolvedUrl, source: "scraped", quality: "ok", resolvedBase64: upscaled.base64 };
+    if (upscaled.status === "loading") return { url: resolvedUrl, source: "scraped", quality: "low", hfLoading: { waitSeconds: upscaled.waitSeconds } };
   }
 
   const unsplash = await unsplashFallback();

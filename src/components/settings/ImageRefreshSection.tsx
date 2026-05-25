@@ -17,7 +17,7 @@ export function ImageRefreshSection() {
   const { recipes, addRecipe } = useUserRecipes();
   const { getValidAccessToken, status: dropboxStatus } = useDropboxAuth();
   const [running, setRunning] = useState(false);
-  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+  const [progress, setProgress] = useState<{ done: number; total: number; warmingUp?: boolean } | null>(null);
   const [result, setResult] = useState<{ updated: string[]; couldntImprove: number } | null>(null);
 
   const pending = recipes.filter(needsRefresh);
@@ -33,19 +33,32 @@ export function ImageRefreshSection() {
 
     for (const recipe of toProcess) {
       try {
-        const res = await fetch("/api/recipes/refresh-image", {
+        const fetchRefresh = () => fetch("/api/recipes/refresh-image", {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({ imageUrl: recipe.heroImageUrl, title: recipe.title, cuisine: recipe.cuisine }),
         });
+
+        let res = await fetchRefresh();
         if (!res.ok) { couldntImprove++; setProgress(p => p ? { ...p, done: p.done + 1 } : null); continue; }
 
-        const data = await res.json() as {
+        let data = await res.json() as {
           imageUrl: string | null;
           imageSource: Recipe["imageSource"];
           imageQuality: Recipe["imageQuality"];
           heroImageBase64?: string;
+          hfLoading?: boolean;
+          waitSeconds?: number;
         };
+
+        if (data.hfLoading && data.waitSeconds) {
+          setProgress(p => p ? { ...p, warmingUp: true } : null);
+          await new Promise(resolve => setTimeout(resolve, (data.waitSeconds! + 3) * 1000));
+          setProgress(p => p ? { ...p, warmingUp: false } : null);
+          res = await fetchRefresh();
+          if (!res.ok) { couldntImprove++; setProgress(p => p ? { ...p, done: p.done + 1 } : null); continue; }
+          data = await res.json();
+        }
 
         const urlChanged = !!data.imageUrl && data.imageUrl !== recipe.heroImageUrl;
         const qualityImproved = data.imageQuality !== "low";
@@ -123,7 +136,9 @@ export function ImageRefreshSection() {
           >
             <div className="flex items-center gap-2 text-xs text-ink-500">
               <Loader2 size={13} className="animate-spin" />
-              Checking {progress.done + 1} of {progress.total}…
+              {progress.warmingUp
+                ? "Warming up AI upscaler…"
+                : `Checking ${progress.done + 1} of ${progress.total}…`}
             </div>
             <div className="mt-2 h-1 bg-parchment-300 rounded-full overflow-hidden">
               <motion.div
