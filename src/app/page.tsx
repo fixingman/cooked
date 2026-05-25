@@ -1,6 +1,7 @@
 "use client";
 import { useMemo } from "react";
 import { TimeGreeting } from "@/components/home/TimeGreeting";
+import { AIPromptBar } from "@/components/home/AIPromptBar";
 import { FeaturedHero } from "@/components/home/FeaturedHero";
 import { MealTimeSection } from "@/components/home/MealTimeSection";
 import { ContinueCooking } from "@/components/home/ContinueCooking";
@@ -57,6 +58,7 @@ export default function HomePage() {
   return (
     <div className="px-4 py-6 md:px-8 max-w-5xl mx-auto space-y-8">
       <TimeGreeting />
+      <AIPromptBar />
       {featuredRecipe && <FeaturedHero recipe={featuredRecipe} />}
       <MealTimeSection
         recipes={wantToCookRecipes}

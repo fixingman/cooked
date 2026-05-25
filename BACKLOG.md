@@ -48,9 +48,8 @@ interface PantryItem { id: string; name: string; addedAt: string; category?: "pr
 
 ---
 
-### 🔴 F-3 — AI Suggestions & Creation
-Two modes: *Suggest from library* (Claude ranks existing recipes from prompt) · *Generate new recipe* (full recipe, presented in import review screen before saving). Requires `aiEnabled` flag + `ANTHROPIC_API_KEY` server-side.
-**Decisions needed:** UX entry point (floating button? search bar mode? dedicated tab?).
+### ✅ F-3 — AI Suggestions & Creation (v0.17.0)
+Prompt bar on homepage below greeting (visible when `aiEnabled`). Single input, Claude decides mode. Suggest: returns ranked library recipe cards with reason. Generate: full recipe via Claude → opens in review modal → saves as new recipe with TM enrichment + Dropbox upload.
 
 ---
 

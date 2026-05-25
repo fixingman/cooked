@@ -68,6 +68,7 @@ Three files must always match:
 - `0.16.2` Greeting: remove subtitle, 5 time states (night/morning/afternoon/evening) · Deferred TM enrichment post-save · updateRecipe on useUserRecipes
 - `0.16.3` Import fetch layer: full Chrome headers + Google Referer, 3-attempt retry on 4xx, streaming early-exit on </head>+JSON-LD, 18s timeout, friendly error messages
 - `0.16.4` Non-English recipe import: diacritic-based language detection + parallel translateRecipe() call; Claude extraction prompt also translates; multi-language ingredient guard
+- `0.17.0` F-3 AI Suggestions & Creation — prompt bar on homepage (aiEnabled only); suggest mode ranks library recipes; generate mode creates new recipe via Claude, opens in review modal; generatedDraft prop on ImportRecipeModal
 
 ---
 

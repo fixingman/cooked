@@ -23,25 +23,29 @@ type ImportMode = "url" | "photo";
 interface ImportRecipeModalProps {
   onClose: () => void;
   initialDraft?: Recipe;
+  generatedDraft?: Recipe;
   onSave?: (recipe: Recipe) => void;
 }
 
-export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecipeModalProps) {
+export function ImportRecipeModal({ onClose, initialDraft, generatedDraft, onSave }: ImportRecipeModalProps) {
   const router = useRouter();
   const { recipes, addRecipe, updateRecipe } = useUserRecipes();
   const { status: dropboxStatus, getValidAccessToken } = useDropboxAuth();
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // isEditMode: existing recipe being edited (preserve ID, no TM enrichment, no nav)
+  // generatedDraft: AI-created recipe — starts at review but saves like a fresh import
   const isEditMode = !!initialDraft;
-  const [stage, setStage] = useState<Stage>(isEditMode ? "review" : "input");
+  const seedDraft = initialDraft ?? generatedDraft ?? null;
+  const [stage, setStage] = useState<Stage>(seedDraft ? "review" : "input");
   const [importMode, setImportMode] = useState<ImportMode>("url");
   const [url, setUrl] = useState("");
   const [urlError, setUrlError] = useState("");
   const [error, setError] = useState("");
-  const [draft, setDraft] = useState<(Recipe & { sourceUrl?: string }) | null>(initialDraft ?? null);
-  const [editTitle, setEditTitle] = useState(initialDraft?.title ?? "");
-  const [editDesc, setEditDesc] = useState(initialDraft?.description ?? "");
-  const [editMealTimes, setEditMealTimes] = useState<MealTime[]>(initialDraft?.mealTimes ?? []);
+  const [draft, setDraft] = useState<(Recipe & { sourceUrl?: string }) | null>(seedDraft);
+  const [editTitle, setEditTitle] = useState(seedDraft?.title ?? "");
+  const [editDesc, setEditDesc] = useState(seedDraft?.description ?? "");
+  const [editMealTimes, setEditMealTimes] = useState<MealTime[]>(seedDraft?.mealTimes ?? []);
   const [saving, setSaving] = useState(false);
   const [heroImageBase64, setHeroImageBase64] = useState<string | null>(null);
   const [enrichments, setEnrichments] = useState<{ nutrition: boolean; nutritionSource?: "ai" | "json-ld" | "none"; thermomix: boolean; thermomixSuitable?: boolean } | null>(null);
@@ -213,7 +217,7 @@ export function ImportRecipeModal({ onClose, initialDraft, onSave }: ImportRecip
   try { hostname = draft ? new URL((draft as Recipe & { sourceUrl?: string }).sourceUrl ?? "").hostname.replace(/^www\./, "") : ""; } catch {}
 
   const stageTitle = stage === "review"
-    ? (isEditMode ? "Edit Recipe" : "Review Recipe")
+    ? (isEditMode ? "Edit Recipe" : generatedDraft ? "Generated Recipe" : "Review Recipe")
     : "Import Recipe";
 
   // Variants encode their own transitions so enter (spring) and exit (ease) differ
