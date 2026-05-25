@@ -79,7 +79,7 @@ export interface Recipe {
   sourceUrl?: string;
   heroImageDropboxPath?: string;
   imageSource?: "scraped" | "photo-import" | "ai-found" | "none";
-  imageQuality?: "ok" | "low";
+  imageQuality?: "ok" | "low" | "low-checked"; // "low-checked" = tried HF+Unsplash, source is the limit
 }
 
 export interface CookingHistoryEntry {

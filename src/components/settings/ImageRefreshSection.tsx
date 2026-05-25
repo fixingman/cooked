@@ -7,6 +7,7 @@ import { useDropboxAuth } from "@/hooks/useDropboxAuth";
 import { uploadBinary } from "@/lib/dropbox/client";
 import type { Recipe } from "@/types/recipe";
 
+// "low-checked" intentionally excluded — means we tried HF+Unsplash and source is the limit
 function needsRefresh(r: Recipe): boolean {
   if (!r.imageSource || r.imageSource === "none" || r.imageQuality === "low") return true;
   if (r.imageSource === "ai-found" && !!r.heroImageDropboxPath) return true;
@@ -64,7 +65,8 @@ export function ImageRefreshSection() {
         const qualityImproved = data.imageQuality !== "low";
 
         if (!urlChanged && !qualityImproved) {
-          // Nothing improved — don't update the recipe, just note it
+          // Neither HF nor Unsplash could improve this — mark as checked so it stops appearing
+          addRecipe({ ...recipe, imageSource: data.imageSource ?? recipe.imageSource ?? "scraped", imageQuality: "low-checked" });
           couldntImprove++;
           setProgress(p => p ? { ...p, done: p.done + 1 } : null);
           continue;
