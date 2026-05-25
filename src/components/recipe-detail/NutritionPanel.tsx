@@ -25,12 +25,12 @@ function estimateServingGrams(recipe: Pick<Recipe, "ingredients" | "servings">):
 
 type WarningLevel = "amber" | "red";
 
-const WARNINGS: Record<string, { amber: number; red?: number; unit: string; reason: string }> = {
-  sugar:        { amber: 10,  red: 20,  unit: "g",  reason: "High sugar can spike blood glucose and contribute to metabolic issues." },
-  sodium:       { amber: 460, red: 920, unit: "mg", reason: "High sodium raises blood pressure and cardiovascular risk." },
-  saturatedFat: { amber: 4,   red: 8,   unit: "g",  reason: "Excess saturated fat raises LDL (bad) cholesterol." },
-  cholesterol:  { amber: 60,  red: 120, unit: "mg", reason: "High dietary cholesterol may affect cardiovascular health." },
-  transFat:     { amber: 0.5, unit: "g",             reason: "Trans fats raise LDL and lower HDL — no safe level is established." },
+const WARNINGS: Record<string, { amber: number; red?: number; unit: string }> = {
+  sugar:        { amber: 10,  red: 20,  unit: "g"  },
+  sodium:       { amber: 460, red: 920, unit: "mg" },
+  saturatedFat: { amber: 4,   red: 8,   unit: "g"  },
+  cholesterol:  { amber: 60,  red: 120, unit: "mg" },
+  transFat:     { amber: 0.5,           unit: "g"  },
 };
 
 function getWarning(key: string, value: number | undefined): WarningLevel | null {
@@ -43,10 +43,10 @@ function getWarning(key: string, value: number | undefined): WarningLevel | null
 }
 
 function Stat({
-  label, value, unit, warning, reason,
+  label, value, unit, warning,
 }: {
   label: string; value: number; unit: string;
-  warning?: WarningLevel | null; reason?: string;
+  warning?: WarningLevel | null;
 }) {
   const bg    = warning === "red"   ? "bg-red-50 border-red-200"
               : warning === "amber" ? "bg-amber-50 border-amber-200"
@@ -65,11 +65,6 @@ function Stat({
         {warning && <AlertTriangle size={11} className={iconCl} />}
       </div>
       <span className="text-[10px] uppercase tracking-widest text-ink-400 font-semibold">{label}</span>
-      {warning && reason && (
-        <p className={`text-[10px] leading-snug text-center mt-1.5 ${warning === "red" ? "text-red-700" : "text-amber-700"}`}>
-          {reason}
-        </p>
-      )}
     </div>
   );
 }
@@ -132,7 +127,6 @@ export function NutritionPanel({ recipe }: NutritionPanelProps) {
                   value={s.value!}
                   unit={s.unit}
                   warning={getWarning(s.key, s.value)}
-                  reason={WARNINGS[s.key]?.reason}
                 />
               ))}
             </div>

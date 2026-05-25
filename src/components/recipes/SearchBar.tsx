@@ -18,7 +18,7 @@ export function SearchBar({ value, onChange, placeholder = "Search recipes...", 
         className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-400 pointer-events-none"
       />
       <input
-        type="search"
+        type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
