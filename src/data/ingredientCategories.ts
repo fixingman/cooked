@@ -6,7 +6,7 @@ export const CATEGORY_LABELS: Record<PantryCategory, string> = {
   produce:  "Produce",
   dairy:    "Dairy",
   meat:     "Meat & Fish",
-  pantry:   "Pantry",
+  pantry:   "Staples",
   frozen:   "Frozen",
   other:    "Other",
 };

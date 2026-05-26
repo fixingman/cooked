@@ -81,6 +81,11 @@ Three files must always match:
 - `0.18.0` feat: U-25 richer greeting variety — 10-12 greetings per time slot, daily rotation
 - `0.18.1` fix: expand greeting pools to 10-12 per slot
 - `0.19.0` F-1 Pantry — homepage widget + management modal; binary presence + manual "low" flag; Dropbox-synced at /pantry.json
+- `0.19.1` fix: image refresh no longer loops forever — mark as low-checked when both HF+Unsplash fail
+- `0.19.2` fix: pantry modal sidebar on desktop · widget only shows when items are low · Settings entry point
+- `0.19.3` feat: pantry export/import + category grouping + AI categorise button · Staples label (was "Pantry")
+- `0.19.4` fix: pantry categories fallback to inferCategory() for uncategorised items · createPortal height fix
+- `0.19.5` feat: add recipe ingredients to pantry + pantry access from recipe detail page
 
 ---
 

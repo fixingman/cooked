@@ -22,7 +22,7 @@ export async function POST(req: Request) {
 - produce: fresh fruit, vegetables, herbs
 - dairy: milk, cheese, eggs, butter, cream, yogurt
 - meat: meat, poultry, fish, seafood, tofu, tempeh
-- pantry: dry goods, oils, spices, canned goods, condiments, baking, pasta, grains, nuts, vinegar, sauces
+- pantry: dry goods, oils, spices, canned goods, condiments, baking, pasta, grains, nuts, vinegar, sauces (display name: Staples)
 - frozen: frozen foods
 - other: anything that doesn't fit the above
 

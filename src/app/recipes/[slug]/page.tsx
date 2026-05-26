@@ -2,7 +2,7 @@
 import React from "react";
 import { notFound, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Clock, Users, BarChart2, Star, CheckCircle, X } from "lucide-react";
+import { Clock, Users, BarChart2, Star, CheckCircle, X, ShoppingBasket, ChevronDown, ChevronUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RecipeHero } from "@/components/recipe-detail/RecipeHero";
 import { ServingsAdjuster } from "@/components/recipe-detail/ServingsAdjuster";
@@ -18,6 +18,8 @@ import { useUserRecipes } from "@/hooks/useUserRecipes";
 import { useCookingHistory } from "@/hooks/useCookingHistory";
 import { useRecipeStates } from "@/hooks/useRecipeStates";
 import { useDropboxAuth } from "@/hooks/useDropboxAuth";
+import { usePantry } from "@/hooks/usePantry";
+import { PantryModal } from "@/components/pantry/PantryModal";
 import { getRecipe } from "@/lib/recipes";
 import { formatMinutes } from "@/lib/formatTime";
 import type { Recipe } from "@/types/recipe";
@@ -82,6 +84,9 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
   const { addEntry, deleteLastEntry, deleteRecipeHistory } = useCookingHistory();
   const { deleteState, markCooked, unmarkCooked, hasCooked, getState } = useRecipeStates();
   const { servings, scale, increment, decrement } = useServingsScale(recipe.servings);
+  const { items: pantryItems, addItem: addToPantry } = usePantry();
+  const [pantryOpen, setPantryOpen] = useState(false);
+  const [showAddToPantry, setShowAddToPantry] = useState(false);
 
   const cooked = hasCooked(recipe.id);
   const state = getState(recipe.id);
@@ -198,7 +203,35 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
 
         {/* Ingredients */}
         <div className="py-5 border-b border-parchment-300">
-          <h2 className="font-serif text-lg font-semibold text-ink-900 mb-4">Ingredients</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-serif text-lg font-semibold text-ink-900">Ingredients</h2>
+            <button
+              onClick={() => setShowAddToPantry(v => !v)}
+              className="flex items-center gap-1.5 text-xs text-ink-400 hover:text-ink-700 transition-colors"
+            >
+              <ShoppingBasket size={14} />
+              <span>Add to pantry</span>
+              {showAddToPantry ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+            </button>
+          </div>
+          <AnimatePresence>
+            {showAddToPantry && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden mb-4"
+              >
+                <AddToPantryPanel
+                  ingredients={recipe.ingredients.map(i => i.name)}
+                  pantryItems={pantryItems}
+                  onAdd={addToPantry}
+                  onOpenPantry={() => { setShowAddToPantry(false); setPantryOpen(true); }}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
           <IngredientList ingredients={recipe.ingredients} scale={scale} />
         </div>
 
@@ -236,6 +269,87 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
           onConfirm={handleDelete}
         />
       )}
+
+      <AnimatePresence>
+        {pantryOpen && <PantryModal onClose={() => setPantryOpen(false)} />}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function AddToPantryPanel({
+  ingredients,
+  pantryItems,
+  onAdd,
+  onOpenPantry,
+}: {
+  ingredients: string[];
+  pantryItems: import("@/types/pantry").PantryItem[];
+  onAdd: (name: string) => void;
+  onOpenPantry: () => void;
+}) {
+  const inPantry = new Set(pantryItems.map(i => i.name.toLowerCase()));
+  const [selected, setSelected] = useState<Set<string>>(
+    () => new Set(ingredients.filter(n => !inPantry.has(n.toLowerCase())))
+  );
+
+  function toggle(name: string) {
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name); else next.add(name);
+      return next;
+    });
+  }
+
+  function handleAdd() {
+    Array.from(selected).forEach(name => onAdd(name));
+    setSelected(new Set());
+  }
+
+  return (
+    <div className="bg-parchment-200/60 rounded-xl p-3 space-y-2">
+      <ul className="space-y-0.5 max-h-48 overflow-y-auto">
+        {ingredients.map(name => {
+          const already = inPantry.has(name.toLowerCase());
+          const checked = already || selected.has(name);
+          return (
+            <li key={name}>
+              <button
+                onClick={() => { if (!already) toggle(name); }}
+                disabled={already}
+                className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-parchment-300 transition-colors text-left disabled:cursor-default"
+              >
+                <span className={[
+                  "w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors",
+                  already ? "bg-sage-400 border-sage-400" : checked ? "bg-saffron-500 border-saffron-500" : "border-parchment-400 bg-parchment-100",
+                ].join(" ")}>
+                  {checked && <CheckCircle size={10} className="text-white" fill="currentColor" strokeWidth={0} />}
+                </span>
+                <span className={["text-sm", already ? "text-ink-400 line-through" : "text-ink-800"].join(" ")}>
+                  {name}
+                </span>
+                {already && <span className="text-[10px] text-sage-500 ml-auto">in pantry</span>}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+      <div className="flex items-center gap-2 pt-1">
+        <motion.button
+          whileTap={{ scale: 0.96 }}
+          onClick={handleAdd}
+          disabled={selected.size === 0}
+          className="flex-1 py-2 bg-saffron-500 text-white rounded-xl text-sm font-medium hover:bg-saffron-600 disabled:opacity-40 transition-colors"
+        >
+          Add {selected.size > 0 ? `${selected.size} item${selected.size !== 1 ? "s" : ""}` : "to pantry"}
+        </motion.button>
+        <button
+          onClick={onOpenPantry}
+          className="px-3 py-2 text-sm text-ink-500 hover:text-ink-800 transition-colors"
+        >
+          View pantry
+        </button>
+      </div>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { X, AlertTriangle, Search, Download, Upload, Sparkles, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePantry } from "@/hooks/usePantry";
@@ -141,7 +142,7 @@ export function PantryModal({ onClose }: PantryModalProps) {
 
   const categoryKeys = Object.keys(grouped);
 
-  return (
+  return createPortal(
     <>
       {/* Backdrop */}
       <motion.div
@@ -329,6 +330,7 @@ export function PantryModal({ onClose }: PantryModalProps) {
           </div>
         )}
       </motion.div>
-    </>
+    </>,
+    document.body
   );
 }
