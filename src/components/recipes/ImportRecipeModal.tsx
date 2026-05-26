@@ -1,7 +1,7 @@
 "use client";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Link2, Loader2, Check, AlertCircle, ChefHat, Clock, Users, Globe, ArrowLeft, Camera, ImagePlus, Sparkles, ClipboardPaste } from "lucide-react";
+import { X, Link2, Loader2, Check, AlertCircle, ChefHat, Clock, Users, Globe, ArrowLeft, Camera, ImagePlus, ClipboardPaste } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useUserRecipes } from "@/hooks/useUserRecipes";
 import { useDropboxAuth } from "@/hooks/useDropboxAuth";
@@ -590,30 +590,46 @@ export function ImportRecipeModal({ onClose, initialDraft, generatedDraft, onSav
                   <span>{draft.ingredients.length} ingredients · {draft.steps.length} steps</span>
                 </div>
 
-                {/* AI enrichment status */}
+                {/* Metadata section */}
                 {enrichments && (() => {
                   const ns = enrichments.nutritionSource;
-                  const hasMacros = ns === "json-ld" || !!(draft?.calories) || nutritionEnrichState === "done";
-                  const macroLabel = ns === "json-ld" ? "Macros from recipe"
-                    : nutritionEnrichState === "done" ? "Macros estimated"
-                    : nutritionEnrichState === "pending" ? "Estimating macros…"
-                    : nutritionEnrichState === "failed" ? "Macros unavailable"
-                    : "Macros — added after save";
-                  const macroStyle = hasMacros ? "bg-sage-100 text-sage-700"
-                    : nutritionEnrichState === "failed" ? "bg-parchment-200 text-ink-400"
-                    : "bg-parchment-200 text-ink-500";
+                  const showTm = draft?.steps && draft.steps.length > 0 && enrichments?.thermomixSuitable !== false;
+
+                  type RowState = "idle" | "pending" | "done" | "failed";
+                  const macroState: RowState = ns === "json-ld" || !!(draft?.calories) ? "done" : nutritionEnrichState;
+                  const macroText = macroState === "done" ? (ns === "json-ld" ? "From recipe" : "Estimated") : macroState === "pending" ? "Estimating…" : macroState === "failed" ? "Unavailable" : "Adding after save";
+                  const tmText = tmEnrichState === "done" ? "Added" : tmEnrichState === "pending" ? "Adding…" : tmEnrichState === "failed" ? "Not suitable" : "Adding after save";
+
+                  function StatusIcon({ state }: { state: RowState }) {
+                    if (state === "done") return <Check size={11} className="text-sage-600" />;
+                    if (state === "pending") return <Loader2 size={11} className="animate-spin text-ink-400" />;
+                    return null;
+                  }
+                  function statusTextClass(state: RowState) {
+                    return state === "done" ? "text-sage-700" : state === "failed" ? "text-ink-400" : "text-ink-400";
+                  }
+
                   return (
-                    <div className="flex flex-wrap gap-2">
-                      <span className={`inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-medium ${macroStyle}`}>
-                        <Sparkles size={10} />
-                        {macroLabel}
-                      </span>
-                      {draft?.steps && draft.steps.length > 0 && enrichments?.thermomixSuitable !== false && (
-                        <span className={`inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-medium ${tmEnrichState === "done" ? "bg-saffron-50 text-saffron-700" : tmEnrichState === "failed" ? "bg-parchment-200 text-ink-400" : "bg-parchment-200 text-ink-500"}`}>
-                          <Sparkles size={10} />
-                          {tmEnrichState === "done" ? "Thermomix steps added" : tmEnrichState === "failed" ? "No Thermomix adaptation" : tmEnrichState === "pending" ? "Adding Thermomix steps…" : "Thermomix steps — added after save"}
-                        </span>
-                      )}
+                    <div>
+                      <p className="text-xs font-medium text-ink-400 uppercase tracking-wider mb-2">Metadata</p>
+                      <div className="bg-parchment-200 rounded-xl divide-y divide-parchment-300">
+                        <div className="flex items-center justify-between px-3 py-2.5">
+                          <span className="text-sm text-ink-700">Macros</span>
+                          <span className={`flex items-center gap-1 text-xs font-medium ${statusTextClass(macroState)}`}>
+                            <StatusIcon state={macroState} />
+                            {macroText}
+                          </span>
+                        </div>
+                        {showTm && (
+                          <div className="flex items-center justify-between px-3 py-2.5">
+                            <span className="text-sm text-ink-700">Thermomix steps</span>
+                            <span className={`flex items-center gap-1 text-xs font-medium ${statusTextClass(tmEnrichState === "done" ? "done" : tmEnrichState === "failed" ? "failed" : tmEnrichState === "pending" ? "pending" : "idle")}`}>
+                              <StatusIcon state={tmEnrichState === "done" ? "done" : tmEnrichState === "failed" ? "failed" : tmEnrichState === "pending" ? "pending" : "idle"} />
+                              {tmText}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   );
                 })()}
