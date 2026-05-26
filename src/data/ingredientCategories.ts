@@ -3,19 +3,21 @@ import type { PantryItem } from "@/types/pantry";
 export type PantryCategory = NonNullable<PantryItem["category"]>;
 
 export const CATEGORY_LABELS: Record<PantryCategory, string> = {
-  produce:  "Produce",
-  dairy:    "Dairy",
-  meat:     "Meat & Fish",
-  pantry:   "Staples",
-  frozen:   "Frozen",
-  other:    "Other",
+  produce:    "Produce",
+  dairy:      "Dairy",
+  meat:       "Meat & Fish",
+  grains:     "Grains & Pasta",
+  spices:     "Spices & Herbs",
+  baking:     "Baking",
+  pantry:     "Staples",
+  frozen:     "Frozen",
+  other:      "Other",
 };
 
 export const CATEGORY_ORDER: PantryCategory[] = [
-  "produce", "dairy", "meat", "pantry", "frozen", "other",
+  "produce", "dairy", "meat", "grains", "spices", "baking", "pantry", "frozen", "other",
 ];
 
-// Lookup: lowercase ingredient name → category
 const RAW: Array<[PantryCategory, string[]]> = [
   ["dairy", [
     "milk", "cream", "heavy cream", "sour cream", "yogurt", "greek yogurt",
@@ -41,6 +43,28 @@ const RAW: Array<[PantryCategory, string[]]> = [
     "basil", "parsley", "coriander", "mint", "thyme", "rosemary", "dill", "chives",
     "fennel", "beetroot", "artichoke", "celeriac", "turnip",
   ]],
+  ["grains", [
+    "flour", "bread flour", "wholemeal flour", "cornmeal", "semolina",
+    "rice", "basmati rice", "jasmine rice", "brown rice", "arborio rice",
+    "pasta", "spaghetti", "penne", "fusilli", "tagliatelle", "lasagne sheets",
+    "couscous", "quinoa", "oats", "breadcrumbs", "panko",
+    "bread", "sourdough", "tortillas", "noodles", "ramen", "udon",
+  ]],
+  ["spices", [
+    "salt", "black pepper", "white pepper", "chilli flakes", "red pepper flakes",
+    "cumin", "ground cumin", "ground coriander", "paprika", "smoked paprika",
+    "turmeric", "cinnamon", "nutmeg", "cardamom", "cloves", "bay leaves", "bay leaf",
+    "oregano", "dried thyme", "dried basil", "dried rosemary", "dried parsley",
+    "curry powder", "garam masala", "five spice", "za'atar", "sumac",
+    "allspice", "cayenne", "cayenne pepper", "chilli powder", "mixed spice",
+    "fennel seeds", "mustard seeds", "coriander seeds", "cumin seeds",
+  ]],
+  ["baking", [
+    "sugar", "brown sugar", "caster sugar", "icing sugar", "honey", "maple syrup",
+    "baking powder", "baking soda", "bicarbonate of soda", "yeast", "vanilla extract",
+    "cocoa powder", "dark chocolate", "chocolate", "cornflour", "cornstarch", "gelatin",
+    "golden syrup", "molasses", "treacle", "agave",
+  ]],
   ["frozen", [
     "frozen peas", "frozen corn", "frozen spinach", "frozen berries",
     "ice cream", "frozen chips", "frozen fish",
@@ -48,37 +72,21 @@ const RAW: Array<[PantryCategory, string[]]> = [
   ["pantry", [
     // Oils & fats
     "olive oil", "vegetable oil", "sunflower oil", "coconut oil", "sesame oil", "lard",
-    // Grains & pasta
-    "flour", "bread flour", "wholemeal flour", "cornmeal", "semolina",
-    "rice", "basmati rice", "jasmine rice", "brown rice", "arborio rice",
-    "pasta", "spaghetti", "penne", "fusilli", "tagliatelle", "lasagne sheets",
-    "couscous", "quinoa", "oats", "breadcrumbs", "panko",
-    // Baking
-    "sugar", "brown sugar", "caster sugar", "icing sugar", "honey", "maple syrup",
-    "baking powder", "baking soda", "bicarbonate of soda", "yeast", "vanilla extract",
-    "cocoa powder", "dark chocolate", "chocolate", "cornflour", "cornstarch", "gelatin",
     // Pulses & canned
     "chickpeas", "black beans", "kidney beans", "lentils", "cannellini beans",
     "chopped tomatoes", "coconut milk", "tomato paste", "tomato purée", "tomato puree",
     "chicken stock", "vegetable stock", "beef stock", "stock",
-    // Spices
-    "salt", "black pepper", "white pepper", "chilli flakes", "red pepper flakes",
-    "cumin", "ground cumin", "coriander", "ground coriander", "paprika", "smoked paprika",
-    "turmeric", "cinnamon", "nutmeg", "cardamom", "cloves", "bay leaves", "bay leaf",
-    "oregano", "dried thyme", "dried basil",
-    "curry powder", "garam masala", "five spice", "za'atar", "sumac",
-    // Condiments
+    // Condiments & sauces
     "soy sauce", "fish sauce", "worcestershire sauce", "hot sauce", "tabasco",
     "dijon mustard", "wholegrain mustard", "mustard", "mayonnaise", "ketchup",
     "balsamic vinegar", "red wine vinegar", "white wine vinegar", "apple cider vinegar", "vinegar",
     "miso paste", "miso", "tahini", "sriracha", "oyster sauce", "hoisin sauce",
-    // Wine
+    // Wine & cooking liquids
     "white wine", "red wine", "dry sherry", "mirin", "rice wine",
-    // Nuts & seeds
+    // Nuts, seeds & dried fruit
     "almonds", "walnuts", "cashews", "pine nuts", "hazelnuts", "peanuts",
     "sesame seeds", "pumpkin seeds", "flaxseed", "chia seeds",
     "peanut butter", "almond butter",
-    // Dried fruit
     "raisins", "sultanas", "dried apricots", "dates", "cranberries",
   ]],
 ];

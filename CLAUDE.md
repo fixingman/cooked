@@ -86,6 +86,7 @@ Three files must always match:
 - `0.19.3` feat: pantry export/import + category grouping + AI categorise button · Staples label (was "Pantry")
 - `0.19.4` fix: pantry categories fallback to inferCategory() for uncategorised items · createPortal height fix
 - `0.19.5` feat: add recipe ingredients to pantry + pantry access from recipe detail page
+- `0.19.6` fix: pantry UI — hide already-added items in checklist · pantry checkmarks on ingredient list · sentence-case normalisation · granular categories (grains, spices, baking split from staples)
 
 ---
 

@@ -232,7 +232,11 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
               </motion.div>
             )}
           </AnimatePresence>
-          <IngredientList ingredients={recipe.ingredients} scale={scale} />
+          <IngredientList
+            ingredients={recipe.ingredients}
+            scale={scale}
+            pantryNames={new Set(pantryItems.map(i => i.name.toLowerCase()))}
+          />
         </div>
 
         {/* Method */}
@@ -277,6 +281,10 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
   );
 }
 
+function toSentenceCase(str: string): string {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 function AddToPantryPanel({
   ingredients,
   pantryItems,
@@ -289,9 +297,9 @@ function AddToPantryPanel({
   onOpenPantry: () => void;
 }) {
   const inPantry = new Set(pantryItems.map(i => i.name.toLowerCase()));
-  const [selected, setSelected] = useState<Set<string>>(
-    () => new Set(ingredients.filter(n => !inPantry.has(n.toLowerCase())))
-  );
+  // Only show items not already in pantry
+  const available = ingredients.filter(n => !inPantry.has(n.toLowerCase()));
+  const [selected, setSelected] = useState<Set<string>>(() => new Set(available));
 
   function toggle(name: string) {
     setSelected(prev => {
@@ -302,33 +310,39 @@ function AddToPantryPanel({
   }
 
   function handleAdd() {
-    Array.from(selected).forEach(name => onAdd(name));
+    Array.from(selected).forEach(name => onAdd(toSentenceCase(name)));
     setSelected(new Set());
+  }
+
+  if (available.length === 0) {
+    return (
+      <div className="bg-parchment-200/60 rounded-xl p-3 flex items-center justify-between">
+        <p className="text-sm text-ink-400">All ingredients are already in your pantry.</p>
+        <button onClick={onOpenPantry} className="text-sm text-ink-500 hover:text-ink-800 transition-colors ml-3 shrink-0">
+          View pantry
+        </button>
+      </div>
+    );
   }
 
   return (
     <div className="bg-parchment-200/60 rounded-xl p-3 space-y-2">
       <ul className="space-y-0.5 max-h-48 overflow-y-auto">
-        {ingredients.map(name => {
-          const already = inPantry.has(name.toLowerCase());
-          const checked = already || selected.has(name);
+        {available.map(name => {
+          const checked = selected.has(name);
           return (
             <li key={name}>
               <button
-                onClick={() => { if (!already) toggle(name); }}
-                disabled={already}
-                className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-parchment-300 transition-colors text-left disabled:cursor-default"
+                onClick={() => toggle(name)}
+                className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-parchment-300 transition-colors text-left"
               >
                 <span className={[
                   "w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors",
-                  already ? "bg-sage-400 border-sage-400" : checked ? "bg-saffron-500 border-saffron-500" : "border-parchment-400 bg-parchment-100",
+                  checked ? "bg-saffron-500 border-saffron-500" : "border-parchment-400 bg-parchment-100",
                 ].join(" ")}>
                   {checked && <CheckCircle size={10} className="text-white" fill="currentColor" strokeWidth={0} />}
                 </span>
-                <span className={["text-sm", already ? "text-ink-400 line-through" : "text-ink-800"].join(" ")}>
-                  {name}
-                </span>
-                {already && <span className="text-[10px] text-sage-500 ml-auto">in pantry</span>}
+                <span className="text-sm text-ink-800">{toSentenceCase(name)}</span>
               </button>
             </li>
           );

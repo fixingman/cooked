@@ -2,7 +2,7 @@ import type { PantryCategory } from "@/data/ingredientCategories";
 
 export const maxDuration = 30;
 
-const VALID: PantryCategory[] = ["produce", "dairy", "meat", "pantry", "frozen", "other"];
+const VALID: PantryCategory[] = ["produce", "dairy", "meat", "grains", "spices", "baking", "pantry", "frozen", "other"];
 
 export async function POST(req: Request) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -19,10 +19,13 @@ export async function POST(req: Request) {
   }
 
   const prompt = `Categorise each ingredient into exactly one of these categories:
-- produce: fresh fruit, vegetables, herbs
+- produce: fresh fruit, vegetables, fresh herbs
 - dairy: milk, cheese, eggs, butter, cream, yogurt
 - meat: meat, poultry, fish, seafood, tofu, tempeh
-- pantry: dry goods, oils, spices, canned goods, condiments, baking, pasta, grains, nuts, vinegar, sauces (display name: Staples)
+- grains: pasta, rice, flour, bread, oats, couscous, noodles, breadcrumbs (display name: Grains & Pasta)
+- spices: dry spices, dried herbs, seasoning blends (display name: Spices & Herbs)
+- baking: sugar, chocolate, baking powder, yeast, vanilla, cocoa, cornflour, syrups (display name: Baking)
+- pantry: oils, vinegars, condiments, sauces, canned goods, stocks, nuts, seeds, nut butters, dried fruit, wine for cooking (display name: Staples)
 - frozen: frozen foods
 - other: anything that doesn't fit the above
 

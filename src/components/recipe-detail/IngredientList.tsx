@@ -1,5 +1,6 @@
 "use client";
 import { useMemo } from "react";
+import { CheckCircle } from "lucide-react";
 import { scaleQuantity } from "@/lib/scaleIngredient";
 import type { Ingredient } from "@/types/recipe";
 import { cn } from "@/lib/cn";
@@ -8,6 +9,7 @@ interface IngredientListProps {
   ingredients: Ingredient[];
   scale: number;
   units?: "metric" | "imperial";
+  pantryNames?: Set<string>;
 }
 
 function groupIngredients(ingredients: Ingredient[]): Map<string, Ingredient[]> {
@@ -24,7 +26,7 @@ function groupIngredients(ingredients: Ingredient[]): Map<string, Ingredient[]> 
   return groups;
 }
 
-export function IngredientList({ ingredients, scale, units = "metric" }: IngredientListProps) {
+export function IngredientList({ ingredients, scale, units = "metric", pantryNames }: IngredientListProps) {
   const groups = useMemo(() => groupIngredients(ingredients), [ingredients]);
 
   return (
@@ -69,6 +71,9 @@ export function IngredientList({ ingredients, scale, units = "metric" }: Ingredi
                       <span className="text-ink-400 text-xs ml-1.5">(optional)</span>
                     )}
                   </span>
+                  {pantryNames?.has(ing.name.toLowerCase()) && (
+                    <CheckCircle size={13} className="text-sage-400 shrink-0" fill="currentColor" strokeWidth={0} />
+                  )}
                 </li>
               );
             })}
