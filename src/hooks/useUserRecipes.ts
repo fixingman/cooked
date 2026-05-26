@@ -28,6 +28,9 @@ export function useUserRecipes() {
 
   const updateRecipe = useCallback((id: string, patch: Partial<Recipe>) => {
     setValue(prev => prev.map(r => r.id === id ? { ...r, ...patch } : r));
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("cooked:recipe-updated", { detail: { id } }));
+    }
   }, [setValue]);
 
   const removeRecipe = useCallback((id: string) => {

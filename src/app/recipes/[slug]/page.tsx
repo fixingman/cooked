@@ -2,7 +2,7 @@
 import React from "react";
 import { notFound, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Clock, Users, BarChart2, Star, CheckCircle, X, ShoppingBasket, ChevronDown, ChevronUp } from "lucide-react";
+import { Clock, Users, BarChart2, Star, CheckCircle, X, ShoppingBasket, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RecipeHero } from "@/components/recipe-detail/RecipeHero";
 import { ServingsAdjuster } from "@/components/recipe-detail/ServingsAdjuster";
@@ -76,10 +76,62 @@ function RecipeDetailSkeleton() {
   );
 }
 
+function NutritionSkeleton() {
+  return (
+    <div className="py-5 border-b border-parchment-300">
+      <div className="h-3 w-36 bg-parchment-200 rounded-full animate-pulse mb-3" />
+      <div className="flex gap-2">
+        {[0, 1, 2, 3].map(i => (
+          <div key={i} className="flex-1 h-[68px] bg-parchment-200 rounded-2xl animate-pulse" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: Recipe; isUserRecipe: boolean }) {
   const router = useRouter();
   const [recipe, setRecipe] = useState(initialRecipe);
   const [showEdit, setShowEdit] = useState(false);
+
+  // Enrichment pending state — initialised from sessionStorage flag set by ImportRecipeModal
+  const [enriching, setEnriching] = useState(() => {
+    if (!isUserRecipe || typeof window === "undefined") return false;
+    try { return !!sessionStorage.getItem(`cooked-enriching-${initialRecipe.id}`); } catch { return false; }
+  });
+
+  // Subscribe to background enrichment updates from useUserRecipes.updateRecipe
+  useEffect(() => {
+    if (!isUserRecipe) return;
+    const handler = (e: Event) => {
+      const { id } = (e as CustomEvent<{ id: string }>).detail;
+      if (id !== initialRecipe.id) return;
+      try {
+        const stored = localStorage.getItem("cooked-user-recipes");
+        const updated = stored ? (JSON.parse(stored) as Recipe[]).find(r => r.id === id) : null;
+        if (!updated) return;
+        setRecipe(updated);
+        const nutritionDone = !!(updated.calories || updated.protein);
+        const tmDone = updated.thermomixAvailable || updated.steps.length === 0;
+        if (nutritionDone && tmDone) {
+          setEnriching(false);
+          try { sessionStorage.removeItem(`cooked-enriching-${id}`); } catch {}
+        }
+      } catch {}
+    };
+    window.addEventListener("cooked:recipe-updated", handler);
+    return () => window.removeEventListener("cooked:recipe-updated", handler);
+  }, [isUserRecipe, initialRecipe.id]);
+
+  // Fallback: clear skeletons after 90s in case enrichment silently failed
+  useEffect(() => {
+    if (!enriching) return;
+    const t = setTimeout(() => {
+      setEnriching(false);
+      try { sessionStorage.removeItem(`cooked-enriching-${initialRecipe.id}`); } catch {}
+    }, 90_000);
+    return () => clearTimeout(t);
+  }, [enriching, initialRecipe.id]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const { removeRecipe } = useUserRecipes();
   const { addEntry, deleteLastEntry, deleteRecipeHistory } = useCookingHistory();
@@ -195,7 +247,10 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
           <p className="font-serif text-ink-700 leading-relaxed text-[1.05rem]">{recipe.description}</p>
         </div>
 
-        <NutritionPanel recipe={recipe} />
+        {enriching && !recipe.calories && !recipe.protein
+          ? <NutritionSkeleton />
+          : <NutritionPanel recipe={recipe} />
+        }
 
         {/* Servings */}
         <div className="py-5 border-b border-parchment-300">
@@ -245,6 +300,14 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
           <h2 className="font-serif text-lg font-semibold text-ink-900 mb-5">Method</h2>
           <InstructionSteps steps={recipe.steps} />
         </div>
+
+        {/* Thermomix enrichment pending */}
+        {enriching && !recipe.thermomixAvailable && recipe.steps.length > 0 && (
+          <div className="flex items-center gap-2 py-3 text-xs text-ink-400 border-b border-parchment-300">
+            <Loader2 size={12} className="animate-spin shrink-0" />
+            Preparing Thermomix steps…
+          </div>
+        )}
 
         {/* Chef notes */}
         {recipe.chefNotes && (

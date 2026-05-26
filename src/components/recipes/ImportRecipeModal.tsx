@@ -218,6 +218,15 @@ export function ImportRecipeModal({ onClose, initialDraft, generatedDraft, onSav
       } catch {}
     }
 
+    // Signal recipe page that enrichment is pending (read on mount to show skeletons)
+    if (!isEditMode) {
+      const willEnrichNutrition = !finalRecipe.calories && !finalRecipe.protein;
+      const willEnrichTm = finalRecipe.steps.length > 0 && enrichments?.thermomixSuitable !== false;
+      if (willEnrichNutrition || willEnrichTm) {
+        try { sessionStorage.setItem(`cooked-enriching-${finalRecipe.id}`, "1"); } catch {}
+      }
+    }
+
     // Fire Thermomix enrichment in the background after save — only if classify confirmed suitability.
     if (!isEditMode && finalRecipe.steps.length > 0 && enrichments?.thermomixSuitable !== false) {
       setTmEnrichState("pending");
