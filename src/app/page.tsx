@@ -36,12 +36,9 @@ export default function HomePage() {
 
   const allRecipes = useMemo(() => [...userRecipes], [userRecipes]);
 
-  const featuredRecipe = userRecipes[0];
-
   const primary = getCurrentMeal();
   const secondary = getSecondaryMeal(primary.mealTime);
 
-  // Build ranking signals from pantry, favourites, and cook history
   const pantryNames = useMemo(
     () => new Set(pantryItems.map(i => normalizeForMatch(i.name))),
     [pantryItems]
@@ -52,7 +49,47 @@ export default function HomePage() {
     [pantryNames, favouriteIds, states]
   );
 
-  // "For You" — top-ranked recipes, excluding anything cooked in the last 3 days
+  // Featured hero — top-ranked recipe matching the current meal time;
+  // falls back to top-ranked overall if no meal-time matches exist.
+  const featuredRecipe = useMemo(() => {
+    if (allRecipes.length === 0) return null;
+    const mealMatches = rankRecipes(
+      allRecipes.filter(r => r.mealTimes.includes(primary.mealTime)),
+      signals
+    );
+    return mealMatches[0] ?? rankRecipes(allRecipes, signals)[0] ?? null;
+  }, [allRecipes, primary.mealTime, signals]);
+
+  // Meal-time carousels — ranked within filter, featured excluded to avoid repetition
+  const primaryRecipes = useMemo(
+    () => rankRecipes(
+      allRecipes.filter(r => r.mealTimes.includes(primary.mealTime) && r.id !== featuredRecipe?.id),
+      signals
+    ),
+    [allRecipes, primary.mealTime, featuredRecipe, signals]
+  );
+  const secondaryRecipes = useMemo(
+    () => rankRecipes(
+      allRecipes.filter(r => r.mealTimes.includes(secondary.mealTime)),
+      signals
+    ),
+    [allRecipes, secondary.mealTime, signals]
+  );
+
+  const wantToCookRecipes = useMemo(() => {
+    const ids = new Set(states.filter(s => s.wantToCook).map(s => s.recipeId));
+    return rankRecipes(allRecipes.filter(r => ids.has(r.id)), signals);
+  }, [allRecipes, states, signals]);
+
+  const untriedFavourites = useMemo(
+    () => rankRecipes(
+      allRecipes.filter(r => favouriteIds.includes(r.id) && !hasCooked(r.id)),
+      signals
+    ),
+    [allRecipes, favouriteIds, hasCooked, signals]
+  );
+
+  // "For You" — full ranked list minus recently cooked, shown at bottom
   const forYouRecipes = useMemo(() => {
     if (!hasEnoughSignal(signals)) return [];
     const threeDaysAgo = Date.now() - 3 * 86_400_000;
@@ -65,40 +102,12 @@ export default function HomePage() {
     return rankRecipes(eligible, signals).slice(0, 8);
   }, [allRecipes, signals]);
 
-  // Meal-time carousels — ranked within their meal-time filter
-  const primaryRecipes = useMemo(
-    () => rankRecipes(allRecipes.filter(r => r.mealTimes.includes(primary.mealTime)), signals),
-    [allRecipes, primary.mealTime, signals]
-  );
-  const secondaryRecipes = useMemo(
-    () => rankRecipes(allRecipes.filter(r => r.mealTimes.includes(secondary.mealTime)), signals),
-    [allRecipes, secondary.mealTime, signals]
-  );
-
-  // Recipes the user has bookmarked (wantToCook), ranked
-  const wantToCookRecipes = useMemo(() => {
-    const ids = new Set(states.filter(s => s.wantToCook).map(s => s.recipeId));
-    return rankRecipes(allRecipes.filter(r => ids.has(r.id)), signals);
-  }, [allRecipes, states, signals]);
-
-  // Favourites the user hasn't cooked yet, ranked
-  const untriedFavourites = useMemo(
-    () => rankRecipes(
-      allRecipes.filter(r => favouriteIds.includes(r.id) && !hasCooked(r.id)),
-      signals
-    ),
-    [allRecipes, favouriteIds, hasCooked, signals]
-  );
-
   return (
     <div className="px-4 py-6 md:px-8 max-w-5xl mx-auto space-y-8">
       <TimeGreeting />
       <AIPromptBar />
-      <PantryWidget />
-      {hasEnoughSignal(signals) && forYouRecipes.length >= 2 && (
-        <ForYouSection recipes={forYouRecipes} pantryNames={pantryNames} />
-      )}
       {featuredRecipe && <FeaturedHero recipe={featuredRecipe} />}
+      <PantryWidget />
       <MealTimeSection
         recipes={wantToCookRecipes}
         label="In Your List"
@@ -112,6 +121,9 @@ export default function HomePage() {
         seeAllHref="/recipes"
       />
       <MealTimeSection recipes={secondaryRecipes} label={secondary.label} mealTime={secondary.mealTime} />
+      {hasEnoughSignal(signals) && forYouRecipes.length >= 2 && (
+        <ForYouSection recipes={forYouRecipes} pantryNames={pantryNames} />
+      )}
       <div className="h-4" />
     </div>
   );
