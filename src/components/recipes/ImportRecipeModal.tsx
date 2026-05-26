@@ -118,7 +118,7 @@ export function ImportRecipeModal({ onClose, initialDraft, generatedDraft, onSav
       const res = await fetch("/api/recipes/import-text", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: pasteText }),
+        body: JSON.stringify({ text: pasteText, ...(url.trim() ? { url: url.trim() } : {}) }),
       });
       const data = await res.json();
       if (!res.ok || !data.recipe) {
@@ -403,10 +403,20 @@ export function ImportRecipeModal({ onClose, initialDraft, generatedDraft, onSav
                       value={pasteText}
                       onChange={e => setPasteText(e.target.value)}
                       placeholder="Paste recipe text here…"
-                      rows={10}
+                      rows={9}
                       autoFocus
                       className="w-full px-3 py-2.5 bg-parchment-200 border border-parchment-300 rounded-xl text-sm text-ink-800 placeholder:text-ink-300 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/30 resize-none font-mono leading-relaxed"
                     />
+                    <div className="relative">
+                      <Link2 size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-300 pointer-events-none" />
+                      <input
+                        type="url"
+                        value={url}
+                        onChange={e => setUrl(e.target.value)}
+                        placeholder="Source URL (optional) — helps grab image & attribution"
+                        className="w-full pl-8 pr-3 py-2 bg-parchment-200 border border-parchment-300 rounded-xl text-sm text-ink-800 placeholder:text-ink-300 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/30"
+                      />
+                    </div>
                     <motion.button
                       whileTap={{ scale: 0.95 }}
                       onClick={handleTextImport}

@@ -2,6 +2,48 @@ import { extractWithClaude, buildImportResponse, RECIPE_SIGNAL_WORDS } from "@/l
 
 export const maxDuration = 30;
 
+const DESKTOP_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36";
+
+// Best-effort supplementary fetch — grabs hero image URL from JSON-LD or OG tags.
+// Short timeout, single attempt, silently fails if the page is auth-gated.
+async function fetchSupplementaryImageUrl(url: string): Promise<string | null> {
+  try {
+    const res = await fetch(url, {
+      headers: {
+        "User-Agent": DESKTOP_UA,
+        "Accept": "text/html,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+      },
+      signal: AbortSignal.timeout(5_000),
+      redirect: "follow",
+    });
+    if (!res.ok) return null;
+    // Read only the first 60KB — enough to cover <head> where OG/JSON-LD live
+    const reader = res.body?.getReader();
+    if (!reader) return null;
+    const dec = new TextDecoder();
+    let html = "";
+    try {
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        html += dec.decode(value, { stream: true });
+        if (html.length > 60_000) break;
+      }
+    } finally {
+      reader.cancel().catch(() => {});
+    }
+    // JSON-LD image
+    const ldMatch = html.match(/"image"\s*:\s*"(https?:\/\/[^"]+)"/);
+    if (ldMatch) return ldMatch[1];
+    // OG image
+    const ogMatch = html.match(/<meta[^>]+property="og:image"[^>]+content="([^"]+)"/i)
+                 ?? html.match(/<meta[^>]+content="([^"]+)"[^>]+property="og:image"/i);
+    if (ogMatch) return ogMatch[1];
+  } catch {}
+  return null;
+}
+
 export async function POST(req: Request) {
   let text: string, url: string | undefined;
   try {
@@ -26,11 +68,22 @@ export async function POST(req: Request) {
   const sourceUrl = url ?? "";
 
   try {
-    const recipe = await extractWithClaude(text, sourceUrl, id, apiKey);
+    // Run Claude extraction and supplementary URL fetch in parallel
+    const [recipe, supplementaryImage] = await Promise.all([
+      extractWithClaude(text, sourceUrl, id, apiKey),
+      url ? fetchSupplementaryImageUrl(url) : Promise.resolve(null),
+    ]);
+
     if (!recipe) {
       return Response.json({ error: "Could not extract a recipe from the pasted text." }, { status: 422 });
     }
-    const result = await buildImportResponse(recipe, text, {
+
+    // Use supplementary image if Claude didn't find one (text rarely contains image URLs)
+    const enrichedRecipe = supplementaryImage && !recipe.heroImageUrl
+      ? { ...recipe, heroImageUrl: supplementaryImage }
+      : recipe;
+
+    const result = await buildImportResponse(enrichedRecipe, text, {
       apiKey,
       unsplashKey: process.env.UNSPLASH_ACCESS_KEY,
     });
