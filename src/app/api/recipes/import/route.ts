@@ -12,8 +12,9 @@ const ALLOWED_PROTOCOLS = ["http:", "https:"];
 // heavy pages (e.g. Waitrose) where the JSON-LD is in <head> but the full
 // body takes 15–20s to transfer.
 
-const DESKTOP_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36";
-const MOBILE_UA  = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1";
+const DESKTOP_UA   = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36";
+const MOBILE_UA    = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1";
+const GOOGLEBOT_UA = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)";
 
 const BASE_HEADERS: Record<string, string> = {
   "Accept":                  "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
@@ -275,9 +276,25 @@ export async function POST(req: Request) {
     });
   }
 
-  const pageText = stripHtmlToText(html);
+  let pageText = stripHtmlToText(html);
 
-  const jsonLdRecipe = parseRecipeFromHtml(html, url, id);
+  let jsonLdRecipe = parseRecipeFromHtml(html, url, id);
+
+  // Some SPA/SSR sites (e.g. coop.se) prerender full HTML including JSON-LD
+  // only for Googlebot. Retry with crawler UA when the browser fetch yielded
+  // no JSON-LD — costs one extra request but avoids falling through to Claude.
+  if (!jsonLdRecipe) {
+    try {
+      const botHtml = await streamFetch(url, { "User-Agent": GOOGLEBOT_UA, ...BASE_HEADERS });
+      const botRecipe = parseRecipeFromHtml(botHtml, url, id);
+      if (botRecipe) {
+        html = botHtml;
+        pageText = stripHtmlToText(botHtml);
+        jsonLdRecipe = botRecipe;
+      }
+    } catch {}
+  }
+
   if (jsonLdRecipe && jsonLdRecipe.steps.length > 0) return finalise(jsonLdRecipe, pageText);
 
   // JSON-LD has metadata but no steps — try Claude for steps

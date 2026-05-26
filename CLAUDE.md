@@ -91,6 +91,7 @@ Three files must always match:
 - `0.19.8` fix: AI bar clear button centering (Framer Motion transform conflict) · tbsp/tsp abbreviation (recipe detail + cook mode) · &rsquo; apostrophe stripped in ingredient names · non-English cuisine falls back to AI inference
 - `0.19.9` feat: fuzzy pantry matching — normalizeForMatch strips prep context (diced, minced, etc.) and comma clauses for comparison · cleanForPantry strips prep before storing · checkmark replaces filled green dot
 - `0.19.10` fix: recipe import — stream exits as soon as complete JSON-LD block found (fixes body-embedded JSON-LD e.g. The Modern Proper) · Claude fallback timeout 12s→20s
+- `0.19.11` fix: recipe import — Googlebot UA retry when browser fetch yields no JSON-LD (fixes SPA/prerender sites e.g. coop.se)
 
 ---
 
