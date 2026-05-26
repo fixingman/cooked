@@ -13,9 +13,9 @@ export const CATEGORY_LABELS: Record<PantryCategory, string> = {
   baking:      "Baking",
   pantry:      "Oils & Condiments",
   canned:      "Canned & Jars",
-  dried:       "Dried Goods",
+  dried:       "Dried",
   frozen:      "Frozen",
-  other:       "Other",
+  other:       "Misc",
 };
 
 export const CATEGORY_ORDER: PantryCategory[] = [

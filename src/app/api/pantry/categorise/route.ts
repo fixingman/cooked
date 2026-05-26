@@ -32,9 +32,9 @@ export async function POST(req: Request) {
 - baking: sugar, chocolate, baking powder, yeast, vanilla, cocoa, cornflour, honey, syrups (display: Baking)
 - pantry: oils, vinegars, condiments, mustard, soy/fish/hot sauces, miso, nuts, seeds, nut butters, wine for cooking (display: Oils & Condiments)
 - canned: canned/tinned goods, stocks, broths, coconut milk, tomato paste, passata, jarred peppers/olives/capers/pesto (display: Canned & Jars)
-- dried: dried fruit (raisins, dates, apricots), dried mushrooms, sun-dried tomatoes, dried chilies, coconut flakes (display: Dried Goods)
+- dried: dried fruit (raisins, dates, apricots), dried mushrooms, sun-dried tomatoes, dried chilies, coconut flakes (display: Dried)
 - frozen: frozen foods
-- other: anything that doesn't fit the above
+- other: anything that doesn't fit the above (display: Misc)
 
 Ingredients to categorise:
 ${names.map((n, i) => `${i + 1}. ${n}`).join("\n")}

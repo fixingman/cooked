@@ -97,6 +97,7 @@ Three files must always match:
 - `0.19.14` fix: BUG-008 recurring — RecipeCard now loads Dropbox image for all recipes with heroImageDropboxPath (not just ai-found), matching RecipeHero behaviour
 - `0.20.0` F-5 + H-1B: recipe ranking engine (pantry match · favourites · cook history · recency penalty) · "For You" homepage carousel · all existing carousels ranked within their filter
 - `0.20.1` feat: pantry categories expanded — Produce split into Fruit + Vegetables · Legumes added · Dried Goods added · Frozen expanded
+- `0.20.2` fix: pantry labels — "Dried Goods" → "Dried" · "Other" → "Misc"
 
 ---
 
