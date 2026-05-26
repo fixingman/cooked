@@ -2,6 +2,7 @@
 import { useCallback } from "react";
 import { useDropboxAuth } from "@/hooks/useDropboxAuth";
 import { useDropboxSync } from "@/hooks/useDropboxSync";
+import { inferCategory } from "@/data/ingredientCategories";
 import type { PantryItem } from "@/types/pantry";
 
 function mergeItems(local: PantryItem[], remote: PantryItem[]): PantryItem[] {
@@ -29,6 +30,7 @@ export function usePantry() {
         id: crypto.randomUUID(),
         name: normalised,
         addedAt: new Date().toISOString(),
+        category: inferCategory(normalised),
       };
       return [item, ...prev];
     });
@@ -42,5 +44,21 @@ export function usePantry() {
     setValue(prev => prev.map(i => i.id === id ? { ...i, low: !i.low } : i));
   }, [setValue]);
 
-  return { items, addItem, removeItem, toggleLow };
+  // Merge an imported list, deduplicating by name
+  const importItems = useCallback((incoming: PantryItem[]) => {
+    setValue(prev => {
+      const existingNames = new Set(prev.map(i => i.name.toLowerCase()));
+      const fresh = incoming
+        .filter(i => !existingNames.has(i.name.toLowerCase()))
+        .map(i => ({
+          ...i,
+          id: crypto.randomUUID(),
+          addedAt: i.addedAt ?? new Date().toISOString(),
+          category: i.category ?? inferCategory(i.name),
+        }));
+      return [...fresh, ...prev];
+    });
+  }, [setValue]);
+
+  return { items, addItem, removeItem, toggleLow, importItems };
 }
