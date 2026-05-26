@@ -180,22 +180,26 @@ export async function resolveRecipeImage(
 
   if (!rawImageUrl) return unsplashFallback();
 
-  const fullResUrl = tryFullResUrl(rawImageUrl);
+  // Protocol-relative URLs (//cdn.example.com/...) are invalid for Node.js fetch()
+  // and rejected by Next.js Image. Normalise to https: before any processing.
+  const normalizedUrl = rawImageUrl.startsWith("//") ? `https:${rawImageUrl}` : rawImageUrl;
+
+  const fullResUrl = tryFullResUrl(normalizedUrl);
   let resolvedUrl = fullResUrl;
   let quality: "ok" | "low" | "unknown";
 
-  if (fullResUrl !== rawImageUrl) {
+  if (fullResUrl !== normalizedUrl) {
     // URL was modified by stripping — verify it still points to an actual image.
     // Some sites serve a generic header/banner at the stripped URL (e.g. themodernproper.com).
     const strippedQuality = await checkImageQuality(fullResUrl);
     if (strippedQuality === "unknown") {
-      resolvedUrl = rawImageUrl;
-      quality = await checkImageQuality(rawImageUrl);
+      resolvedUrl = normalizedUrl;
+      quality = await checkImageQuality(normalizedUrl);
     } else {
       quality = strippedQuality;
     }
   } else {
-    quality = await checkImageQuality(rawImageUrl);
+    quality = await checkImageQuality(normalizedUrl);
   }
 
   if (quality === "ok") return { url: resolvedUrl, source: "scraped", quality: "ok" };
