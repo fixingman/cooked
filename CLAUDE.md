@@ -148,24 +148,71 @@ After merging, if the result differs from remote, the merged value is pushed bac
 
 ## Recipe import pipeline
 
+### Fetch layer — `fetchPage()` + `streamFetch()`
+
+The fetch layer is the most complex part of the import pipeline. It handles bot-detection, large pages, SPA prerendering, and streaming early-exit.
+
+```
+fetchPage(url) — tries up to 3 UA strategies, retries only on HTTP 4xx:
+  1. Desktop Chrome UA + Google Referer   (most permissive, defeats most bot-checks)
+  2. Desktop Chrome UA (no Referer)
+  3. Mobile UA + Google Referer
+  On success (HTTP 200): returns HTML immediately, no further retries.
+  On HTTP 4xx: tries next strategy. On timeout/5xx: breaks immediately (retry won't help).
+
+streamFetch(url, headers) — streams response with 18s timeout:
+  Early-exit conditions (abort and return accumulated HTML):
+  1. application/ld+json seen AND a closing </script> follows it
+     → a complete JSON-LD block is in the buffer; no need to read further.
+     Handles both <head>-embedded JSON-LD (e.g. Waitrose) and late-body JSON-LD
+     (e.g. The Modern Proper, where JSON-LD is at byte 200K+ in a 221KB page).
+  2. html.length > 600_000  → absolute safety cap, never exceeded in practice.
+  The stream reader is cancelled after early-exit to free the connection.
+```
+
+**Googlebot prerender fallback** (runs after `fetchPage` if no JSON-LD found):
+Some SPAs (e.g. coop.se) serve a JavaScript shell to browser UAs but return fully
+prerendered HTML — including complete JSON-LD with ingredients and instructions —
+to Googlebot. A second fetch with `Googlebot/2.1` UA is attempted before falling
+through to Claude. Only fires when JSON-LD is missing from the first fetch.
+
+**Known site-specific behaviours:**
+| Site | Behaviour | Handled by |
+|------|-----------|------------|
+| Waitrose | JSON-LD in `<head>`, page is 80KB+ | Stream early-exit on `</head>` + JSON-LD |
+| The Modern Proper | JSON-LD in `<body>` at byte 200K+ | Stream early-exit on complete JSON-LD block |
+| coop.se | SPA — JSON-LD only in Googlebot prerender | Googlebot UA retry |
+| Cookidoo | JSON-LD present but `recipeInstructions` empty (JS-rendered) | Claude step extraction, skipThermomix |
+| BBC Good Food | Full JSON-LD including nutrition | JSON-LD fast path, nutrition from json-ld |
+| Non-English sites | Swedish/French/German/etc. | `looksNonEnglish` → `translateRecipe()` parallel call |
+
+**Protocol-relative image URLs** (`//cdn.example.com/...`):
+Some sites (e.g. coop.se) output protocol-relative URLs in JSON-LD. These fail Node.js
+`fetch()` and are rejected by Next.js `Image`. `resolveRecipeImage` normalises them to
+`https:` before any processing so Cloudinary transform stripping and quality checks work.
+
 ### URL import — `POST /api/recipes/import`
 
 ```
 1. Validate URL (HTTP/HTTPS only)
-2. Fetch HTML with browser-like User-Agent, 8s timeout
+2. fetchPage(url) — browser UA with streaming early-exit (see Fetch layer above)
 3. Try JSON-LD fast path: parseRecipeFromHtml(html, url, id)
+   - If no JSON-LD: retry with Googlebot UA (SPA prerender fallback)
    - If JSON-LD found AND steps.length > 0  → finalise(recipe, pageText)
-   - If JSON-LD found but steps.length === 0 → Claude extraction for steps; merges steps + times onto JSON-LD metadata; finalise with skipThermomix: true
-   - If JSON-LD not found                   → Claude full-page extraction
+   - If JSON-LD found but steps.length === 0 → Claude extraction for steps; merges steps + times onto JSON-LD metadata
+   - If JSON-LD not found after Googlebot retry → Claude full-page extraction
 4. Claude fallback (only when ANTHROPIC_API_KEY is set):
-   - Guard: if "ingredient" not in page text → return 422 early
+   - Guard: if "ingredient" not in page text (multi-language) → return 422 early
    - extractWithClaude(pageText, url, id) — sends stripped text (40k char limit) to Claude Sonnet
    - Prompt asks for a specific JSON schema; buildRecipeFromSchema() normalises output
-5. finalise(recipe, pageText, { skipThermomix? }) runs four calls in parallel:
+   - Timeout: 20s (generous — browser fetch is fast due to streaming early-exit)
+5. finalise(recipe, pageText) runs in parallel:
    a. resolveRecipeImage(heroImageUrl, title, cuisine, UNSPLASH_ACCESS_KEY)
    b. estimateNutrition(recipe, apiKey)  — only if !r.calories && !r.protein
-   c. generateThermomixSteps(steps, apiKey).catch(() => null)  — skipped if skipThermomix
-   d. classifyRecipe(recipe, apiKey, pageText)
+   c. classifyRecipe(recipe, apiKey, pageText)
+   d. estimateTimeSplit — only if both prep+cook are 0 but totalTime > 0
+   e. translateRecipe — only if looksNonEnglish(recipe)
+   Note: Thermomix enrichment is deferred to client-side post-save (ImportRecipeModal)
 6. After parallel calls: fetch heroImageBase64 for Dropbox storage (separate fetch)
 7. Returns { recipe, heroImageBase64?, enrichments: { nutrition, nutritionSource, thermomix } }
 ```
