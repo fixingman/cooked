@@ -22,12 +22,10 @@ export function PantryWidget() {
         className="w-full flex items-center gap-3 px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl text-left hover:bg-amber-100 transition-colors"
       >
         <AlertTriangle size={15} className="text-amber-500 shrink-0" />
-        <div className="flex-1 min-w-0">
-          <span className="text-sm font-medium text-amber-800">Running low — </span>
-          <span className="text-sm text-amber-700 truncate">
-            {lowItems.map(i => i.name).join(", ")}
-          </span>
-        </div>
+        <p className="flex-1 min-w-0 text-sm text-amber-800 truncate">
+          <span className="font-medium">Running low — </span>
+          {lowItems.map(i => i.name).join(", ")}
+        </p>
         <span className="text-xs text-amber-500 shrink-0">Manage →</span>
       </motion.button>
 

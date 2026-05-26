@@ -89,7 +89,7 @@ Both must sum close to ${totalTimeMinutes}. Use multiples of 5.`;
       method: "POST",
       headers: HEADERS(apiKey),
       body: JSON.stringify({
-        model: "claude-sonnet-4-6",
+        model: "claude-haiku-4-5-20251001",
         max_tokens: 50,
         messages: [{ role: "user", content: prompt }],
       }),
@@ -133,11 +133,11 @@ Use 0 for transFat if negligible. sodium is in mg, cholesterol is in mg, all oth
       method: "POST",
       headers: HEADERS(apiKey),
       body: JSON.stringify({
-        model: "claude-sonnet-4-6",
+        model: "claude-haiku-4-5-20251001",
         max_tokens: 128,
         messages: [{ role: "user", content: prompt }],
       }),
-      signal: AbortSignal.timeout(15_000),
+      signal: AbortSignal.timeout(8_000),
     });
     if (!res.ok) return {};
     const data = await res.json();

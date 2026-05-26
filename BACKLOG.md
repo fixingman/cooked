@@ -64,6 +64,23 @@ Prompt bar on homepage below greeting (visible when `aiEnabled`). Single input, 
 
 ---
 
+### 🔴 F-11 — Bookmarklet: One-click paste import
+**What:** A browser bookmark (works in Safari, Firefox, Chrome — no install) that automates the paste-text import flow. Click it on any recipe page → text is copied to clipboard + Cooked opens with the paste tab ready + URL pre-filled → user hits Cmd+V → Import.
+**Why:** The paste tab (v0.20.5) already handles auth-gated content but requires manual Cmd+A + Cmd+C. The bookmarklet automates those two steps. Entire implementation is ~10 lines of JS + one small app change.
+**What's already built:**
+- `/api/recipes/import-text` endpoint ✅
+- Paste tab in ImportRecipeModal ✅
+- URL field in paste tab ✅
+**What still needs building:**
+- `page.tsx`: detect `?import=paste&url=X` query params on mount → auto-open ImportRecipeModal in paste mode with URL pre-filled
+- The bookmarklet string itself (share as a link the user drags to bookmarks bar):
+  ```javascript
+  javascript:(function(){navigator.clipboard.writeText(document.body.innerText.slice(0,50000)).then(function(){window.open('https://coooked.netlify.app/?import=paste&url='+encodeURIComponent(location.href))})})();
+  ```
+**Effort:** ~1 hour. `page.tsx` change is ~10 lines; the bookmarklet is a one-liner.
+
+---
+
 ### 🔴 F-10 — Chrome Extension / Bookmarklet: Save to Cooked
 **What:** One-click save from any webpage into Cooked — covers both public recipe sites and auth-gated content (Cookidoo, NYT Cooking, etc.) since the user's browser session handles authentication.
 **Why:** The "Paste" import mode (shipped v0.20.5) already handles auth-gated content but requires manual Cmd+A → Cmd+C. This feature automates that capture step. The key insight: auth is already solved by the user's browser — we just need to grab the rendered DOM text and send it to `/api/recipes/import-text`.

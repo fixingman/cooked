@@ -102,6 +102,7 @@ Three files must always match:
 - `0.20.4` fix: pantry items with old "produce" category (pre-v0.20.1) now visible and re-categorised on load — were invisible in modal but still blocking dedup, making them impossible to re-add
 - `0.20.5` feat: paste-text import mode — select all + copy from any auth-gated page (Cookidoo, NYT Cooking, etc.), paste into new "Paste" tab in import modal → `/api/recipes/import-text`; extractWithClaude + buildImportResponse extracted to `src/lib/recipeImport.ts`
 - `0.20.6` feat: optional source URL field in paste tab — runs parallel supplementary fetch (5s timeout) to grab hero image from OG/JSON-LD even when full page is auth-gated; Claude text extraction + image fetch run in parallel
+- `0.20.7` fix: estimateNutrition + estimateTimeSplit switched to Haiku (was Sonnet) — frees ~7s of the 30s Netlify budget so paste-text imports no longer time out before nutrition is estimated · fix: PantryWidget running-low text overflowed on mobile/desktop — truncate on inline span is a no-op, moved to block-level p element
 
 ---
 
