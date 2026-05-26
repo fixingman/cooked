@@ -1,6 +1,5 @@
 import { buildRecipeFromSchema } from "@/lib/parseJsonLd";
 import {
-  estimateNutrition,
   estimateTimeSplit,
   classifyRecipe,
   translateRecipe,
@@ -84,13 +83,13 @@ export async function buildImportResponse(
   const r = recipe;
   const { apiKey, unsplashKey } = opts;
 
-  const needsNutrition = !r.calories && !r.protein;
   const needsTimeSplit = r.prepTimeMinutes === 0 && r.cookTimeMinutes === 0 && r.totalTimeMinutes > 0;
   const needsTranslation = !!apiKey && looksNonEnglish(r);
 
-  const [imageResult, nutrition, classification, timeSplit, translation] = await Promise.all([
+  // Nutrition estimation is deferred to client-side post-save (like Thermomix enrichment).
+  // JSON-LD nutrition is preserved if already present in the source.
+  const [imageResult, classification, timeSplit, translation] = await Promise.all([
     resolveRecipeImage(r.heroImageUrl, r.title, r.cuisine, unsplashKey),
-    apiKey && needsNutrition ? estimateNutrition(r, apiKey) : Promise.resolve({}),
     apiKey
       ? classifyRecipe(r, apiKey, pageText)
       : Promise.resolve({
@@ -105,10 +104,7 @@ export async function buildImportResponse(
     needsTranslation ? translateRecipe(r, apiKey!) : Promise.resolve(null),
   ]);
 
-  const nutritionAdded = Object.keys(nutrition).length > 0;
-  const nutritionSource: "ai" | "json-ld" | "none" = nutritionAdded
-    ? "ai"
-    : r.calories || r.protein ? "json-ld" : "none";
+  const nutritionSource: "json-ld" | "none" = r.calories || r.protein ? "json-ld" : "none";
 
   const mergedTags = Array.from(new Set([...r.tags, ...classification.typeTags]));
   const mergedDietary = Array.from(new Set([...r.dietaryTags, ...classification.dietaryTags]));
@@ -136,7 +132,6 @@ export async function buildImportResponse(
 
   const enriched: Recipe = {
     ...r,
-    ...(nutrition as Partial<Recipe>),
     tags: mergedTags,
     dietaryTags: mergedDietary,
     mealTimes: mergedMealTimes,
@@ -163,7 +158,6 @@ export async function buildImportResponse(
     recipe: enriched,
     ...(heroImageBase64 ? { heroImageBase64 } : {}),
     enrichments: {
-      nutrition: nutritionAdded,
       nutritionSource,
       thermomix: false,
       thermomixSuitable: classification.thermomixSuitable,

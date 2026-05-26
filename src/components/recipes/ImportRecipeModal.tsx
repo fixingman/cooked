@@ -49,10 +49,11 @@ export function ImportRecipeModal({ onClose, initialDraft, generatedDraft, onSav
   const [editMealTimes, setEditMealTimes] = useState<MealTime[]>(seedDraft?.mealTimes ?? []);
   const [saving, setSaving] = useState(false);
   const [heroImageBase64, setHeroImageBase64] = useState<string | null>(null);
-  const [enrichments, setEnrichments] = useState<{ nutrition: boolean; nutritionSource?: "ai" | "json-ld" | "none"; thermomix: boolean; thermomixSuitable?: boolean } | null>(null);
+  const [enrichments, setEnrichments] = useState<{ nutritionSource?: "ai" | "json-ld" | "none"; thermomix: boolean; thermomixSuitable?: boolean } | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [tmEnrichState, setTmEnrichState] = useState<"idle" | "pending" | "done" | "failed">("idle");
+  const [nutritionEnrichState, setNutritionEnrichState] = useState<"idle" | "pending" | "done" | "failed">("idle");
   const [duplicateOf, setDuplicateOf] = useState<Recipe | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -236,6 +237,31 @@ export function ImportRecipeModal({ onClose, initialDraft, generatedDraft, onSav
           }
         })
         .catch(() => setTmEnrichState("failed"));
+    }
+
+    // Fire nutrition estimation in the background after save — deferred to keep import fast.
+    if (!isEditMode && !finalRecipe.calories && !finalRecipe.protein) {
+      setNutritionEnrichState("pending");
+      const recipeId = finalRecipe.id;
+      fetch("/api/recipes/estimate-nutrition", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: finalRecipe.title,
+          servings: finalRecipe.servings,
+          ingredients: finalRecipe.ingredients,
+        }),
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (data.nutrition) {
+            updateRecipe(recipeId, data.nutrition);
+            setNutritionEnrichState("done");
+          } else {
+            setNutritionEnrichState("failed");
+          }
+        })
+        .catch(() => setNutritionEnrichState("failed"));
     }
 
     onSave?.(finalRecipe);
@@ -567,11 +593,18 @@ export function ImportRecipeModal({ onClose, initialDraft, generatedDraft, onSav
                 {/* AI enrichment status */}
                 {enrichments && (() => {
                   const ns = enrichments.nutritionSource;
-                  const hasMacros = ns === "ai" || ns === "json-ld" || (!ns && enrichments.nutrition) || !!(draft?.calories);
-                  const macroLabel = ns === "ai" ? "Macros estimated" : ns === "json-ld" ? "Macros from recipe" : hasMacros ? "Macros available" : "Macros unavailable";
+                  const hasMacros = ns === "json-ld" || !!(draft?.calories) || nutritionEnrichState === "done";
+                  const macroLabel = ns === "json-ld" ? "Macros from recipe"
+                    : nutritionEnrichState === "done" ? "Macros estimated"
+                    : nutritionEnrichState === "pending" ? "Estimating macros…"
+                    : nutritionEnrichState === "failed" ? "Macros unavailable"
+                    : "Macros — added after save";
+                  const macroStyle = hasMacros ? "bg-sage-100 text-sage-700"
+                    : nutritionEnrichState === "failed" ? "bg-parchment-200 text-ink-400"
+                    : "bg-parchment-200 text-ink-500";
                   return (
                     <div className="flex flex-wrap gap-2">
-                      <span className={`inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-medium ${hasMacros ? "bg-sage-100 text-sage-700" : "bg-parchment-200 text-ink-400"}`}>
+                      <span className={`inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-medium ${macroStyle}`}>
                         <Sparkles size={10} />
                         {macroLabel}
                       </span>
