@@ -10,6 +10,8 @@ function cleanText(s: string): string {
     .replace(/&frac34;|&#190;/gi, "¾")
     .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(parseInt(n))) // decimal entities e.g. &#8217; → '
     .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCharCode(parseInt(h, 16))) // hex entities
+    .replace(/&rsquo;|&lsquo;|&apos;/gi, "'")                          // apostrophes / single quotes
+    .replace(/&rdquo;|&ldquo;/gi, '"')                                  // double quotes
     .replace(/&[a-z]+;/gi, " ")                                        // remaining named entities → space
     .replace(/\s{2,}/g, " ")
     .trim();
@@ -63,12 +65,16 @@ function mapCuisine(values: string | string[] | undefined): string {
   if (s.includes("moroccan") || s.includes("north african")) return "moroccan";
   if (s.includes("british") || s.includes("english") || s.includes("irish") || s.includes("scottish")) return "british";
   if (s.includes("spanish") || s.includes("catalan")) return "spanish";
-  if (s.includes("german") || s.includes("austrian")) return "german";
+  if (s.includes("german") || s.includes("austrian") || s.includes("deutsch")) return "german";
   if (s.includes("brazilian") || s.includes("peruvian") || s.includes("latin")) return "latin american";
   if (s.includes("caribbean")) return "caribbean";
   if (s.includes("african")) return "african";
-  // Fall back to lowercase raw string (trim to 25 chars)
-  return s.slice(0, 25).trimEnd();
+  if (s.includes("swedish") || s.includes("svensk") || s.includes("nordic") || s.includes("scandinavian") || s.includes("nordisk") || s.includes("norsk") || s.includes("dansk")) return "scandinavian";
+  if (s.includes("portuguese") || s.includes("portugues")) return "portuguese";
+  if (s.includes("russian") || s.includes("russkiy")) return "russian";
+  if (s.includes("polish") || s.includes("polski")) return "polish";
+  // Unknown / non-English — return "any" so classifyRecipe can infer from recipe content
+  return "any";
 }
 
 function mapMealTimes(categories: string | string[] | undefined): MealTime[] {
@@ -104,8 +110,12 @@ const UNIT_WORDS = new Set([
   "sprig", "sprigs", "head", "heads", "stalk", "stalks",
 ]);
 
-// Normalise non-standard unit abbreviations to canonical forms
-const UNIT_NORMALISE: Record<string, string> = { gr: "g" };
+// Normalise verbose/non-standard units to canonical abbreviations
+const UNIT_NORMALISE: Record<string, string> = {
+  gr: "g",
+  tablespoon: "tbsp", tablespoons: "tbsp",
+  teaspoon: "tsp",   teaspoons: "tsp",
+};
 
 const FRACTION_MAP: Record<string, number> = {
   "½": 0.5, "¼": 0.25, "¾": 0.75, "⅓": 0.3333, "⅔": 0.6667, "⅛": 0.125,

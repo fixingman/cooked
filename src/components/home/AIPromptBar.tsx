@@ -110,20 +110,14 @@ export function AIPromptBar() {
               isBusy ? "border-saffron-300 placeholder:animate-pulse" : "border-parchment-300 focus:border-saffron-400"
             }`}
           />
-          <AnimatePresence mode="wait">
-            {(prompt || results.length > 0 || state === "error") && !isBusy ? (
-              <motion.button
-                key="clear"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                onClick={clear}
-                className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 rounded-full text-ink-400 hover:text-ink-700 transition-colors"
-              >
-                <X size={14} />
-              </motion.button>
-            ) : null}
-          </AnimatePresence>
+          {(prompt || results.length > 0 || state === "error") && !isBusy && (
+            <button
+              onClick={clear}
+              className="absolute right-3 inset-y-0 my-auto flex items-center justify-center w-6 h-6 rounded-full text-ink-400 hover:text-ink-700 transition-colors"
+            >
+              <X size={14} />
+            </button>
+          )}
         </div>
 
         <AnimatePresence>

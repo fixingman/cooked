@@ -44,7 +44,9 @@ export function IngredientList({ ingredients, scale, units = "metric", pantryNam
                 : scaleQuantity(ing.quantity, scale);
               const unit = useImperial ? ing.unitImperial! : ing.unit;
 
-              const displayUnit = unit && unit !== "whole" && unit !== "pinch" && unit !== "handful" ? unit : "";
+              const ABBREV: Record<string, string> = { tablespoon: "tbsp", tablespoons: "tbsp", teaspoon: "tsp", teaspoons: "tsp" };
+              const normUnit = unit ? (ABBREV[unit.toLowerCase()] ?? unit) : unit;
+              const displayUnit = normUnit && normUnit !== "whole" && normUnit !== "pinch" && normUnit !== "handful" ? normUnit : "";
               const hasAmount = qty !== "" || displayUnit !== "";
 
               return (

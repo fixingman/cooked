@@ -52,7 +52,7 @@ function IngredientRow({ ing }: { ing: Ingredient }) {
       <span className="font-serif text-ink-900 text-sm leading-snug flex-1">{ing.name}</span>
       {ing.quantity > 0 && (
         <span className="text-xs font-medium text-ink-500 shrink-0 tabular-nums">
-          {formatQuantity(ing.quantity)}{ing.unit !== "whole" ? ` ${ing.unit}` : ""}
+          {formatQuantity(ing.quantity)}{ing.unit !== "whole" ? ` ${({ tablespoon: "tbsp", tablespoons: "tbsp", teaspoon: "tsp", teaspoons: "tsp" } as Record<string,string>)[ing.unit?.toLowerCase()] ?? ing.unit}` : ""}
         </span>
       )}
     </div>
