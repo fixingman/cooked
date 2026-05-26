@@ -1,7 +1,7 @@
 "use client";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Link2, Loader2, Check, AlertCircle, ChefHat, Clock, Users, Globe, ArrowLeft, Camera, ImagePlus, Sparkles } from "lucide-react";
+import { X, Link2, Loader2, Check, AlertCircle, ChefHat, Clock, Users, Globe, ArrowLeft, Camera, ImagePlus, Sparkles, ClipboardPaste } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useUserRecipes } from "@/hooks/useUserRecipes";
 import { useDropboxAuth } from "@/hooks/useDropboxAuth";
@@ -18,7 +18,7 @@ const MEAL_TIMES: { value: MealTime; label: string }[] = [
 ];
 
 type Stage = "input" | "loading" | "review" | "error";
-type ImportMode = "url" | "photo";
+type ImportMode = "url" | "photo" | "text";
 
 interface ImportRecipeModalProps {
   onClose: () => void;
@@ -40,6 +40,7 @@ export function ImportRecipeModal({ onClose, initialDraft, generatedDraft, onSav
   const [stage, setStage] = useState<Stage>(seedDraft ? "review" : "input");
   const [importMode, setImportMode] = useState<ImportMode>("url");
   const [url, setUrl] = useState("");
+  const [pasteText, setPasteText] = useState("");
   const [urlError, setUrlError] = useState("");
   const [error, setError] = useState("");
   const [draft, setDraft] = useState<(Recipe & { sourceUrl?: string }) | null>(seedDraft);
@@ -92,6 +93,36 @@ export function ImportRecipeModal({ onClose, initialDraft, generatedDraft, onSav
       const data = await res.json();
       if (!res.ok || !data.recipe) {
         setError(data.error ?? "Could not extract a recipe from this page.");
+        setStage("error");
+        return;
+      }
+      setDraft(data.recipe);
+      setEditTitle(data.recipe.title);
+      setEditDesc(data.recipe.description);
+      setEditMealTimes(data.recipe.mealTimes);
+      if (data.heroImageBase64) setHeroImageBase64(data.heroImageBase64);
+      if (data.enrichments) setEnrichments(data.enrichments);
+      checkDuplicate(data.recipe);
+      setStage("review");
+    } catch {
+      setError("Network error — check your connection and try again.");
+      setStage("error");
+    }
+  }
+
+  async function handleTextImport() {
+    if (!pasteText.trim()) return;
+    setStage("loading");
+    setError("");
+    try {
+      const res = await fetch("/api/recipes/import-text", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: pasteText }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.recipe) {
+        setError(data.error ?? "Could not extract a recipe from the pasted text.");
         setStage("error");
         return;
       }
@@ -342,31 +373,51 @@ export function ImportRecipeModal({ onClose, initialDraft, generatedDraft, onSav
               <>
                 {/* Mode tabs */}
                 <div className="flex gap-1 p-1 bg-parchment-200 rounded-xl">
-                  <button
-                    onClick={() => setImportMode("url")}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      importMode === "url"
-                        ? "bg-parchment-100 text-ink-900 shadow-sm"
-                        : "text-ink-400 hover:text-ink-600"
-                    }`}
-                  >
-                    <Link2 size={14} />
-                    URL
-                  </button>
-                  <button
-                    onClick={() => setImportMode("photo")}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      importMode === "photo"
-                        ? "bg-parchment-100 text-ink-900 shadow-sm"
-                        : "text-ink-400 hover:text-ink-600"
-                    }`}
-                  >
-                    <Camera size={14} />
-                    Photo
-                  </button>
+                  {(["url", "photo", "text"] as ImportMode[]).map(mode => {
+                    const Icon = mode === "url" ? Link2 : mode === "photo" ? Camera : ClipboardPaste;
+                    const label = mode === "url" ? "URL" : mode === "photo" ? "Photo" : "Paste";
+                    return (
+                      <button
+                        key={mode}
+                        onClick={() => setImportMode(mode)}
+                        className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-colors ${
+                          importMode === mode
+                            ? "bg-parchment-100 text-ink-900 shadow-sm"
+                            : "text-ink-400 hover:text-ink-600"
+                        }`}
+                      >
+                        <Icon size={14} />
+                        {label}
+                      </button>
+                    );
+                  })}
                 </div>
 
-                {importMode === "url" ? (
+                {importMode === "text" ? (
+                  <>
+                    <p className="text-sm text-ink-500">
+                      Open the recipe in your browser, select all text (⌘A / Ctrl+A), copy (⌘C), and paste below.
+                      Works with Cookidoo, NYT Cooking, or any page you can read.
+                    </p>
+                    <textarea
+                      value={pasteText}
+                      onChange={e => setPasteText(e.target.value)}
+                      placeholder="Paste recipe text here…"
+                      rows={10}
+                      autoFocus
+                      className="w-full px-3 py-2.5 bg-parchment-200 border border-parchment-300 rounded-xl text-sm text-ink-800 placeholder:text-ink-300 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/30 resize-none font-mono leading-relaxed"
+                    />
+                    <motion.button
+                      whileTap={{ scale: 0.95 }}
+                      onClick={handleTextImport}
+                      disabled={pasteText.trim().length < 50}
+                      className="w-full py-2.5 bg-saffron-500 text-white rounded-xl text-sm font-medium hover:bg-saffron-600 disabled:opacity-40 transition-colors"
+                    >
+                      Import from text
+                    </motion.button>
+                    <p className="text-xs text-ink-300">Powered by Claude · text is not stored</p>
+                  </>
+                ) : importMode === "url" ? (
                   <>
                     <p className="text-sm text-ink-500">
                       Paste a link from any recipe website — we&apos;ll extract the ingredients and steps for you.
@@ -461,7 +512,7 @@ export function ImportRecipeModal({ onClose, initialDraft, generatedDraft, onSav
                 </div>
                 <div>
                   <p className="font-serif text-ink-900">
-                    {importMode === "photo" ? "Reading photo…" : "Fetching recipe…"}
+                    {importMode === "photo" ? "Reading photo…" : importMode === "text" ? "Reading recipe text…" : "Fetching recipe…"}
                   </p>
                   <p className="text-sm text-ink-400 mt-1">Extracting ingredients and steps</p>
                 </div>
@@ -480,7 +531,7 @@ export function ImportRecipeModal({ onClose, initialDraft, generatedDraft, onSav
                   onClick={() => { setStage("input"); setPhotoPreview(null); }}
                   className="w-full py-2.5 bg-parchment-200 text-ink-700 rounded-xl text-sm font-medium hover:bg-parchment-300 transition-colors"
                 >
-                  {importMode === "photo" ? "Try a different photo" : "Try a different URL"}
+                  {importMode === "photo" ? "Try a different photo" : importMode === "text" ? "Try again" : "Try a different URL"}
                 </motion.button>
               </>
             )}

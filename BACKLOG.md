@@ -64,20 +64,22 @@ Prompt bar on homepage below greeting (visible when `aiEnabled`). Single input, 
 
 ---
 
-### 🔴 F-10 — Chrome Extension: Save to Cooked
-**What:** A Chrome extension that lets users save a recipe from any webpage directly into the Cooked app with one click — without leaving the tab.
-**Why:** Removes the copy-paste-URL friction from the current import flow. The user browses, sees a recipe they like, clicks the extension icon → recipe is imported and saved. Natural complement to the URL import pipeline already in place.
-**How it works:**
-- Extension captures the current tab URL and sends it to `/api/recipes/import` (same endpoint as the modal)
-- Requires the user to be authenticated — Dropbox token stored in extension `chrome.storage.local`, obtained via the existing PKCE OAuth flow (user logs in once in the extension popup)
-- On success: shows recipe title + thumbnail in the popup with a "View in Cooked" link
-- On failure: surfaces the same error messages the modal already returns
-**Scope:**
-- Manifest V3 extension (Chrome Web Store compatible)
-- Popup UI: URL pre-filled from active tab · Import button · Auth state (connected / connect Dropbox)
-- No background service worker needed — all API calls happen in the popup
-- The extension hits the deployed Netlify URL (needs `NEXT_PUBLIC_APP_URL` env var for CORS)
-**Decisions needed:** host the extension on Chrome Web Store vs. sideload only · whether to support saving directly to Dropbox from the extension vs. always going through the Cooked API · Firefox/Safari support scope
+### 🔴 F-10 — Chrome Extension / Bookmarklet: Save to Cooked
+**What:** One-click save from any webpage into Cooked — covers both public recipe sites and auth-gated content (Cookidoo, NYT Cooking, etc.) since the user's browser session handles authentication.
+**Why:** The "Paste" import mode (shipped v0.20.5) already handles auth-gated content but requires manual Cmd+A → Cmd+C. This feature automates that capture step. The key insight: auth is already solved by the user's browser — we just need to grab the rendered DOM text and send it to `/api/recipes/import-text`.
+**Two-tier approach:**
+- **Bookmarklet (MVP):** User drags a link to their bookmarks bar. Clicking it on any recipe page runs JS that grabs `document.body.innerText` and redirects to Cooked with the text pre-filled. Zero installation friction, works on Safari/Firefox/Chrome. Build this first.
+- **Chrome Extension (full):** Manifest V3, toolbar icon, popup UI, one-click save without leaving the tab. Richer UX — can auto-detect recipe pages, badge the icon, inject a "Save to Cooked" button into pages. Build after bookmarklet proves the concept.
+**How the capture works (both tiers):**
+- Grab `document.body.innerText` from the current tab (already rendered, auth already handled)
+- POST to `/api/recipes/import-text` (existing endpoint, shared extraction pipeline)
+- For the extension: Dropbox token stored in `chrome.storage.local`, obtained via existing PKCE OAuth (one-time login in popup)
+**Extension scope (when ready):**
+- Manifest V3, Chrome Web Store compatible
+- Popup: active-tab recipe title preview · Import button · Dropbox auth state
+- No background service worker needed
+- Hits deployed Netlify URL (`NEXT_PUBLIC_APP_URL` env var for CORS)
+**Decisions needed:** bookmarklet first or skip straight to extension · Chrome Web Store vs. sideload only · Firefox/Safari scope
 
 ---
 

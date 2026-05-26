@@ -100,6 +100,7 @@ Three files must always match:
 - `0.20.2` fix: pantry labels — "Dried Goods" → "Dried" · "Other" → "Misc"
 - `0.20.3` fix: "berries" / "mixed berries" / singular forms now infer Fruit category
 - `0.20.4` fix: pantry items with old "produce" category (pre-v0.20.1) now visible and re-categorised on load — were invisible in modal but still blocking dedup, making them impossible to re-add
+- `0.20.5` feat: paste-text import mode — select all + copy from any auth-gated page (Cookidoo, NYT Cooking, etc.), paste into new "Paste" tab in import modal → `/api/recipes/import-text`; extractWithClaude + buildImportResponse extracted to `src/lib/recipeImport.ts`
 
 ---
 
