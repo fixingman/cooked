@@ -1,10 +1,10 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
-import { X, AlertTriangle, Search, Download, Upload } from "lucide-react";
+import { X, AlertTriangle, Search, Download, Upload, Sparkles, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePantry } from "@/hooks/usePantry";
 import { COMMON_INGREDIENTS } from "@/data/commonIngredients";
-import { CATEGORY_LABELS, CATEGORY_ORDER } from "@/data/ingredientCategories";
+import { CATEGORY_LABELS, CATEGORY_ORDER, inferCategory } from "@/data/ingredientCategories";
 import { cn } from "@/lib/cn";
 import type { PantryItem } from "@/types/pantry";
 
@@ -15,7 +15,8 @@ interface PantryModalProps {
 const EXIT_EASE: [number, number, number, number] = [0.4, 0, 1, 1];
 
 export function PantryModal({ onClose }: PantryModalProps) {
-  const { items, addItem, removeItem, toggleLow, importItems } = usePantry();
+  const { items, addItem, removeItem, toggleLow, updateCategory, importItems } = usePantry();
+  const [categorising, setCategorising] = useState(false);
   const [query, setQuery] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -103,10 +104,32 @@ export function PantryModal({ onClose }: PantryModalProps) {
     reader.readAsText(file);
   }
 
-  // Group items by category, alphabetical within each group, low items first
+  // AI categorisation for items with no category or stuck as "other"
+  async function handleCategorise() {
+    const targets = items.filter(i => !i.category || i.category === "other");
+    if (targets.length === 0 || categorising) return;
+    setCategorising(true);
+    try {
+      const res = await fetch("/api/pantry/categorise", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ names: targets.map(i => i.name) }),
+      });
+      if (!res.ok) return;
+      const { results } = await res.json() as { results: { name: string; category: PantryItem["category"] }[] };
+      for (const r of results) {
+        const item = targets.find(i => i.name.toLowerCase() === r.name.toLowerCase());
+        if (item && r.category) updateCategory(item.id, r.category);
+      }
+    } finally {
+      setCategorising(false);
+    }
+  }
+
+  // Group items by category — use inferCategory as fallback for items without a stored category
   const grouped = CATEGORY_ORDER.reduce<Record<string, PantryItem[]>>((acc, cat) => {
     const catItems = items
-      .filter(i => (i.category ?? "other") === cat)
+      .filter(i => (i.category ?? inferCategory(i.name)) === cat)
       .sort((a, b) => {
         if (a.low && !b.low) return -1;
         if (!a.low && b.low) return 1;
@@ -154,6 +177,14 @@ export function PantryModal({ onClose }: PantryModalProps) {
         <div className="flex items-center justify-between px-5 pt-4 pb-3 shrink-0">
           <h2 className="font-serif text-lg font-semibold text-ink-900">Pantry</h2>
           <div className="flex items-center gap-1">
+            <button
+              onClick={handleCategorise}
+              disabled={categorising || items.filter(i => !i.category || i.category === "other").length === 0}
+              title="Auto-categorise with AI"
+              className="p-1.5 rounded-lg text-ink-400 hover:text-saffron-500 disabled:opacity-30 transition-colors"
+            >
+              {categorising ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+            </button>
             <button
               onClick={handleExport}
               disabled={items.length === 0}

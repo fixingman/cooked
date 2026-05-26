@@ -44,6 +44,10 @@ export function usePantry() {
     setValue(prev => prev.map(i => i.id === id ? { ...i, low: !i.low } : i));
   }, [setValue]);
 
+  const updateCategory = useCallback((id: string, category: PantryItem["category"]) => {
+    setValue(prev => prev.map(i => i.id === id ? { ...i, category } : i));
+  }, [setValue]);
+
   // Merge an imported list, deduplicating by name
   const importItems = useCallback((incoming: PantryItem[]) => {
     setValue(prev => {
@@ -60,5 +64,5 @@ export function usePantry() {
     });
   }, [setValue]);
 
-  return { items, addItem, removeItem, toggleLow, importItems };
+  return { items, addItem, removeItem, toggleLow, updateCategory, importItems };
 }
