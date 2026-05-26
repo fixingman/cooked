@@ -1,8 +1,8 @@
 "use client";
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useDropboxAuth } from "@/hooks/useDropboxAuth";
 import { useDropboxSync } from "@/hooks/useDropboxSync";
-import { inferCategory } from "@/data/ingredientCategories";
+import { inferCategory, CATEGORY_ORDER } from "@/data/ingredientCategories";
 import type { PantryItem } from "@/types/pantry";
 
 function mergeItems(local: PantryItem[], remote: PantryItem[]): PantryItem[] {
@@ -10,6 +10,8 @@ function mergeItems(local: PantryItem[], remote: PantryItem[]): PantryItem[] {
   for (const l of local) if (!byId.has(l.id)) byId.set(l.id, l);
   return Array.from(byId.values());
 }
+
+const VALID_CATS = new Set<string>(CATEGORY_ORDER);
 
 export function usePantry() {
   const { getValidAccessToken } = useDropboxAuth();
@@ -20,6 +22,20 @@ export function usePantry() {
     getValidAccessToken,
     merge: mergeItems,
   });
+
+  // Migrate items whose stored category was removed in a previous version (e.g. "produce")
+  const migratedRef = useRef(false);
+  useEffect(() => {
+    if (migratedRef.current) return;
+    migratedRef.current = true;
+    const hasStale = items.some(i => i.category && !VALID_CATS.has(i.category));
+    if (!hasStale) return;
+    setValue(prev => prev.map(i =>
+      i.category && !VALID_CATS.has(i.category)
+        ? { ...i, category: inferCategory(i.name) }
+        : i
+    ));
+  }, [items, setValue]);
 
   const addItem = useCallback((name: string) => {
     const normalised = name.trim();

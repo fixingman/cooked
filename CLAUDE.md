@@ -99,6 +99,7 @@ Three files must always match:
 - `0.20.1` feat: pantry categories expanded — Produce split into Fruit + Vegetables · Legumes added · Dried Goods added · Frozen expanded
 - `0.20.2` fix: pantry labels — "Dried Goods" → "Dried" · "Other" → "Misc"
 - `0.20.3` fix: "berries" / "mixed berries" / singular forms now infer Fruit category
+- `0.20.4` fix: pantry items with old "produce" category (pre-v0.20.1) now visible and re-categorised on load — were invisible in modal but still blocking dedup, making them impossible to re-add
 
 ---
 

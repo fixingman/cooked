@@ -126,10 +126,15 @@ export function PantryModal({ onClose }: PantryModalProps) {
     }
   }
 
-  // Group items by category — use inferCategory as fallback for items without a stored category
+  // Group items by category — fall back to inferCategory for null/undefined OR unrecognised stored values
   const grouped = CATEGORY_ORDER.reduce<Record<string, PantryItem[]>>((acc, cat) => {
     const catItems = items
-      .filter(i => (i.category ?? inferCategory(i.name)) === cat)
+      .filter(i => {
+        const effective = (i.category && (CATEGORY_ORDER as string[]).includes(i.category))
+          ? i.category
+          : inferCategory(i.name);
+        return effective === cat;
+      })
       .sort((a, b) => {
         if (a.low && !b.low) return -1;
         if (!a.low && b.low) return 1;
@@ -179,7 +184,7 @@ export function PantryModal({ onClose }: PantryModalProps) {
           <div className="flex items-center gap-1">
             <button
               onClick={handleCategorise}
-              disabled={categorising || items.filter(i => !i.category || i.category === "other").length === 0}
+              disabled={categorising || items.filter(i => !i.category || i.category === "other" || !(CATEGORY_ORDER as string[]).includes(i.category)).length === 0}
               title="Auto-categorise with AI"
               className="p-1.5 rounded-lg text-ink-400 hover:text-saffron-500 disabled:opacity-30 transition-colors"
             >
