@@ -3,5 +3,5 @@ export interface PantryItem {
   name: string;
   addedAt: string;
   low?: boolean;
-  category?: "produce" | "dairy" | "meat" | "grains" | "spices" | "baking" | "pantry" | "canned" | "frozen" | "other";
+  category?: "fruit" | "vegetables" | "dairy" | "meat" | "grains" | "legumes" | "spices" | "baking" | "pantry" | "canned" | "dried" | "frozen" | "other";
 }

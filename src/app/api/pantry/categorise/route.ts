@@ -2,7 +2,10 @@ import type { PantryCategory } from "@/data/ingredientCategories";
 
 export const maxDuration = 30;
 
-const VALID: PantryCategory[] = ["produce", "dairy", "meat", "grains", "spices", "baking", "pantry", "canned", "frozen", "other"];
+const VALID: PantryCategory[] = [
+  "fruit", "vegetables", "dairy", "meat", "grains", "legumes",
+  "spices", "baking", "pantry", "canned", "dried", "frozen", "other",
+];
 
 export async function POST(req: Request) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -19,14 +22,17 @@ export async function POST(req: Request) {
   }
 
   const prompt = `Categorise each ingredient into exactly one of these categories:
-- produce: fresh fruit, vegetables, fresh herbs
+- fruit: fresh fruit (apples, oranges, berries, lemons, limes, mango, etc.)
+- vegetables: fresh vegetables, fresh herbs, mushrooms (garlic, onion, spinach, basil, etc.)
 - dairy: milk, cheese, eggs, butter, cream, yogurt
 - meat: meat, poultry, fish, seafood, tofu, tempeh
-- grains: pasta, rice, flour, bread, oats, couscous, noodles, breadcrumbs (display name: Grains & Pasta)
-- spices: dry spices, dried herbs, seasoning blends (display name: Spices & Herbs)
-- baking: sugar, chocolate, baking powder, yeast, vanilla, cocoa, cornflour, syrups, honey, maple syrup (display name: Baking)
-- pantry: oils, vinegars, condiments, mustard, soy/fish/hot sauces, miso, nuts, seeds, nut butters, dried fruit, wine for cooking (display name: Oils & Condiments)
-- canned: canned/tinned goods, pulses, stocks, broths, coconut milk, tomato paste, passata, jarred peppers/olives/capers/pesto (display name: Canned & Jars)
+- grains: pasta, rice, flour, bread, oats, couscous, noodles, breadcrumbs (display: Grains & Pasta)
+- legumes: chickpeas, lentils, beans of all kinds — canned, dried, or fresh (display: Legumes)
+- spices: dry spices, dried herbs, seasoning blends, salt, pepper (display: Spices & Herbs)
+- baking: sugar, chocolate, baking powder, yeast, vanilla, cocoa, cornflour, honey, syrups (display: Baking)
+- pantry: oils, vinegars, condiments, mustard, soy/fish/hot sauces, miso, nuts, seeds, nut butters, wine for cooking (display: Oils & Condiments)
+- canned: canned/tinned goods, stocks, broths, coconut milk, tomato paste, passata, jarred peppers/olives/capers/pesto (display: Canned & Jars)
+- dried: dried fruit (raisins, dates, apricots), dried mushrooms, sun-dried tomatoes, dried chilies, coconut flakes (display: Dried Goods)
 - frozen: frozen foods
 - other: anything that doesn't fit the above
 
@@ -34,7 +40,7 @@ Ingredients to categorise:
 ${names.map((n, i) => `${i + 1}. ${n}`).join("\n")}
 
 Respond with a JSON array only, no explanation. Example:
-[{"name":"Garlic","category":"produce"},{"name":"Salmon","category":"meat"}]`;
+[{"name":"Garlic","category":"vegetables"},{"name":"Salmon","category":"meat"}]`;
 
   try {
     const res = await fetch("https://api.anthropic.com/v1/messages", {

@@ -3,101 +3,178 @@ import type { PantryItem } from "@/types/pantry";
 export type PantryCategory = NonNullable<PantryItem["category"]>;
 
 export const CATEGORY_LABELS: Record<PantryCategory, string> = {
-  produce:    "Produce",
-  dairy:      "Dairy",
-  meat:       "Meat & Fish",
-  grains:     "Grains & Pasta",
-  spices:     "Spices & Herbs",
-  baking:     "Baking",
-  pantry:     "Oils & Condiments",
-  canned:     "Canned & Jars",
-  frozen:     "Frozen",
-  other:      "Other",
+  fruit:       "Fruit",
+  vegetables:  "Vegetables",
+  dairy:       "Dairy",
+  meat:        "Meat & Fish",
+  grains:      "Grains & Pasta",
+  legumes:     "Legumes",
+  spices:      "Spices & Herbs",
+  baking:      "Baking",
+  pantry:      "Oils & Condiments",
+  canned:      "Canned & Jars",
+  dried:       "Dried Goods",
+  frozen:      "Frozen",
+  other:       "Other",
 };
 
 export const CATEGORY_ORDER: PantryCategory[] = [
-  "produce", "dairy", "meat", "grains", "spices", "baking", "pantry", "canned", "frozen", "other",
+  "fruit", "vegetables", "dairy", "meat", "grains", "legumes",
+  "spices", "baking", "pantry", "canned", "dried", "frozen", "other",
 ];
 
 const RAW: Array<[PantryCategory, string[]]> = [
+  ["fruit", [
+    "apple", "apples", "pear", "pears", "banana", "bananas",
+    "orange", "oranges", "mandarin", "clementine", "grapefruit",
+    "lemon", "lemons", "lime", "limes",
+    "strawberries", "blueberries", "raspberries", "blackberries", "cherries",
+    "grapes", "mango", "mangoes", "pineapple", "papaya", "kiwi",
+    "peach", "peaches", "plum", "plums", "apricot", "apricots", "nectarine",
+    "melon", "watermelon", "fig", "figs", "pomegranate", "passion fruit",
+  ]],
+  ["vegetables", [
+    // Alliums
+    "garlic", "onion", "onions", "shallots", "spring onions", "leek",
+    // Root veg
+    "carrot", "carrots", "potato", "potatoes", "sweet potato", "sweet potatoes",
+    "beetroot", "parsnip", "turnip", "celeriac", "radish", "rädisor",
+    // Brassicas
+    "broccoli", "cauliflower", "cabbage", "brussels sprouts", "kale",
+    // Leafy
+    "spinach", "lettuce", "arugula", "rocket", "chard", "watercress",
+    // Fruiting veg
+    "tomato", "tomatoes", "cherry tomatoes", "peppers", "pepper", "chilli", "chili",
+    "chillies", "courgette", "zucchini", "aubergine", "eggplant", "cucumber",
+    "avocado", "corn", "peas", "green beans", "broad beans", "asparagus",
+    // Fungi
+    "mushrooms", "mushroom", "chestnut mushrooms", "shiitake", "portobello",
+    // Celery & fennel
+    "celery", "fennel",
+    // Fresh herbs
+    "basil", "parsley", "coriander", "mint", "thyme", "rosemary",
+    "dill", "chives", "tarragon", "sage", "oregano", "bay leaves", "bay leaf",
+    // Aromatics
+    "ginger", "fresh ginger", "lemongrass", "galangal",
+  ]],
   ["dairy", [
-    "milk", "cream", "heavy cream", "sour cream", "yogurt", "greek yogurt",
-    "cheddar", "parmesan", "mozzarella", "feta", "cream cheese", "ricotta",
+    "milk", "oat milk", "almond milk", "soy milk",
+    "cream", "heavy cream", "double cream", "single cream", "whipping cream",
+    "sour cream", "crème fraîche",
+    "yogurt", "greek yogurt",
+    "cheddar", "parmesan", "mozzarella", "feta", "goat cheese", "brie",
+    "cream cheese", "ricotta", "mascarpone", "halloumi",
     "eggs", "egg", "butter", "ghee",
   ]],
   ["meat", [
-    "chicken breast", "chicken thighs", "chicken", "minced beef", "beef steak", "beef",
-    "pork belly", "pork", "bacon", "pancetta", "lamb", "veal",
-    "salmon", "cod", "tuna", "trout", "sea bass", "sea bream", "mackerel", "haddock",
-    "prawns", "shrimp", "mussels", "clams", "scallops", "squid", "crab",
-    "tofu", "tempeh",
-  ]],
-  ["produce", [
-    "garlic", "onion", "onions", "shallots", "spring onions", "leek",
-    "carrot", "carrots", "celery", "potato", "potatoes", "sweet potato",
-    "courgette", "zucchini", "aubergine", "eggplant",
-    "broccoli", "cauliflower", "spinach", "kale", "lettuce", "arugula", "rocket",
-    "tomato", "tomatoes", "cherry tomatoes", "peppers", "pepper", "cucumber",
-    "avocado", "mushrooms", "mushroom", "corn", "peas", "green beans", "asparagus",
-    "lemon", "lemons", "lime", "limes", "orange", "oranges", "apple", "apples",
-    "ginger", "fresh ginger", "chilli", "chili", "chillies",
-    "basil", "parsley", "coriander", "mint", "thyme", "rosemary", "dill", "chives",
-    "fennel", "beetroot", "artichoke", "celeriac", "turnip",
+    "chicken breast", "chicken thighs", "chicken", "whole chicken",
+    "minced beef", "beef steak", "beef", "ground beef",
+    "pork belly", "pork chops", "pork", "bacon", "pancetta", "ham", "prosciutto",
+    "lamb", "lamb chops", "veal", "duck", "turkey",
+    "salmon", "cod", "tuna", "trout", "sea bass", "sea bream", "mackerel",
+    "haddock", "halibut", "sardines", "anchovies",
+    "prawns", "shrimp", "mussels", "clams", "scallops", "squid", "crab", "lobster",
+    "tofu", "tempeh", "seitan",
   ]],
   ["grains", [
-    "flour", "bread flour", "wholemeal flour", "cornmeal", "semolina",
-    "rice", "basmati rice", "jasmine rice", "brown rice", "arborio rice",
+    "flour", "bread flour", "wholemeal flour", "plain flour", "self-raising flour",
+    "cornmeal", "semolina", "polenta",
+    "rice", "basmati rice", "jasmine rice", "brown rice", "arborio rice", "wild rice",
     "pasta", "spaghetti", "penne", "fusilli", "tagliatelle", "lasagne sheets",
-    "couscous", "quinoa", "oats", "breadcrumbs", "panko",
-    "bread", "sourdough", "tortillas", "noodles", "ramen", "udon",
+    "rigatoni", "farfalle", "orzo",
+    "couscous", "quinoa", "bulgur wheat", "farro", "spelt",
+    "oats", "rolled oats", "porridge oats",
+    "breadcrumbs", "panko",
+    "bread", "sourdough", "tortillas", "wraps", "pita bread",
+    "noodles", "ramen", "udon", "soba", "rice noodles",
+  ]],
+  ["legumes", [
+    // Canned / cooked
+    "chickpeas", "black beans", "kidney beans", "cannellini beans", "butter beans",
+    "borlotti beans", "black-eyed peas", "edamame",
+    // Dried
+    "dried lentils", "red lentils", "green lentils", "puy lentils", "brown lentils",
+    "dried chickpeas", "dried black beans", "dried kidney beans",
+    "split peas", "mung beans",
+    // Fresh
+    "lentils",
   ]],
   ["spices", [
-    "salt", "black pepper", "white pepper", "chilli flakes", "red pepper flakes",
-    "cumin", "ground cumin", "ground coriander", "paprika", "smoked paprika",
-    "turmeric", "cinnamon", "nutmeg", "cardamom", "cloves", "bay leaves", "bay leaf",
-    "oregano", "dried thyme", "dried basil", "dried rosemary", "dried parsley",
-    "curry powder", "garam masala", "five spice", "za'atar", "sumac",
-    "allspice", "cayenne", "cayenne pepper", "chilli powder", "mixed spice",
-    "fennel seeds", "mustard seeds", "coriander seeds", "cumin seeds",
+    "salt", "sea salt", "black pepper", "white pepper",
+    "chilli flakes", "red pepper flakes", "cayenne", "cayenne pepper", "chilli powder",
+    "cumin", "ground cumin", "cumin seeds",
+    "ground coriander", "coriander seeds",
+    "paprika", "smoked paprika", "sweet paprika",
+    "turmeric", "cinnamon", "nutmeg", "cardamom", "cloves",
+    "allspice", "mixed spice", "five spice",
+    "curry powder", "garam masala", "za'atar", "sumac", "ras el hanout",
+    "fennel seeds", "mustard seeds", "nigella seeds", "caraway seeds",
+    "star anise", "saffron",
+    "dried thyme", "dried basil", "dried rosemary", "dried parsley",
+    "dried oregano", "dried mint", "dried dill",
   ]],
   ["baking", [
-    "sugar", "brown sugar", "caster sugar", "icing sugar", "honey", "maple syrup",
-    "baking powder", "baking soda", "bicarbonate of soda", "yeast", "vanilla extract",
-    "cocoa powder", "dark chocolate", "chocolate", "cornflour", "cornstarch", "gelatin",
-    "golden syrup", "molasses", "treacle", "agave",
+    "sugar", "brown sugar", "caster sugar", "icing sugar", "demerara sugar",
+    "honey", "maple syrup", "golden syrup", "agave", "molasses", "treacle",
+    "baking powder", "baking soda", "bicarbonate of soda",
+    "yeast", "instant yeast", "dried yeast",
+    "vanilla extract", "vanilla bean", "vanilla paste",
+    "cocoa powder", "dark chocolate", "milk chocolate", "white chocolate", "chocolate chips",
+    "cornflour", "cornstarch", "arrowroot", "gelatin", "agar",
+    "desiccated coconut",
   ]],
   ["pantry", [
     // Oils & fats
-    "olive oil", "vegetable oil", "sunflower oil", "coconut oil", "sesame oil", "lard",
+    "olive oil", "extra virgin olive oil", "vegetable oil", "sunflower oil",
+    "coconut oil", "sesame oil", "rapeseed oil", "lard",
+    // Vinegars
+    "balsamic vinegar", "red wine vinegar", "white wine vinegar",
+    "apple cider vinegar", "rice vinegar", "sherry vinegar", "vinegar",
     // Condiments & sauces
-    "soy sauce", "fish sauce", "worcestershire sauce", "hot sauce", "tabasco",
-    "dijon mustard", "wholegrain mustard", "mustard", "mayonnaise", "ketchup",
-    "balsamic vinegar", "red wine vinegar", "white wine vinegar", "apple cider vinegar", "vinegar",
-    "miso paste", "miso", "tahini", "sriracha", "oyster sauce", "hoisin sauce",
-    // Wine & cooking liquids
-    "white wine", "red wine", "dry sherry", "mirin", "rice wine",
-    // Nuts, seeds & dried fruit
+    "soy sauce", "tamari", "fish sauce", "worcestershire sauce",
+    "hot sauce", "tabasco", "sriracha",
+    "dijon mustard", "wholegrain mustard", "mustard", "mayonnaise",
+    "ketchup", "tomato ketchup", "barbecue sauce",
+    "miso paste", "miso", "tahini", "oyster sauce", "hoisin sauce",
+    "teriyaki sauce", "ponzu",
+    // Nuts & seeds
     "almonds", "walnuts", "cashews", "pine nuts", "hazelnuts", "peanuts",
-    "sesame seeds", "pumpkin seeds", "flaxseed", "chia seeds",
-    "peanut butter", "almond butter",
-    "raisins", "sultanas", "dried apricots", "dates", "cranberries",
+    "pecans", "pistachios", "macadamia",
+    "sesame seeds", "pumpkin seeds", "sunflower seeds", "flaxseed", "chia seeds",
+    "peanut butter", "almond butter", "cashew butter",
+    // Wine & cooking liquids
+    "white wine", "red wine", "dry sherry", "mirin", "rice wine", "sake",
   ]],
   ["canned", [
-    // Pulses
-    "chickpeas", "black beans", "kidney beans", "lentils", "cannellini beans", "butter beans",
     // Canned veg & fruit
-    "chopped tomatoes", "tomato paste", "tomato purée", "tomato puree",
-    "coconut milk", "corn kernels",
-    // Stocks & broths
+    "chopped tomatoes", "canned tomatoes", "tomato paste", "tomato purée", "tomato puree",
+    "coconut milk", "coconut cream",
+    "canned corn", "canned artichokes",
+    // Stocks
     "chicken stock", "vegetable stock", "beef stock", "fish stock", "stock",
     "chicken broth", "vegetable broth", "beef broth",
-    // Other jarred
-    "sun-dried tomatoes", "roasted peppers", "artichoke hearts", "anchovies", "capers",
-    "olives", "pesto", "passata",
+    // Preserved / jarred
+    "roasted peppers", "artichoke hearts", "capers",
+    "olives", "black olives", "green olives", "pesto", "passata",
+    "sardines in oil", "tuna in oil",
+  ]],
+  ["dried", [
+    // Dried fruit
+    "raisins", "sultanas", "currants", "dried apricots", "dried mango",
+    "dried cranberries", "dried blueberries", "dried cherries",
+    "dates", "prunes", "dried figs",
+    // Dried veg & fungi
+    "dried mushrooms", "porcini mushrooms", "dried chilies", "dried chilli",
+    "sun-dried tomatoes", "dried tomatoes",
+    // Other dried
+    "desiccated coconut", "coconut flakes",
   ]],
   ["frozen", [
     "frozen peas", "frozen corn", "frozen spinach", "frozen berries",
-    "ice cream", "frozen chips", "frozen fish",
+    "frozen edamame", "frozen broccoli", "frozen mixed veg",
+    "ice cream", "frozen yogurt",
+    "frozen chips", "frozen fish", "frozen prawns", "frozen chicken",
+    "frozen pizza dough",
   ]],
 ];
 
