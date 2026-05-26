@@ -1,6 +1,6 @@
 "use client";
 import { useState, useRef } from "react";
-import { Sparkles, ArrowRight, X } from "lucide-react";
+import { Sparkles, ArrowRight, X, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
@@ -92,20 +92,22 @@ export function AIPromptBar() {
     <>
       <div className="space-y-2">
         <div className="relative">
-          <Sparkles
-            size={16}
-            className={`absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none transition-colors ${isBusy ? "text-saffron-500 animate-pulse" : "text-ink-400"}`}
-          />
+          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none">
+            {isBusy
+              ? <Loader2 size={15} className="text-saffron-500 animate-spin" />
+              : <Sparkles size={15} className="text-ink-400" />
+            }
+          </span>
           <input
             ref={inputRef}
             type="text"
-            value={prompt}
+            value={isBusy ? "" : prompt}
             onChange={e => { setPrompt(e.target.value); if (state !== "idle") setState("idle"); }}
             onKeyDown={e => { if (e.key === "Enter") handleSubmit(); }}
-            placeholder="What are you craving?"
+            placeholder={isBusy ? "Thinking…" : "What are you craving?"}
             disabled={isBusy}
-            className={`w-full pl-10 pr-4 py-3 bg-parchment-200 border rounded-xl text-sm text-ink-900 placeholder:text-ink-300 focus:outline-none focus:bg-parchment-100 transition-all duration-200 ${
-              isBusy ? "border-saffron-300" : "border-parchment-300 focus:border-saffron-400"
+            className={`w-full pl-10 pr-9 py-3 bg-parchment-200 border rounded-xl text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none focus:bg-parchment-100 transition-all duration-200 ${
+              isBusy ? "border-saffron-300 placeholder:animate-pulse" : "border-parchment-300 focus:border-saffron-400"
             }`}
           />
           <AnimatePresence mode="wait">
@@ -116,9 +118,9 @@ export function AIPromptBar() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
                 onClick={clear}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-400 hover:text-ink-700 transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 rounded-full text-ink-400 hover:text-ink-700 transition-colors"
               >
-                <X size={16} />
+                <X size={14} />
               </motion.button>
             ) : null}
           </AnimatePresence>

@@ -210,7 +210,9 @@ export function ImportRecipeModal({ onClose, initialDraft, generatedDraft, onSav
     onSave?.(finalRecipe);
     await new Promise(r => setTimeout(r, 50));
     onClose();
-    if (!isEditMode) router.push(`/recipes/${finalRecipe.slug}`);
+    // Only navigate from here when no onSave handler — callers that provide
+    // onSave are responsible for navigation (avoids double push).
+    if (!isEditMode && !onSave) router.push(`/recipes/${finalRecipe.slug}`);
   }
 
   let hostname = "";

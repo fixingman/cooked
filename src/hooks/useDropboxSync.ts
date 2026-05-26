@@ -61,6 +61,11 @@ export function useDropboxSync<T>({
     return defaultValue;
   });
 
+  // Keep a ref that's always current so setValue can write to localStorage
+  // synchronously without relying on the setValueState updater executing.
+  const valueRef = useRef<T>(value);
+  valueRef.current = value;
+
   const [syncing, setSyncing] = useState(false);
   const debounceRef    = useRef<NodeJS.Timeout | null>(null);
   const pendingRef     = useRef<string | null>(null); // value waiting to upload (queued while offline)
@@ -110,6 +115,7 @@ export function useDropboxSync<T>({
             ? mergeRef.current(local, parsed)
             : parsed;
 
+          valueRef.current = resolved;
           setValueState(resolved);
           const resolvedStr = JSON.stringify(resolved);
           localStorage.setItem(localStorageKey, resolvedStr);
@@ -137,33 +143,36 @@ export function useDropboxSync<T>({
 
   const setValue = useCallback(
     (updater: T | ((prev: T) => T)) => {
-      setValueState((prev) => {
-        const next = typeof updater === "function" ? (updater as (p: T) => T)(prev) : updater;
+      // Compute next synchronously from the ref (always current) so we can
+      // write to localStorage immediately — before React processes the state
+      // update. This prevents data loss when the calling component unmounts
+      // (e.g. modal closing) before React runs the setValueState updater.
+      const next = typeof updater === "function" ? (updater as (p: T) => T)(valueRef.current) : updater;
+      valueRef.current = next;
 
-        try { localStorage.setItem(localStorageKey, JSON.stringify(next)); } catch {}
+      try { localStorage.setItem(localStorageKey, JSON.stringify(next)); } catch {}
 
-        if (debounceRef.current) clearTimeout(debounceRef.current);
-        debounceRef.current = setTimeout(async () => {
-          const serialised = JSON.stringify(next);
-          const token = await getTokenRef.current();
-          if (!token) {
-            pendingRef.current = serialised; // queue for when online/reconnected
-            return;
-          }
-          beginSync();
-          let ok = false;
-          try {
-            await uploadFile(token, dropboxPath, serialised);
-            pendingRef.current = null;
-            ok = true;
-          } catch {
-            pendingRef.current = serialised; // network error — retry on online
-          }
-          endSync(ok);
-        }, 1500);
+      setValueState(next);
 
-        return next;
-      });
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(async () => {
+        const serialised = JSON.stringify(next);
+        const token = await getTokenRef.current();
+        if (!token) {
+          pendingRef.current = serialised; // queue for when online/reconnected
+          return;
+        }
+        beginSync();
+        let ok = false;
+        try {
+          await uploadFile(token, dropboxPath, serialised);
+          pendingRef.current = null;
+          ok = true;
+        } catch {
+          pendingRef.current = serialised; // network error — retry on online
+        }
+        endSync(ok);
+      }, 1500);
     },
     [dropboxPath, localStorageKey]
   );

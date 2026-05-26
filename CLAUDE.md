@@ -87,6 +87,7 @@ Three files must always match:
 - `0.19.4` fix: pantry categories fallback to inferCategory() for uncategorised items · createPortal height fix
 - `0.19.5` feat: add recipe ingredients to pantry + pantry access from recipe detail page
 - `0.19.6` fix: pantry UI — hide already-added items in checklist · pantry checkmarks on ingredient list · sentence-case normalisation · granular categories (grains, spices, baking split from staples)
+- `0.19.7` fix: AI-generated recipe not saving — localStorage now written synchronously in useDropboxSync (before React processes state update) · fix double router.push when modal has onSave · AI bar loading state + clear button centering
 
 ---
 
