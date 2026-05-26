@@ -30,6 +30,22 @@ Active bugs only. Resolved bugs kept for reference with their fix summary.
 
 ---
 
+### BUG-011 ✅ v0.19.7 — AI-generated recipe not saved, navigates to 404
+
+**Status:** Fixed v0.19.7
+
+**Symptom:** After saving an AI-generated recipe via the ImportRecipeModal, the app navigated to a 404 page and the recipe did not appear in the recipe list.
+
+**Root cause (1 — data loss):** `useDropboxSync.setValue` wrote to `localStorage` inside the `setValueState` updater function. In React 18 concurrent mode, when the calling component unmounts before React processes the batched state update (which happened here because `onSave` triggered `setGeneratedRecipe(null)` → modal unmounts), React skips the updater entirely. The `localStorage.setItem` never ran, so the recipe was not persisted.
+
+**Root cause (2 — double navigation):** `handleSave` in `ImportRecipeModal` called `router.push` unconditionally at the end. The AIPromptBar's `onSave` callback also called `router.push` to the same URL. The double push caused a second navigation cycle that could hit the recipe page before the first navigation's state settled.
+
+**Fix:** `useDropboxSync.setValue` now computes the new value and writes to `localStorage` synchronously (before `setValueState`), so the write is guaranteed regardless of whether React processes the state update. `handleSave` now only calls `router.push` when no `onSave` handler is provided — callers with `onSave` are responsible for navigation.
+
+**Files:** `src/hooks/useDropboxSync.ts`, `src/components/recipes/ImportRecipeModal.tsx`
+
+---
+
 ## Resolved
 
 ### BUG-001 ✅ v0.16.0 — Import: prep/cook time shows 0 min
