@@ -19,10 +19,8 @@ interface RecipeCardProps {
 }
 
 export const RecipeCard = memo(function RecipeCard({ recipe, viewMode = "grid", index = 0, isCooked = false }: RecipeCardProps) {
-  // When Unsplash replaced the original (ai-found) but the original is in Dropbox, prefer Dropbox.
-  const dropboxImage = useDropboxImage(
-    recipe.imageSource === "ai-found" && recipe.heroImageDropboxPath ? recipe.heroImageDropboxPath : undefined
-  );
+  // Prefer Dropbox copy whenever available — external URLs can expire or be blocked.
+  const dropboxImage = useDropboxImage(recipe.heroImageDropboxPath);
   const imageSrc = dropboxImage ?? recipe.heroImageUrl;
 
   if (viewMode === "list") {

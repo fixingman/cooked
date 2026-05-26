@@ -94,6 +94,7 @@ Three files must always match:
 - `0.19.11` fix: recipe import — Googlebot UA retry when browser fetch yields no JSON-LD (fixes SPA/prerender sites e.g. coop.se)
 - `0.19.12` fix: normalise protocol-relative image URLs (//cdn…) to https: — fixes Next.js Image rejection and Cloudinary transform stripping
 - `0.19.13` fix: pantry — AI categorise runs on all items · split Staples into Oils & Condiments + Canned & Jars · strip leading unit tokens (dl/tbsp/g) from ingredient matching
+- `0.19.14` fix: BUG-008 recurring — RecipeCard now loads Dropbox image for all recipes with heroImageDropboxPath (not just ai-found), matching RecipeHero behaviour
 
 ---
 

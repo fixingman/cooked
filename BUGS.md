@@ -16,17 +16,19 @@ Active bugs only. Resolved bugs kept for reference with their fix summary.
 
 ---
 
-### BUG-008 — Recipe card shows stock thumbnail, detail shows correct image
+### BUG-008 ✅ v0.19.14 — Recipe card shows stock thumbnail, detail shows correct image
 
-**Status:** Fix shipped v0.15.11, pending confirmation
+**Status:** Fixed v0.19.14
 
-**Symptom:** Recipe cards show Unsplash stock photos; tapping through shows the correct original in the hero. "Image Quality" scan reports "All images look good."
+**Symptom:** Recipe cards show Unsplash stock photos; tapping through shows the correct original in the hero.
 
-**Root cause:** Before v0.15.9, `"unknown"` HEAD quality triggered Unsplash replacement — `heroImageUrl` was overwritten with stock URL while `heroImageDropboxPath` kept the original. Card used `heroImageUrl` only. `needsRefresh` only checked `imageQuality === "low"` so `ai-found` recipes were never flagged.
+**Root cause (original):** Before v0.15.9, `"unknown"` HEAD quality triggered Unsplash replacement — `heroImageUrl` was overwritten with stock URL while `heroImageDropboxPath` kept the original. Card used `heroImageUrl` only.
 
-**Fixes (v0.15.11):** `RecipeCard` calls `useDropboxImage` for `ai-found + dropboxPath` recipes. `needsRefresh` now also flags them. Root cause prevented in v0.15.9.
+**Root cause (recurring, v0.19.14):** `RecipeCard` only called `useDropboxImage` when `imageSource === "ai-found"`. URL-imported (`scraped`) recipes with a `heroImageDropboxPath` used `heroImageUrl` directly — if that external URL expired or was blocked, `FoodImage.onError` fired and showed the hardcoded stock fallback. `RecipeHero` called `useDropboxImage` for all recipes, so the detail page always showed the Dropbox copy correctly.
 
-**Files:** `src/components/recipes/RecipeCard.tsx`, `src/components/settings/ImageRefreshSection.tsx`
+**Fix:** `RecipeCard` now calls `useDropboxImage(recipe.heroImageDropboxPath)` unconditionally, mirroring `RecipeHero`.
+
+**Files:** `src/components/recipes/RecipeCard.tsx`
 
 ---
 
