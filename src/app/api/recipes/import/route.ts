@@ -41,9 +41,14 @@ async function streamFetch(url: string, headers: Record<string, string>): Promis
       const { done, value } = await reader.read();
       if (done) break;
       html += dec.decode(value, { stream: true });
-      // Sites like Waitrose embed JSON-LD in <head>. Once we have the full
-      // <head> we have everything we need — no reason to download the body.
-      if (html.length > 80_000 && html.includes("</head>") && html.includes("application/ld+json")) break;
+      // Exit as soon as a complete JSON-LD block is present — the closing
+      // </script> appears after the type attribute. This handles both
+      // <head>-embedded JSON-LD (e.g. Waitrose) and <body>-embedded JSON-LD
+      // (e.g. The Modern Proper where JSON-LD is at byte 200K+).
+      if (html.includes("application/ld+json")) {
+        const ldPos = html.indexOf("application/ld+json");
+        if (html.indexOf("</script>", ldPos) !== -1) break;
+      }
       if (html.length > 600_000) break; // absolute safety cap
     }
   } finally {
@@ -127,7 +132,7 @@ ${pageText.slice(0, 40_000)}`;
       max_tokens: 2048,
       messages: [{ role: "user", content: prompt }],
     }),
-    signal: AbortSignal.timeout(12_000),
+    signal: AbortSignal.timeout(20_000),
   });
 
   if (!res.ok) return null;
