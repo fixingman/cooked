@@ -22,6 +22,7 @@ import { usePantry } from "@/hooks/usePantry";
 import { PantryModal } from "@/components/pantry/PantryModal";
 import { getRecipe } from "@/lib/recipes";
 import { formatMinutes } from "@/lib/formatTime";
+import { normalizeForMatch, cleanForPantry } from "@/lib/ingredientUtils";
 import type { Recipe } from "@/types/recipe";
 
 interface PageProps {
@@ -235,7 +236,7 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
           <IngredientList
             ingredients={recipe.ingredients}
             scale={scale}
-            pantryNames={new Set(pantryItems.map(i => i.name.toLowerCase()))}
+            pantryNames={new Set(pantryItems.map(i => normalizeForMatch(i.name)))}
           />
         </div>
 
@@ -281,10 +282,6 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
   );
 }
 
-function toSentenceCase(str: string): string {
-  return str.charAt(0).toUpperCase() + str.slice(1);
-}
-
 function AddToPantryPanel({
   ingredients,
   pantryItems,
@@ -296,9 +293,9 @@ function AddToPantryPanel({
   onAdd: (name: string) => void;
   onOpenPantry: () => void;
 }) {
-  const inPantry = new Set(pantryItems.map(i => i.name.toLowerCase()));
-  // Only show items not already in pantry
-  const available = ingredients.filter(n => !inPantry.has(n.toLowerCase()));
+  const normalizedPantry = new Set(pantryItems.map(i => normalizeForMatch(i.name)));
+  // Only show items whose core ingredient isn't already in pantry
+  const available = ingredients.filter(n => !normalizedPantry.has(normalizeForMatch(n)));
   const [selected, setSelected] = useState<Set<string>>(() => new Set(available));
 
   function toggle(name: string) {
@@ -310,7 +307,7 @@ function AddToPantryPanel({
   }
 
   function handleAdd() {
-    Array.from(selected).forEach(name => onAdd(toSentenceCase(name)));
+    Array.from(selected).forEach(name => onAdd(cleanForPantry(name)));
     setSelected(new Set());
   }
 
@@ -342,7 +339,7 @@ function AddToPantryPanel({
                 ].join(" ")}>
                   {checked && <CheckCircle size={10} className="text-white" fill="currentColor" strokeWidth={0} />}
                 </span>
-                <span className="text-sm text-ink-800">{toSentenceCase(name)}</span>
+                <span className="text-sm text-ink-800">{cleanForPantry(name)}</span>
               </button>
             </li>
           );

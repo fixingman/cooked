@@ -1,7 +1,8 @@
 "use client";
 import { useMemo } from "react";
-import { CheckCircle } from "lucide-react";
+import { Check } from "lucide-react";
 import { scaleQuantity } from "@/lib/scaleIngredient";
+import { normalizeForMatch } from "@/lib/ingredientUtils";
 import type { Ingredient } from "@/types/recipe";
 import { cn } from "@/lib/cn";
 
@@ -73,8 +74,8 @@ export function IngredientList({ ingredients, scale, units = "metric", pantryNam
                       <span className="text-ink-400 text-xs ml-1.5">(optional)</span>
                     )}
                   </span>
-                  {pantryNames?.has(ing.name.toLowerCase()) && (
-                    <CheckCircle size={13} className="text-sage-400 shrink-0" fill="currentColor" strokeWidth={0} />
+                  {pantryNames?.has(normalizeForMatch(ing.name)) && (
+                    <Check size={13} className="text-sage-500 shrink-0" strokeWidth={2.5} />
                   )}
                 </li>
               );
