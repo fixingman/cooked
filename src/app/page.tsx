@@ -3,12 +3,17 @@ import { useMemo } from "react";
 import { TimeGreeting } from "@/components/home/TimeGreeting";
 import { AIPromptBar } from "@/components/home/AIPromptBar";
 import { PantryWidget } from "@/components/home/PantryWidget";
+import { ForYouSection } from "@/components/home/ForYouSection";
 import { FeaturedHero } from "@/components/home/FeaturedHero";
 import { MealTimeSection } from "@/components/home/MealTimeSection";
 import { ContinueCooking } from "@/components/home/ContinueCooking";
 import { useUserRecipes } from "@/hooks/useUserRecipes";
 import { useFavourites } from "@/hooks/useFavourites";
 import { useRecipeStates } from "@/hooks/useRecipeStates";
+import { usePantry } from "@/hooks/usePantry";
+import { rankRecipes, hasEnoughSignal } from "@/lib/rankRecipes";
+import { normalizeForMatch } from "@/lib/ingredientUtils";
+import type { RankSignals } from "@/lib/rankRecipes";
 import type { MealTime } from "@/types/recipe";
 
 function getCurrentMeal(): { mealTime: MealTime; label: string } {
@@ -27,6 +32,7 @@ export default function HomePage() {
   const { recipes: userRecipes } = useUserRecipes();
   const { favouriteIds } = useFavourites();
   const { states, hasCooked } = useRecipeStates();
+  const { items: pantryItems } = usePantry();
 
   const allRecipes = useMemo(() => [...userRecipes], [userRecipes]);
 
@@ -35,25 +41,53 @@ export default function HomePage() {
   const primary = getCurrentMeal();
   const secondary = getSecondaryMeal(primary.mealTime);
 
+  // Build ranking signals from pantry, favourites, and cook history
+  const pantryNames = useMemo(
+    () => new Set(pantryItems.map(i => normalizeForMatch(i.name))),
+    [pantryItems]
+  );
+
+  const signals: RankSignals = useMemo(
+    () => ({ pantryNames, favouriteIds: new Set(favouriteIds), states }),
+    [pantryNames, favouriteIds, states]
+  );
+
+  // "For You" — top-ranked recipes, excluding anything cooked in the last 3 days
+  const forYouRecipes = useMemo(() => {
+    if (!hasEnoughSignal(signals)) return [];
+    const threeDaysAgo = Date.now() - 3 * 86_400_000;
+    const eligible = allRecipes.filter(r => {
+      const state = signals.states.find(s => s.recipeId === r.id);
+      if (!state?.cookedAt?.length) return true;
+      const mostRecent = new Date(state.cookedAt[state.cookedAt.length - 1]).getTime();
+      return mostRecent < threeDaysAgo;
+    });
+    return rankRecipes(eligible, signals).slice(0, 8);
+  }, [allRecipes, signals]);
+
+  // Meal-time carousels — ranked within their meal-time filter
   const primaryRecipes = useMemo(
-    () => allRecipes.filter(r => r.mealTimes.includes(primary.mealTime)),
-    [allRecipes, primary.mealTime]
+    () => rankRecipes(allRecipes.filter(r => r.mealTimes.includes(primary.mealTime)), signals),
+    [allRecipes, primary.mealTime, signals]
   );
   const secondaryRecipes = useMemo(
-    () => allRecipes.filter(r => r.mealTimes.includes(secondary.mealTime)),
-    [allRecipes, secondary.mealTime]
+    () => rankRecipes(allRecipes.filter(r => r.mealTimes.includes(secondary.mealTime)), signals),
+    [allRecipes, secondary.mealTime, signals]
   );
 
-  // Recipes the user has bookmarked (wantToCook)
+  // Recipes the user has bookmarked (wantToCook), ranked
   const wantToCookRecipes = useMemo(() => {
     const ids = new Set(states.filter(s => s.wantToCook).map(s => s.recipeId));
-    return allRecipes.filter(r => ids.has(r.id));
-  }, [allRecipes, states]);
+    return rankRecipes(allRecipes.filter(r => ids.has(r.id)), signals);
+  }, [allRecipes, states, signals]);
 
-  // Favourites the user hasn't cooked yet
+  // Favourites the user hasn't cooked yet, ranked
   const untriedFavourites = useMemo(
-    () => allRecipes.filter(r => favouriteIds.includes(r.id) && !hasCooked(r.id)),
-    [allRecipes, favouriteIds, hasCooked]
+    () => rankRecipes(
+      allRecipes.filter(r => favouriteIds.includes(r.id) && !hasCooked(r.id)),
+      signals
+    ),
+    [allRecipes, favouriteIds, hasCooked, signals]
   );
 
   return (
@@ -61,6 +95,9 @@ export default function HomePage() {
       <TimeGreeting />
       <AIPromptBar />
       <PantryWidget />
+      {hasEnoughSignal(signals) && forYouRecipes.length >= 2 && (
+        <ForYouSection recipes={forYouRecipes} pantryNames={pantryNames} />
+      )}
       {featuredRecipe && <FeaturedHero recipe={featuredRecipe} />}
       <MealTimeSection
         recipes={wantToCookRecipes}

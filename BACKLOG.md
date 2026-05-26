@@ -54,13 +54,13 @@ Prompt bar on homepage below greeting (visible when `aiEnabled`). Single input, 
 
 ---
 
-### 🔴 F-5 — Recipe Ranking ("For You" sort)
-Signals: pantry match · favourited · cooked before · want to cook · recency penalty. Only activates when user has enough signal. **Depends on F-1 (Pantry).**
+### ✅ F-5 — Recipe Ranking ("For You" sort) — v0.20.0
+`src/lib/rankRecipes.ts` — `scoreRecipe` weights: pantry match ratio ×4 · favourite +2 · wantToCook +1 · cooked +0.5 · rating≥4 +1.5 · recency penalty (−4/<3d, −2/<7d, −0.5/<14d). `hasEnoughSignal` gates on ≥3 pantry items OR ≥2 favourites OR ≥2 cooked recipes.
 
 ---
 
-### 🔴 H-1B — Smart Homepage Carousels Phase B
-pantry-match ranking · cook-history signals · "For You" section at top of homepage. **Depends on F-1 + F-5.**
+### ✅ H-1B — Smart Homepage Carousels Phase B — v0.20.0
+"For You" section between PantryWidget and FeaturedHero (gated on signal threshold). Meal-time + wantToCook + untriedFavourites carousels sorted by rank. Pantry match badge on ForYouSection cards when ≥2 ingredients matched.
 
 ---
 
