@@ -2,7 +2,7 @@ import type { PantryCategory } from "@/data/ingredientCategories";
 
 export const maxDuration = 30;
 
-const VALID: PantryCategory[] = ["produce", "dairy", "meat", "grains", "spices", "baking", "pantry", "frozen", "other"];
+const VALID: PantryCategory[] = ["produce", "dairy", "meat", "grains", "spices", "baking", "pantry", "canned", "frozen", "other"];
 
 export async function POST(req: Request) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -24,8 +24,9 @@ export async function POST(req: Request) {
 - meat: meat, poultry, fish, seafood, tofu, tempeh
 - grains: pasta, rice, flour, bread, oats, couscous, noodles, breadcrumbs (display name: Grains & Pasta)
 - spices: dry spices, dried herbs, seasoning blends (display name: Spices & Herbs)
-- baking: sugar, chocolate, baking powder, yeast, vanilla, cocoa, cornflour, syrups (display name: Baking)
-- pantry: oils, vinegars, condiments, sauces, canned goods, stocks, nuts, seeds, nut butters, dried fruit, wine for cooking (display name: Staples)
+- baking: sugar, chocolate, baking powder, yeast, vanilla, cocoa, cornflour, syrups, honey, maple syrup (display name: Baking)
+- pantry: oils, vinegars, condiments, mustard, soy/fish/hot sauces, miso, nuts, seeds, nut butters, dried fruit, wine for cooking (display name: Oils & Condiments)
+- canned: canned/tinned goods, pulses, stocks, broths, coconut milk, tomato paste, passata, jarred peppers/olives/capers/pesto (display name: Canned & Jars)
 - frozen: frozen foods
 - other: anything that doesn't fit the above
 

@@ -9,13 +9,14 @@ export const CATEGORY_LABELS: Record<PantryCategory, string> = {
   grains:     "Grains & Pasta",
   spices:     "Spices & Herbs",
   baking:     "Baking",
-  pantry:     "Staples",
+  pantry:     "Oils & Condiments",
+  canned:     "Canned & Jars",
   frozen:     "Frozen",
   other:      "Other",
 };
 
 export const CATEGORY_ORDER: PantryCategory[] = [
-  "produce", "dairy", "meat", "grains", "spices", "baking", "pantry", "frozen", "other",
+  "produce", "dairy", "meat", "grains", "spices", "baking", "pantry", "canned", "frozen", "other",
 ];
 
 const RAW: Array<[PantryCategory, string[]]> = [
@@ -65,17 +66,9 @@ const RAW: Array<[PantryCategory, string[]]> = [
     "cocoa powder", "dark chocolate", "chocolate", "cornflour", "cornstarch", "gelatin",
     "golden syrup", "molasses", "treacle", "agave",
   ]],
-  ["frozen", [
-    "frozen peas", "frozen corn", "frozen spinach", "frozen berries",
-    "ice cream", "frozen chips", "frozen fish",
-  ]],
   ["pantry", [
     // Oils & fats
     "olive oil", "vegetable oil", "sunflower oil", "coconut oil", "sesame oil", "lard",
-    // Pulses & canned
-    "chickpeas", "black beans", "kidney beans", "lentils", "cannellini beans",
-    "chopped tomatoes", "coconut milk", "tomato paste", "tomato purée", "tomato puree",
-    "chicken stock", "vegetable stock", "beef stock", "stock",
     // Condiments & sauces
     "soy sauce", "fish sauce", "worcestershire sauce", "hot sauce", "tabasco",
     "dijon mustard", "wholegrain mustard", "mustard", "mayonnaise", "ketchup",
@@ -88,6 +81,23 @@ const RAW: Array<[PantryCategory, string[]]> = [
     "sesame seeds", "pumpkin seeds", "flaxseed", "chia seeds",
     "peanut butter", "almond butter",
     "raisins", "sultanas", "dried apricots", "dates", "cranberries",
+  ]],
+  ["canned", [
+    // Pulses
+    "chickpeas", "black beans", "kidney beans", "lentils", "cannellini beans", "butter beans",
+    // Canned veg & fruit
+    "chopped tomatoes", "tomato paste", "tomato purée", "tomato puree",
+    "coconut milk", "corn kernels",
+    // Stocks & broths
+    "chicken stock", "vegetable stock", "beef stock", "fish stock", "stock",
+    "chicken broth", "vegetable broth", "beef broth",
+    // Other jarred
+    "sun-dried tomatoes", "roasted peppers", "artichoke hearts", "anchovies", "capers",
+    "olives", "pesto", "passata",
+  ]],
+  ["frozen", [
+    "frozen peas", "frozen corn", "frozen spinach", "frozen berries",
+    "ice cream", "frozen chips", "frozen fish",
   ]],
 ];
 

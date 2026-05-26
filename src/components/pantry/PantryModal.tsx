@@ -105,21 +105,20 @@ export function PantryModal({ onClose }: PantryModalProps) {
     reader.readAsText(file);
   }
 
-  // AI categorisation for items with no category or stuck as "other"
+  // AI categorisation — runs on all items so categories stay accurate after edits
   async function handleCategorise() {
-    const targets = items.filter(i => !i.category || i.category === "other");
-    if (targets.length === 0 || categorising) return;
+    if (items.length === 0 || categorising) return;
     setCategorising(true);
     try {
       const res = await fetch("/api/pantry/categorise", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ names: targets.map(i => i.name) }),
+        body: JSON.stringify({ names: items.map(i => i.name) }),
       });
       if (!res.ok) return;
       const { results } = await res.json() as { results: { name: string; category: PantryItem["category"] }[] };
       for (const r of results) {
-        const item = targets.find(i => i.name.toLowerCase() === r.name.toLowerCase());
+        const item = items.find(i => i.name.toLowerCase() === r.name.toLowerCase());
         if (item && r.category) updateCategory(item.id, r.category);
       }
     } finally {
