@@ -114,6 +114,7 @@ Three files must always match:
 - `0.20.16` feat: F-10 bookmarklet — one-click capture from any page; "Save to Cooked" drag link in Paste tab; ?import=paste&url=X query params auto-open modal in paste mode; environment-aware URL via window.location.origin
 - `0.20.17` fix: Unsplash search quality — buildImageQuery strips adjective noise + drops "food recipe" suffix; fixes "any" being injected as literal word when cuisine is unclassified; zero-results fallback to cuisine + "food" in image picker
 - `0.20.18` fix: bookmarklet — switch from async navigator.clipboard.writeText to synchronous textarea+execCommand copy; eliminates race condition where clipboard was never written before navigation
+- `0.20.19` fix: bookmarklet — use window.open (new tab) instead of window.location.href; navigator.clipboard.writeText fires and completes while user switches tabs; execCommand fallback with visible+opacity:0 textarea for browsers without clipboard API
 
 ---
 
