@@ -122,7 +122,7 @@ export default function HomePage() {
   }, [allRecipes, signals]);
 
   return (
-    <div className="px-4 py-6 md:px-8 max-w-5xl mx-auto space-y-8">
+    <div className="px-4 py-6 md:px-8 max-w-6xl mx-auto space-y-8">
       <Suspense fallback={null}>
         <BookmarkletHandler onOpen={url => setBookmarkletImport({ open: true, url })} />
       </Suspense>
