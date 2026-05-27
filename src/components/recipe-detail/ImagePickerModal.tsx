@@ -11,12 +11,13 @@ interface ImageOption {
   url: string;
   thumb: string;
   alt: string;
+  badge?: string; // "Current" | "From source"
   isCurrent?: boolean;
 }
 
 interface ImagePickerModalProps {
-  recipe: Recipe;
-  currentSrc: string | null; // resolved display src (may be Dropbox URL)
+  recipe: Recipe & { sourceUrl?: string };
+  currentSrc: string | null;
   onClose: () => void;
 }
 
@@ -25,6 +26,7 @@ export function ImagePickerModal({ recipe, currentSrc, onClose }: ImagePickerMod
   const { status: dropboxStatus, getValidAccessToken } = useDropboxAuth();
 
   const [unsplashImages, setUnsplashImages] = useState<ImageOption[]>([]);
+  const [sourceImage, setSourceImage] = useState<ImageOption | null>(null);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState("");
   const [selected, setSelected] = useState<ImageOption | null>(null);
@@ -51,29 +53,55 @@ export function ImagePickerModal({ recipe, currentSrc, onClose }: ImagePickerMod
     fetch("/api/recipes/search-images", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: recipe.title, cuisine: recipe.cuisine }),
+      body: JSON.stringify({
+        title: recipe.title,
+        cuisine: recipe.cuisine,
+        sourceUrl: recipe.sourceUrl ?? null,
+      }),
     })
       .then(r => r.json())
       .then(data => {
         setUnsplashImages(data.images ?? []);
+        if (data.sourceImageUrl) {
+          setSourceImage({
+            url: data.sourceImageUrl,
+            thumb: data.sourceImageUrl,
+            alt: recipe.title,
+            badge: "From source",
+          });
+        }
         setLoading(false);
       })
       .catch(() => { setFetchError("Could not load images."); setLoading(false); });
-  }, [recipe.title, recipe.cuisine]);
+  }, [recipe.title, recipe.cuisine, recipe.sourceUrl]);
 
-  // Current image shown first (uses resolved Dropbox URL if available for display, heroImageUrl for storage)
+  // Current image always shown first
   const currentOption: ImageOption | null = (currentSrc ?? recipe.heroImageUrl)
-    ? { url: recipe.heroImageUrl ?? currentSrc!, thumb: currentSrc ?? recipe.heroImageUrl!, alt: recipe.title, isCurrent: true }
+    ? { url: recipe.heroImageUrl ?? currentSrc!, thumb: currentSrc ?? recipe.heroImageUrl!, alt: recipe.title, badge: "Current", isCurrent: true }
     : null;
 
-  const allImages = currentOption ? [currentOption, ...unsplashImages] : unsplashImages;
+  // Order: Current → From source (if different from current) → Unsplash
+  const sourceIsDifferentFromCurrent = sourceImage && sourceImage.url !== (recipe.heroImageUrl ?? currentSrc);
+  const allImages: ImageOption[] = [
+    ...(currentOption ? [currentOption] : []),
+    ...(sourceImage && sourceIsDifferentFromCurrent ? [sourceImage] : []),
+    ...unsplashImages,
+  ];
 
   async function handleSave() {
     if (!selected) return;
-    // Selecting "Current" = no change needed
     if (selected.isCurrent) { onClose(); return; }
 
     setSaving(true);
+
+    // Versioned path so useDropboxImage cache never serves the old image
+    const imagePath = `/images/${recipe.id}-${Date.now()}.jpg`;
+
+    // Clear old Dropbox image cache entry so the old path isn't served
+    if (recipe.heroImageDropboxPath) {
+      try { localStorage.removeItem(`cooked-img-cache:${recipe.heroImageDropboxPath}`); } catch {}
+    }
+
     if (dropboxStatus === "connected") {
       try {
         const token = await getValidAccessToken();
@@ -87,7 +115,6 @@ export function ImagePickerModal({ recipe, currentSrc, onClose }: ImagePickerMod
               reader.onerror = reject;
               reader.readAsDataURL(blob);
             });
-            const imagePath = `/images/${recipe.id}.jpg`;
             await uploadBinary(token, imagePath, dataUrl);
             updateRecipe(recipe.id, {
               heroImageUrl: selected.url,
@@ -101,7 +128,13 @@ export function ImagePickerModal({ recipe, currentSrc, onClose }: ImagePickerMod
         }
       } catch {}
     }
-    updateRecipe(recipe.id, { heroImageUrl: selected.url, imageSource: "ai-found", imageQuality: "ok" });
+
+    updateRecipe(recipe.id, {
+      heroImageUrl: selected.url,
+      heroImageDropboxPath: undefined,
+      imageSource: "ai-found",
+      imageQuality: "ok",
+    });
     onClose();
   }
 
@@ -138,12 +171,10 @@ export function ImagePickerModal({ recipe, currentSrc, onClose }: ImagePickerMod
         ].join(" ")}
         onClick={e => e.stopPropagation()}
       >
-        {/* Mobile drag handle */}
         <div className="flex justify-center pt-3 pb-1 shrink-0 md:hidden">
           <div className="w-10 h-1 bg-parchment-300 rounded-full" />
         </div>
 
-        {/* Header */}
         <div className="shrink-0 flex items-center justify-between px-5 py-4 border-b border-parchment-300">
           <h2 className="font-serif text-lg text-ink-900 font-semibold">Change image</h2>
           <button
@@ -154,7 +185,6 @@ export function ImagePickerModal({ recipe, currentSrc, onClose }: ImagePickerMod
           </button>
         </div>
 
-        {/* Body */}
         <div className="flex-1 min-h-0 overflow-y-auto p-5">
           {loading ? (
             <div className="grid grid-cols-3 gap-2">
@@ -180,10 +210,11 @@ export function ImagePickerModal({ recipe, currentSrc, onClose }: ImagePickerMod
                         src={img.thumb}
                         alt={img.alt}
                         className="w-full h-full object-cover"
+                        onError={e => { (e.target as HTMLImageElement).closest("button")!.style.display = "none"; }}
                       />
-                      {img.isCurrent && (
+                      {img.badge && (
                         <div className="absolute bottom-1.5 left-1.5 bg-ink-900/70 backdrop-blur-sm text-parchment-100 text-[10px] font-medium px-1.5 py-0.5 rounded-md leading-tight">
-                          Current
+                          {img.badge}
                         </div>
                       )}
                       <div className={[
@@ -204,7 +235,6 @@ export function ImagePickerModal({ recipe, currentSrc, onClose }: ImagePickerMod
           )}
         </div>
 
-        {/* Footer */}
         <div className="shrink-0 px-5 pt-3 pb-5 md:pb-5 border-t border-parchment-300 bg-parchment-100">
           <motion.button
             whileTap={{ scale: 0.97 }}
