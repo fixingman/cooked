@@ -1,6 +1,6 @@
 "use client";
 import { useMemo, useState, useEffect, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { AnimatePresence } from "framer-motion";
 import { TimeGreeting } from "@/components/home/TimeGreeting";
 import { AIPromptBar } from "@/components/home/AIPromptBar";
@@ -20,23 +20,23 @@ import type { RankSignals } from "@/lib/rankRecipes";
 import type { MealTime } from "@/types/recipe";
 
 function BookmarkletHandler({ onOpen }: { onOpen: (url: string, text?: string) => void }) {
-  const searchParams = useSearchParams();
   const router = useRouter();
   useEffect(() => {
-    const mode = searchParams.get("import");
-    const url = searchParams.get("url");
-    const text = searchParams.get("text");
-    const token = searchParams.get("token");
-    if (mode === "paste" || token) {
-      router.replace("/");
-      if (token) {
-        fetch(`/api/bookmarklet/get?token=${encodeURIComponent(token)}`)
-          .then(r => r.json())
-          .then(d => onOpen(url ?? "", d.text ?? ""))
-          .catch(() => onOpen(url ?? "", text ?? ""));
-      } else {
-        onOpen(url ?? "", text ?? "");
-      }
+    // Read directly from window.location — avoids useSearchParams race with router.replace
+    const params = new URLSearchParams(window.location.search);
+    const mode = params.get("import");
+    const url = params.get("url") ?? "";
+    const text = params.get("text") ?? "";
+    const token = params.get("token") ?? "";
+    if (mode !== "paste" && !token) return;
+    router.replace("/");
+    if (token) {
+      fetch(`/api/bookmarklet/get?token=${encodeURIComponent(token)}`)
+        .then(r => r.json())
+        .then(d => onOpen(url, d.text ?? text))
+        .catch(() => onOpen(url, text));
+    } else {
+      onOpen(url, text);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
