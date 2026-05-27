@@ -112,6 +112,7 @@ Three files must always match:
 - `0.20.14` fix: image picker — versioned Dropbox path on replace (bypasses 4h cache); "From source" option fetches OG image from original recipe URL in parallel with Unsplash; broken image tiles hidden via onError
 - `0.20.15` feat: deferred time estimation — show "—" for unknown times, estimate via Haiku post-save, display with "~" prefix · U-24: mic & camera toggles locked with "Coming soon" badge · backlog F-11 Collections, F-12 Ingredient Substitution numbered
 - `0.20.16` feat: F-10 bookmarklet — one-click capture from any page; "Save to Cooked" drag link in Paste tab; ?import=paste&url=X query params auto-open modal in paste mode; environment-aware URL via window.location.origin
+- `0.20.17` fix: Unsplash search quality — buildImageQuery strips adjective noise + drops "food recipe" suffix; fixes "any" being injected as literal word when cuisine is unclassified; zero-results fallback to cuisine + "food" in image picker
 
 ---
 

@@ -1,5 +1,17 @@
 export type ImageSource = "scraped" | "photo-import" | "ai-found" | "none";
 
+const NOISE_WORDS = /\b(easy|quick|simple|the\s+best|best\s+ever|best|homemade|classic|healthy|low[- ]carb|one[- ]pan|one[- ]pot|\d+[- ]min(ute)?s?|weeknight|everyday|perfect|ultimate|hearty|crispy|oven[- ]baked|slow[- ]cooker|instant[- ]pot|air[- ]fryer)\b\s*/gi;
+
+export function buildImageQuery(title: string, cuisine?: string): string {
+  const cleaned = title.replace(NOISE_WORDS, "").replace(/\s+/g, " ").trim();
+  const base = (cleaned || title).split(/\s+/).slice(0, 5).join(" ");
+  // Only add cuisine when title stripped to ≤2 words and cuisine is a real value
+  if (base.split(/\s+/).length <= 2 && cuisine && cuisine !== "any") {
+    return `${base} ${cuisine}`;
+  }
+  return base;
+}
+
 const THUMB_QUERY_PARAMS = ["w", "h", "width", "height", "fit", "crop", "auto", "q", "quality", "format", "fm", "s", "size", "resize", "dpr", "tr"];
 const LOW_RES_BYTES = 35_000;
 
@@ -170,7 +182,7 @@ export async function resolveRecipeImage(
   unsplashKey: string | undefined,
   hfToken?: string, // Hugging Face token — enables AI upscaling; omit to skip
 ): Promise<ImageResolveResult> {
-  const query = `${title} ${cuisine} food recipe`;
+  const query = buildImageQuery(title, cuisine);
 
   const unsplashFallback = async (): Promise<ImageResolveResult> => {
     if (!unsplashKey) return { url: null, source: "none", quality: "low" };

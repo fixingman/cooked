@@ -1,5 +1,7 @@
 export const maxDuration = 15;
 
+import { buildImageQuery } from "@/lib/imageUtils";
+
 const DESKTOP_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36";
 
 async function fetchSourceImageUrl(url: string): Promise<string | null> {
@@ -45,28 +47,37 @@ export async function POST(req: Request) {
   const { title, cuisine, sourceUrl } = body;
   if (!title) return Response.json({ error: "title is required" }, { status: 400 });
 
-  const queryParts = [title, cuisine && cuisine !== "any" ? cuisine : null, "food"].filter(Boolean);
-  const query = queryParts.join(" ");
+  const query = buildImageQuery(title, cuisine);
+
+  async function unsplashSearch(q: string) {
+    const res = await fetch(
+      `https://api.unsplash.com/search/photos?${new URLSearchParams({
+        query: q, per_page: "9", orientation: "landscape", content_filter: "high",
+      })}`,
+      { headers: { Authorization: `Client-ID ${unsplashKey!}` }, signal: AbortSignal.timeout(8_000) }
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.results ?? [];
+  }
 
   const [unsplashRes, sourceImage] = await Promise.allSettled([
-    fetch(
-      `https://api.unsplash.com/search/photos?${new URLSearchParams({
-        query, per_page: "9", orientation: "landscape", content_filter: "high",
-      })}`,
-      { headers: { Authorization: `Client-ID ${unsplashKey}` }, signal: AbortSignal.timeout(8_000) }
-    ),
+    unsplashSearch(query),
     sourceUrl ? fetchSourceImageUrl(sourceUrl) : Promise.resolve(null),
   ]);
 
-  if (unsplashRes.status === "rejected") {
+  if (unsplashRes.status === "rejected" || unsplashRes.value === null) {
     return Response.json({ error: "Failed to fetch images" }, { status: 502 });
   }
-  if (!unsplashRes.value.ok) {
-    return Response.json({ error: "Unsplash search failed" }, { status: 502 });
+
+  // Zero-results fallback: try cuisine + "food" or just "food dish"
+  let results = unsplashRes.value as typeof unsplashRes.value;
+  if (results.length === 0) {
+    const fallbackQuery = cuisine && cuisine !== "any" ? `${cuisine} food` : "food dish";
+    results = (await unsplashSearch(fallbackQuery)) ?? [];
   }
 
-  const data = await unsplashRes.value.json();
-  const images = (data.results ?? []).map((r: {
+  const images = (results).map((r: {
     urls: { regular: string; small: string };
     alt_description: string;
     user: { name: string };
