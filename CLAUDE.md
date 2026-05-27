@@ -110,6 +110,7 @@ Three files must always match:
 - `0.20.12` fix: duplicate import blocked — save button replaced with "View recipe" when duplicate detected by URL or title match
 - `0.20.13` fix: "gr" (European gram abbreviation) added to LEADING_UNIT + BARE_UNIT — "gr parmesan cheese" now strips to "parmesan cheese" for pantry matching
 - `0.20.14` fix: image picker — versioned Dropbox path on replace (bypasses 4h cache); "From source" option fetches OG image from original recipe URL in parallel with Unsplash; broken image tiles hidden via onError
+- `0.20.15` feat: deferred time estimation — show "—" for unknown times, estimate via Haiku post-save, display with "~" prefix · U-24: mic & camera toggles locked with "Coming soon" badge · backlog F-11 Collections, F-12 Ingredient Substitution numbered
 
 ---
 

@@ -54,6 +54,7 @@ export function ImportRecipeModal({ onClose, initialDraft, generatedDraft, onSav
   const [isDragging, setIsDragging] = useState(false);
   const [tmEnrichState, setTmEnrichState] = useState<"idle" | "pending" | "done" | "failed">("idle");
   const [nutritionEnrichState, setNutritionEnrichState] = useState<"idle" | "pending" | "done" | "failed">("idle");
+  const [timesEnrichState, setTimesEnrichState] = useState<"idle" | "pending" | "done" | "failed">("idle");
   const [duplicateOf, setDuplicateOf] = useState<Recipe | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -246,6 +247,32 @@ export function ImportRecipeModal({ onClose, initialDraft, generatedDraft, onSav
           }
         })
         .catch(() => setTmEnrichState("failed"));
+    }
+
+    // Fire time estimation in the background after save — only when all times are missing.
+    if (!isEditMode && !finalRecipe.totalTimeMinutes) {
+      setTimesEnrichState("pending");
+      const recipeId = finalRecipe.id;
+      fetch("/api/recipes/estimate-times", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: finalRecipe.title,
+          servings: finalRecipe.servings,
+          ingredients: finalRecipe.ingredients,
+          steps: finalRecipe.steps,
+        }),
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (data.times) {
+            updateRecipe(recipeId, { ...data.times, timesEstimated: true });
+            setTimesEnrichState("done");
+          } else {
+            setTimesEnrichState("failed");
+          }
+        })
+        .catch(() => setTimesEnrichState("failed"));
     }
 
     // Fire nutrition estimation in the background after save — deferred to keep import fast.
@@ -597,6 +624,7 @@ export function ImportRecipeModal({ onClose, initialDraft, generatedDraft, onSav
                 {enrichments && (() => {
                   const ns = enrichments.nutritionSource;
                   const showTm = draft?.steps && draft.steps.length > 0 && enrichments?.thermomixSuitable !== false;
+                  const showTimes = !draft?.totalTimeMinutes;
 
                   type RowState = "idle" | "pending" | "done" | "failed";
                   const macroState: RowState = ns === "json-ld" || !!(draft?.calories) ? "done" : nutritionEnrichState;
@@ -616,15 +644,24 @@ export function ImportRecipeModal({ onClose, initialDraft, generatedDraft, onSav
                     <div>
                       <p className="text-xs font-medium text-ink-400 uppercase tracking-wider mb-2">Metadata</p>
                       <div className="bg-parchment-200 rounded-xl divide-y divide-parchment-300">
-                        <div className="flex items-center justify-between px-3 py-2.5">
+                        <div className="flex items-center justify-between px-3 py-2.5 first:border-t-0">
                           <span className="text-sm text-ink-700">Macros</span>
                           <span className={`flex items-center gap-1 text-xs font-medium ${statusTextClass(macroState)}`}>
                             <StatusIcon state={macroState} />
                             {macroText}
                           </span>
                         </div>
+                        {showTimes && (
+                          <div className="flex items-center justify-between px-3 py-2.5 border-t border-parchment-300">
+                            <span className="text-sm text-ink-700">Times</span>
+                            <span className={`flex items-center gap-1 text-xs font-medium ${statusTextClass(timesEnrichState)}`}>
+                              <StatusIcon state={timesEnrichState} />
+                              {timesEnrichState === "done" ? "Estimated" : timesEnrichState === "pending" ? "Estimating…" : timesEnrichState === "failed" ? "Unavailable" : "Adding after save"}
+                            </span>
+                          </div>
+                        )}
                         {showTm && (
-                          <div className="flex items-center justify-between px-3 py-2.5">
+                          <div className="flex items-center justify-between px-3 py-2.5 border-t border-parchment-300">
                             <span className="text-sm text-ink-700">Thermomix steps</span>
                             <span className={`flex items-center gap-1 text-xs font-medium ${statusTextClass(tmEnrichState === "done" ? "done" : tmEnrichState === "failed" ? "failed" : tmEnrichState === "pending" ? "pending" : "idle")}`}>
                               <StatusIcon state={tmEnrichState === "done" ? "done" : tmEnrichState === "failed" ? "failed" : tmEnrichState === "pending" ? "pending" : "idle"} />

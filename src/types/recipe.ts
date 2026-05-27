@@ -53,6 +53,7 @@ export interface Recipe {
   prepTimeMinutes: number;
   cookTimeMinutes: number;
   totalTimeMinutes: number;
+  timesEstimated?: boolean;
   servings: number;
   calories?: number;
   protein?: number;

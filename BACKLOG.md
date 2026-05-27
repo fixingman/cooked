@@ -45,12 +45,12 @@ Ordered by user value × feasibility.
 
 ---
 
-### 🔴 F-NEW — Collections / Folders
+### 🔴 F-11 — Collections / Folders
 Group recipes into named collections ("Sunday roasts", "Quick weeknight"). A recipe can belong to multiple collections. "Add to collection" from recipe ··· menu. Dropbox-synced.
 
 ---
 
-### 🔴 F-NEW — Ingredient Substitution (AI)
+### 🔴 F-12 — Ingredient Substitution (AI)
 Tap an ingredient in recipe detail → "I don't have this" → Claude (Haiku) suggests 2–3 substitutes with ratio notes. No new data model — Haiku call + inline sheet UI.
 
 ---

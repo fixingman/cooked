@@ -184,10 +184,10 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
           <div className="flex items-center gap-1.5 text-sm text-ink-600">
             <Clock size={14} className="text-ink-400" />
             <span className="text-ink-400">Prep</span>
-            <span className="font-medium">{formatMinutes(recipe.prepTimeMinutes)}</span>
+            <span className="font-medium">{recipe.timesEstimated && recipe.prepTimeMinutes ? "~" : ""}{formatMinutes(recipe.prepTimeMinutes)}</span>
             <span className="text-ink-300">·</span>
             <span className="text-ink-400">Cook</span>
-            <span className="font-medium">{formatMinutes(recipe.cookTimeMinutes)}</span>
+            <span className="font-medium">{recipe.timesEstimated && recipe.cookTimeMinutes ? "~" : ""}{formatMinutes(recipe.cookTimeMinutes)}</span>
           </div>
           <div className="flex items-center gap-1.5 text-sm text-ink-600">
             <Users size={14} className="text-ink-400" />

@@ -111,6 +111,47 @@ Both must sum close to ${totalTimeMinutes}. Use multiples of 5.`;
   }
 }
 
+export async function estimateAllTimes(
+  recipe: { title: string; servings: number; ingredients: { name: string }[]; steps: { instruction: string }[] },
+  apiKey: string,
+): Promise<{ prepTimeMinutes: number; cookTimeMinutes: number; totalTimeMinutes: number } | null> {
+  const prompt = `Estimate realistic home-cooking prep and cook times for this recipe.
+Title: "${recipe.title}"
+Ingredients: ${recipe.ingredients.length}
+Steps: ${recipe.steps.length}
+Serves: ${recipe.servings}
+
+Return ONLY JSON: {"prepTimeMinutes": number, "cookTimeMinutes": number, "totalTimeMinutes": number}
+Use multiples of 5. totalTimeMinutes should equal prep + cook (plus any passive time like resting/chilling if applicable).`;
+
+  try {
+    const res = await fetch(API_BASE, {
+      method: "POST",
+      headers: HEADERS(apiKey),
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 64,
+        messages: [{ role: "user", content: prompt }],
+      }),
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const text = (data?.content?.[0]?.text as string | undefined) ?? "";
+    const raw = text.match(/\{[\s\S]+\}/)?.[0] ?? text.trim();
+    const json = JSON.parse(raw);
+    const prep = typeof json.prepTimeMinutes === "number" ? Math.round(json.prepTimeMinutes) : null;
+    const cook = typeof json.cookTimeMinutes === "number" ? Math.round(json.cookTimeMinutes) : null;
+    const total = typeof json.totalTimeMinutes === "number" ? Math.round(json.totalTimeMinutes) : null;
+    if (prep !== null && cook !== null && total !== null && prep >= 0 && cook >= 0 && total > 0) {
+      return { prepTimeMinutes: prep, cookTimeMinutes: cook, totalTimeMinutes: total };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export async function estimateNutrition(
   recipe: { title: string; servings: number; ingredients: { quantity: number; unit: string; name: string }[] },
   apiKey: string,

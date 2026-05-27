@@ -38,7 +38,7 @@ export default function SettingsPage() {
         </div>
         <div>
           <h1 className="font-serif text-xl font-semibold text-ink-900">Cooked</h1>
-          <p className="text-xs text-ink-400">v0.20.14 — Your cooking companion</p>
+          <p className="text-xs text-ink-400">v0.20.15 — Your cooking companion</p>
         </div>
       </div>
 
@@ -104,6 +104,7 @@ export default function SettingsPage() {
           description="Allow voice notes during cooking"
           enabled={settings.microphoneEnabled}
           onToggle={() => update({ microphoneEnabled: !settings.microphoneEnabled })}
+          comingSoon
         />
         <div className="border-t border-parchment-300">
           <PermissionToggle
@@ -112,6 +113,7 @@ export default function SettingsPage() {
             description="Capture photos of your dishes"
             enabled={settings.cameraEnabled}
             onToggle={() => update({ cameraEnabled: !settings.cameraEnabled })}
+            comingSoon
           />
         </div>
       </Section>
