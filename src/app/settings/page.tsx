@@ -38,7 +38,7 @@ export default function SettingsPage() {
         </div>
         <div>
           <h1 className="font-serif text-xl font-semibold text-ink-900">Cooked</h1>
-          <p className="text-xs text-ink-400">v0.20.11 — Your cooking companion</p>
+          <p className="text-xs text-ink-400">v0.20.12 — Your cooking companion</p>
         </div>
       </div>
 

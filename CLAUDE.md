@@ -107,6 +107,7 @@ Three files must always match:
 - `0.20.9` fix: replace enrichment chips with tidy "Metadata" section in review panel — rows for Macros + Thermomix steps with inline status
 - `0.20.10` feat: recipe page shows enrichment placeholders — nutrition skeleton + "Preparing Thermomix steps…" while background enrichment is in flight; auto-replaced when data arrives via window custom event; 90s fallback timeout
 - `0.20.11` feat: change image — "Change image" in recipe ··· menu opens right-panel picker with current image + 9 Unsplash alternatives; tap to select, saves to Dropbox if connected
+- `0.20.12` fix: duplicate import blocked — save button replaced with "View recipe" when duplicate detected by URL or title match
 
 ---
 

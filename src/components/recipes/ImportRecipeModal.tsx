@@ -367,12 +367,6 @@ export function ImportRecipeModal({ onClose, initialDraft, generatedDraft, onSav
                 <p className="text-sm font-medium text-amber-900">Already in your collection</p>
                 <p className="text-xs text-amber-700 mt-0.5 truncate">&ldquo;{duplicateOf.title}&rdquo; was added before.</p>
               </div>
-              <button
-                onClick={() => { onClose(); router.push(`/recipes/${duplicateOf.slug}`); }}
-                className="shrink-0 text-xs font-medium text-amber-700 underline underline-offset-2"
-              >
-                View
-              </button>
             </div>
           )}
 
@@ -706,19 +700,29 @@ export function ImportRecipeModal({ onClose, initialDraft, generatedDraft, onSav
                   onClick={onClose}
                   className="flex-1 py-3 bg-parchment-200 text-ink-700 rounded-xl text-sm font-medium hover:bg-parchment-300 transition-colors"
                 >
-                  Cancel
+                  {duplicateOf ? "Close" : "Cancel"}
                 </motion.button>
-                <motion.button
-                  whileTap={{ scale: 0.95 }}
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="flex-[2] py-3 bg-sage-500 text-white rounded-xl text-sm font-medium hover:bg-sage-600 disabled:opacity-60 transition-colors flex items-center justify-center gap-2"
-                >
-                  {saving ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />}
-                  {saving
-                    ? (heroImageBase64 && dropboxStatus === "connected" ? "Saving image…" : "Saving…")
-                    : isEditMode ? "Save Changes" : "Save Recipe"}
-                </motion.button>
+                {duplicateOf ? (
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => { onClose(); router.push(`/recipes/${duplicateOf.slug}`); }}
+                    className="flex-[2] py-3 bg-ink-900 text-parchment-100 rounded-xl text-sm font-medium hover:bg-ink-800 transition-colors flex items-center justify-center gap-2"
+                  >
+                    View recipe
+                  </motion.button>
+                ) : (
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleSave}
+                    disabled={saving}
+                    className="flex-[2] py-3 bg-sage-500 text-white rounded-xl text-sm font-medium hover:bg-sage-600 disabled:opacity-60 transition-colors flex items-center justify-center gap-2"
+                  >
+                    {saving ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />}
+                    {saving
+                      ? (heroImageBase64 && dropboxStatus === "connected" ? "Saving image…" : "Saving…")
+                      : isEditMode ? "Save Changes" : "Save Recipe"}
+                  </motion.button>
+                )}
               </div>
             ) : (
               <p className="text-center text-xs text-ink-300">
