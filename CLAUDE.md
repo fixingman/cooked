@@ -117,6 +117,7 @@ Three files must always match:
 - `0.20.19` fix: bookmarklet — use window.open (new tab) instead of window.location.href; navigator.clipboard.writeText fires and completes while user switches tabs; execCommand fallback with visible+opacity:0 textarea for browsers without clipboard API
 - `0.20.20` fix: bookmarklet — back to execCommand+window.location.href (window.open blocked as popup); textarea positioned at current scroll offset (in viewport) so execCommand copy succeeds
 - `0.20.21` fix: ingredient parsing — flatMap recipeIngredient array by \n before parsing; fixes sites (e.g. barefootcontessa.com) that pack all ingredients into one array element
+- `0.20.22` fix: bookmarklet — navigator.clipboard.writeText primary path + window.focus()+execCommand fallback; fixes silent copy failure when document loses focus to browser chrome on bookmark click
 
 ---
 
