@@ -65,7 +65,7 @@ export function ImportRecipeModal({ onClose, initialDraft, generatedDraft, onSav
   const bookmarkletHref = useMemo(() => {
     if (typeof window === "undefined") return "";
     const origin = window.location.origin;
-    return `javascript:(function(){var f=document.createElement('form');f.method='POST';f.action='${origin}/api/bookmarklet/submit';f.style.display='none';var ti=document.createElement('input');ti.type='hidden';ti.name='text';ti.value=document.body.innerText.slice(0,50000);f.appendChild(ti);var ui=document.createElement('input');ui.type='hidden';ui.name='sourceUrl';ui.value=location.href;f.appendChild(ui);document.body.appendChild(f);f.submit()})()`;
+    return `javascript:(function(){var ld='';try{var ss=document.querySelectorAll('script[type="application/ld+json"]');for(var i=0;i<ss.length;i++){if(ss[i].textContent.indexOf('Recipe')>-1){ld=ss[i].textContent.trim();break;}}}catch(e){}var t=ld||document.body.innerText.slice(0,4000);window.location.href='${origin}/?import=paste&url='+encodeURIComponent(location.href)+'&text='+encodeURIComponent(t)})()`;
   }, []);
 
   function handleCopyBookmarklet() {

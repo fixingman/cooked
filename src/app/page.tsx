@@ -25,6 +25,7 @@ function BookmarkletHandler({ onOpen }: { onOpen: (url: string, text?: string) =
   useEffect(() => {
     const mode = searchParams.get("import");
     const url = searchParams.get("url");
+    const text = searchParams.get("text");
     const token = searchParams.get("token");
     if (mode === "paste" || token) {
       router.replace("/");
@@ -32,9 +33,9 @@ function BookmarkletHandler({ onOpen }: { onOpen: (url: string, text?: string) =
         fetch(`/api/bookmarklet/get?token=${encodeURIComponent(token)}`)
           .then(r => r.json())
           .then(d => onOpen(url ?? "", d.text ?? ""))
-          .catch(() => onOpen(url ?? ""));
+          .catch(() => onOpen(url ?? "", text ?? ""));
       } else {
-        onOpen(url ?? "");
+        onOpen(url ?? "", text ?? "");
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
