@@ -2,8 +2,8 @@
 const PREP_WORDS = /\b(diced|minced|chopped|sliced|grated|crushed|shredded|ground|beaten|melted|softened|toasted|roasted|blanched|peeled|trimmed|drained|halved|quartered|deseeded|seeded|pitted|stemmed|rinsed|washed|pressed|julienned|roughly|finely|coarsely|thinly|freshly|lightly|boneless|skinless)\b\s*/gi;
 
 // Leading unit tokens — covers cases where import parsing fails and stores "dl honey" instead of "honey"
-const LEADING_UNIT = /^[\d./]+\s*(dl|cl|ml|l|g|kg|tbsp|tbs|tsp|ts|cup|cups|oz|lb|lbs|pinch|handful|bunch|clove|cloves|slice|slices|sheet|sheets|can|cans|jar|jars|tin|tins|bag|bags)\s+/i;
-const BARE_UNIT   = /^(dl|cl|ml|l|g|kg|tbsp|tbs|tsp|ts|cup|cups|oz|lb|lbs)\s+/i;
+const LEADING_UNIT = /^[\d./]+\s*(dl|cl|ml|l|gr|g|kg|tbsp|tbs|tsp|ts|cup|cups|oz|lb|lbs|pinch|handful|bunch|clove|cloves|slice|slices|sheet|sheets|can|cans|jar|jars|tin|tins|bag|bags)\s+/i;
+const BARE_UNIT   = /^(dl|cl|ml|l|gr|g|kg|tbsp|tbs|tsp|ts|cup|cups|oz|lb|lbs)\s+/i;
 
 function stripLeadingUnit(s: string): string {
   return s.replace(LEADING_UNIT, "").replace(BARE_UNIT, "");
