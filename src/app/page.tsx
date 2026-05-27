@@ -1,6 +1,5 @@
 "use client";
 import { useMemo, useState, useEffect, Suspense } from "react";
-import { useRouter } from "next/navigation";
 import { AnimatePresence } from "framer-motion";
 import { TimeGreeting } from "@/components/home/TimeGreeting";
 import { AIPromptBar } from "@/components/home/AIPromptBar";
@@ -20,24 +19,16 @@ import type { RankSignals } from "@/lib/rankRecipes";
 import type { MealTime } from "@/types/recipe";
 
 function BookmarkletHandler({ onOpen }: { onOpen: (url: string, text?: string) => void }) {
-  const router = useRouter();
   useEffect(() => {
-    // Read directly from window.location — avoids useSearchParams race with router.replace
-    const params = new URLSearchParams(window.location.search);
-    const mode = params.get("import");
-    const url = params.get("url") ?? "";
-    const text = params.get("text") ?? "";
-    const token = params.get("token") ?? "";
-    if (mode !== "paste" && !token) return;
-    router.replace("/");
-    if (token) {
-      fetch(`/api/bookmarklet/get?token=${encodeURIComponent(token)}`)
-        .then(r => r.json())
-        .then(d => onOpen(url, d.text ?? text))
-        .catch(() => onOpen(url, text));
-    } else {
-      onOpen(url, text);
-    }
+    const hash = window.location.hash;
+    console.log('[Cooked BM] hash on load:', hash.slice(0, 120));
+    if (!hash.startsWith('#bm?')) return;
+    const params = new URLSearchParams(hash.slice(4));
+    const url = params.get('url') ?? '';
+    const text = params.get('text') ?? '';
+    console.log('[Cooked BM] parsed', { urlLen: url.length, textLen: text.length, textPreview: text.slice(0, 80) });
+    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    onOpen(url, text || undefined);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return null;

@@ -65,7 +65,7 @@ export function ImportRecipeModal({ onClose, initialDraft, generatedDraft, onSav
   const bookmarkletHref = useMemo(() => {
     if (typeof window === "undefined") return "";
     const origin = window.location.origin;
-    return `javascript:(function(){var ld='';try{var ss=document.querySelectorAll('script[type="application/ld+json"]');for(var i=0;i<ss.length;i++){if(ss[i].textContent.indexOf('Recipe')>-1){ld=ss[i].textContent.trim();break;}}}catch(e){}var t=ld||document.body.innerText.slice(0,4000);window.location.href='${origin}/?import=paste&url='+encodeURIComponent(location.href)+'&text='+encodeURIComponent(t)})()`;
+    return `javascript:(function(){var ld='';try{var ss=document.querySelectorAll('script[type="application/ld+json"]');for(var i=0;i<ss.length;i++){if(ss[i].textContent.indexOf('Recipe')>-1){ld=ss[i].textContent.trim();break;}}}catch(e){}var t=ld||document.body.innerText.slice(0,4000);console.log('[Cooked BM] captured',{type:ld?'json-ld':'innerText',len:t.length,preview:t.slice(0,80)});var dest='${origin}/#bm?url='+encodeURIComponent(location.href)+'&text='+encodeURIComponent(t);console.log('[Cooked BM] navigating, hash payload len',dest.length);window.location.href=dest;})()`;
   }, []);
 
   function handleCopyBookmarklet() {
@@ -75,9 +75,11 @@ export function ImportRecipeModal({ onClose, initialDraft, generatedDraft, onSav
     });
   }
 
-  // Auto-import when text arrives pre-filled from bookmarklet relay
+  // Auto-import when text arrives pre-filled from bookmarklet
   useEffect(() => {
+    console.log('[Cooked BM] modal mounted, initialPasteText len:', initialPasteText?.length ?? 0);
     if (initialPasteText && initialPasteText.trim().length >= 50) {
+      console.log('[Cooked BM] auto-triggering import');
       handleTextImport();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -124,6 +124,7 @@ Three files must always match:
 - `0.20.26` fix: bookmarklet — replace button injection+fetch with native form POST to /api/bookmarklet/submit; form submissions bypass CORS, connect-src CSP, clipboard restrictions; server stores text, redirects to Cooked with token
 - `0.20.27` fix: bookmarklet — drop Netlify Blobs relay (500 errors); grab JSON-LD structured data from page instead (compact, recipe-ready); encode in URL param; fall back to innerText.slice(0,4000); direct window.location.href navigation, zero server deps
 - `0.20.28` fix: bookmarklet — read URL params from window.location.search directly (not reactive useSearchParams) to prevent race where router.replace clears params before effect reads them
+- `0.20.29` fix: bookmarklet — switch to URL hash transport (#bm?...) so payload is never sent to Netlify server; bypasses ~16KB CDN URL limit that was silently dropping the text param; add console.log debug trace at each handoff step
 
 ---
 
