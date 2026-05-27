@@ -23,7 +23,7 @@ Ordered by user value × feasibility.
 
 ---
 
-### 🔴 F-10 — Bookmarklet: One-click capture from any page
+### ✅ F-10 — Bookmarklet: One-click capture from any page
 **What:** A browser bookmark (Safari, Firefox, Chrome — no install) that automates the paste-text import. Click on any recipe page → `document.body.innerText` copied to clipboard + Cooked opens with paste tab ready + URL pre-filled → user hits ⌘V → Import. Works on auth-gated sites (Cookidoo, NYT Cooking) since the user's browser session handles auth.
 **Why now:** The paste tab (v0.20.5) already does the heavy lifting. The bookmarklet is ~10 lines of JS + one small `page.tsx` change. High impact, trivial effort.
 **What's already built:** `/api/recipes/import-text` ✅ · Paste tab in ImportRecipeModal ✅ · URL field in paste tab ✅

@@ -1,5 +1,7 @@
 "use client";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { AnimatePresence } from "framer-motion";
 import { TimeGreeting } from "@/components/home/TimeGreeting";
 import { AIPromptBar } from "@/components/home/AIPromptBar";
 import { PantryWidget } from "@/components/home/PantryWidget";
@@ -7,6 +9,7 @@ import { ForYouSection } from "@/components/home/ForYouSection";
 import { FeaturedHero } from "@/components/home/FeaturedHero";
 import { MealTimeSection } from "@/components/home/MealTimeSection";
 import { ContinueCooking } from "@/components/home/ContinueCooking";
+import { ImportRecipeModal } from "@/components/recipes/ImportRecipeModal";
 import { useUserRecipes } from "@/hooks/useUserRecipes";
 import { useFavourites } from "@/hooks/useFavourites";
 import { useRecipeStates } from "@/hooks/useRecipeStates";
@@ -15,6 +18,21 @@ import { rankRecipes, hasEnoughSignal } from "@/lib/rankRecipes";
 import { normalizeForMatch } from "@/lib/ingredientUtils";
 import type { RankSignals } from "@/lib/rankRecipes";
 import type { MealTime } from "@/types/recipe";
+
+function BookmarkletHandler({ onOpen }: { onOpen: (url: string) => void }) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  useEffect(() => {
+    const mode = searchParams.get("import");
+    const url = searchParams.get("url");
+    if (mode === "paste") {
+      onOpen(url ?? "");
+      router.replace("/");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return null;
+}
 
 function getCurrentMeal(): { mealTime: MealTime; label: string } {
   const hour = new Date().getHours();
@@ -29,6 +47,7 @@ function getSecondaryMeal(primary: MealTime): { mealTime: MealTime; label: strin
 }
 
 export default function HomePage() {
+  const [bookmarkletImport, setBookmarkletImport] = useState<{ open: boolean; url: string }>({ open: false, url: "" });
   const { recipes: userRecipes } = useUserRecipes();
   const { favouriteIds } = useFavourites();
   const { states, hasCooked } = useRecipeStates();
@@ -104,6 +123,9 @@ export default function HomePage() {
 
   return (
     <div className="px-4 py-6 md:px-8 max-w-5xl mx-auto space-y-8">
+      <Suspense fallback={null}>
+        <BookmarkletHandler onOpen={url => setBookmarkletImport({ open: true, url })} />
+      </Suspense>
       <TimeGreeting />
       <AIPromptBar />
       {featuredRecipe && <FeaturedHero recipe={featuredRecipe} />}
@@ -125,6 +147,15 @@ export default function HomePage() {
         <ForYouSection recipes={forYouRecipes} pantryNames={pantryNames} />
       )}
       <div className="h-4" />
+      <AnimatePresence>
+        {bookmarkletImport.open && (
+          <ImportRecipeModal
+            initialMode="text"
+            initialPasteUrl={bookmarkletImport.url}
+            onClose={() => setBookmarkletImport({ open: false, url: "" })}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
