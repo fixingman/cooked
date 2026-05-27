@@ -1,5 +1,5 @@
 "use client";
-import { ChevronLeft, Heart, Link2, Check, MoreVertical, Pencil, Trash2, Bookmark } from "lucide-react";
+import { ChevronLeft, Heart, Link2, Check, MoreVertical, Pencil, Trash2, Bookmark, ImagePlus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
@@ -13,9 +13,10 @@ interface RecipeHeroProps {
   recipe: Recipe;
   onEdit?: () => void;
   onDelete?: () => void;
+  onChangeImage?: () => void;
 }
 
-export function RecipeHero({ recipe, onEdit, onDelete }: RecipeHeroProps) {
+export function RecipeHero({ recipe, onEdit, onDelete, onChangeImage }: RecipeHeroProps) {
   const router = useRouter();
   const { isFavourite, toggle } = useFavourites();
   const { isWantToCook, toggleWantToCook, hasCooked } = useRecipeStates();
@@ -85,7 +86,7 @@ export function RecipeHero({ recipe, onEdit, onDelete }: RecipeHeroProps) {
           <ChevronLeft size={20} className="text-ink-900" />
         </motion.button>
         <div className="flex items-center gap-2">
-          {(onEdit || onDelete) && (
+          {(onEdit || onDelete || onChangeImage) && (
             <div className="relative" ref={menuRef}>
               <motion.button
                 whileTap={{ scale: 0.85 }}
@@ -98,10 +99,19 @@ export function RecipeHero({ recipe, onEdit, onDelete }: RecipeHeroProps) {
               </motion.button>
               {showMenu && (
                 <div className="absolute top-12 right-0 bg-parchment-100 rounded-xl shadow-card-lg border border-parchment-200 overflow-hidden z-50 min-w-[160px]">
+                  {onChangeImage && (
+                    <button
+                      onClick={() => { setShowMenu(false); onChangeImage(); }}
+                      className="flex items-center gap-2.5 w-full px-4 py-3 text-sm text-ink-700 hover:bg-parchment-200 transition-colors text-left"
+                    >
+                      <ImagePlus size={15} className="text-ink-400" />
+                      Change image
+                    </button>
+                  )}
                   {onEdit && (
                     <button
                       onClick={() => { setShowMenu(false); onEdit(); }}
-                      className="flex items-center gap-2.5 w-full px-4 py-3 text-sm text-ink-700 hover:bg-parchment-200 transition-colors text-left"
+                      className="flex items-center gap-2.5 w-full px-4 py-3 text-sm text-ink-700 hover:bg-parchment-200 transition-colors text-left border-t border-parchment-200"
                     >
                       <Pencil size={15} className="text-ink-400" />
                       Edit recipe

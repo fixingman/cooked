@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { Clock, Users, BarChart2, Star, CheckCircle, X, ShoppingBasket, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RecipeHero } from "@/components/recipe-detail/RecipeHero";
+import { ImagePickerModal } from "@/components/recipe-detail/ImagePickerModal";
 import { ServingsAdjuster } from "@/components/recipe-detail/ServingsAdjuster";
 import { IngredientList } from "@/components/recipe-detail/IngredientList";
 import { InstructionSteps } from "@/components/recipe-detail/InstructionSteps";
@@ -18,6 +19,7 @@ import { useUserRecipes } from "@/hooks/useUserRecipes";
 import { useCookingHistory } from "@/hooks/useCookingHistory";
 import { useRecipeStates } from "@/hooks/useRecipeStates";
 import { useDropboxAuth } from "@/hooks/useDropboxAuth";
+import { useDropboxImage } from "@/hooks/useDropboxImage";
 import { usePantry } from "@/hooks/usePantry";
 import { PantryModal } from "@/components/pantry/PantryModal";
 import { getRecipe } from "@/lib/recipes";
@@ -93,6 +95,7 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
   const router = useRouter();
   const [recipe, setRecipe] = useState(initialRecipe);
   const [showEdit, setShowEdit] = useState(false);
+  const [showImagePicker, setShowImagePicker] = useState(false);
 
   // Enrichment pending state — initialised from sessionStorage flag set by ImportRecipeModal
   const [enriching, setEnriching] = useState(() => {
@@ -138,6 +141,7 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
   const { deleteState, markCooked, unmarkCooked, hasCooked, getState } = useRecipeStates();
   const { servings, scale, increment, decrement } = useServingsScale(recipe.servings);
   const { items: pantryItems, addItem: addToPantry } = usePantry();
+  const dropboxImage = useDropboxImage(recipe.heroImageDropboxPath);
   const [pantryOpen, setPantryOpen] = useState(false);
   const [showAddToPantry, setShowAddToPantry] = useState(false);
 
@@ -169,6 +173,7 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
         recipe={recipe}
         onEdit={isUserRecipe ? () => setShowEdit(true) : undefined}
         onDelete={isUserRecipe ? () => setShowDeleteConfirm(true) : undefined}
+        onChangeImage={isUserRecipe ? () => setShowImagePicker(true) : undefined}
       />
 
       {/* Content */}
@@ -327,6 +332,14 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
           onClose={() => setShowEdit(false)}
           initialDraft={recipe}
           onSave={(updated) => setRecipe(updated)}
+        />
+      )}
+
+      {showImagePicker && (
+        <ImagePickerModal
+          recipe={recipe}
+          currentSrc={dropboxImage ?? recipe.heroImageUrl ?? null}
+          onClose={() => setShowImagePicker(false)}
         />
       )}
 
