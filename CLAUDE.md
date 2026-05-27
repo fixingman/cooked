@@ -121,6 +121,7 @@ Three files must always match:
 - `0.20.23` fix: bookmarklet — inject floating "Save to Cooked →" button onto recipe page; clipboard write happens on genuine button click (page-scoped gesture), bypassing Chromium's bookmarklet clipboard restriction; auto-removes after 15s
 - `0.20.24` feat: bookmarklet server relay — button click POSTs text to /api/bookmarklet/store (Netlify Blobs, CORS-enabled), navigates with token; Cooked fetches text server-side, pre-fills textarea, auto-triggers import — no clipboard or ⌘V needed
 - `0.20.25` fix: bookmarklet button type="button" + e.preventDefault/stopPropagation — untyped button defaults to submit, triggering form submission on sites with wrapping forms (white page in Dia/Chromium)
+- `0.20.26` fix: bookmarklet — replace button injection+fetch with native form POST to /api/bookmarklet/submit; form submissions bypass CORS, connect-src CSP, clipboard restrictions; server stores text, redirects to Cooked with token
 
 ---
 
