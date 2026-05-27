@@ -64,7 +64,7 @@ export function ImportRecipeModal({ onClose, initialDraft, generatedDraft, onSav
   const bookmarkletHref = useMemo(() => {
     if (typeof window === "undefined") return "";
     const origin = window.location.origin;
-    return `javascript:(function(){var t=document.body.innerText.slice(0,50000);if(navigator.clipboard){navigator.clipboard.writeText(t)}else{var ta=document.createElement('textarea');ta.value=t;ta.style.cssText='position:fixed;top:0;left:0;opacity:0';document.body.appendChild(ta);ta.focus();ta.select();try{document.execCommand('copy')}catch(e){}document.body.removeChild(ta)}window.open('${origin}/?import=paste&url='+encodeURIComponent(location.href))})()`;
+    return `javascript:(function(){var t=document.body.innerText.slice(0,50000);var ta=document.createElement('textarea');ta.value=t;ta.setAttribute('readonly','');ta.style.position='absolute';ta.style.left='0';ta.style.top=(window.pageYOffset||document.documentElement.scrollTop)+'px';ta.style.width='1px';ta.style.height='1px';ta.style.opacity='0';document.body.appendChild(ta);ta.focus();ta.select();try{document.execCommand('copy')}catch(e){}document.body.removeChild(ta);window.location.href='${origin}/?import=paste&url='+encodeURIComponent(location.href)})()`;
   }, []);
 
   function handleCopyBookmarklet() {

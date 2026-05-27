@@ -115,6 +115,7 @@ Three files must always match:
 - `0.20.17` fix: Unsplash search quality — buildImageQuery strips adjective noise + drops "food recipe" suffix; fixes "any" being injected as literal word when cuisine is unclassified; zero-results fallback to cuisine + "food" in image picker
 - `0.20.18` fix: bookmarklet — switch from async navigator.clipboard.writeText to synchronous textarea+execCommand copy; eliminates race condition where clipboard was never written before navigation
 - `0.20.19` fix: bookmarklet — use window.open (new tab) instead of window.location.href; navigator.clipboard.writeText fires and completes while user switches tabs; execCommand fallback with visible+opacity:0 textarea for browsers without clipboard API
+- `0.20.20` fix: bookmarklet — back to execCommand+window.location.href (window.open blocked as popup); textarea positioned at current scroll offset (in viewport) so execCommand copy succeeds
 
 ---
 
