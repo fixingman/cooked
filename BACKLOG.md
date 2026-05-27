@@ -38,35 +38,20 @@ Ordered by user value × feasibility.
 
 ---
 
-### 🔴 F-NEW — Collections / Folders
-**What:** Group recipes into named collections ("Sunday roasts", "Quick weeknight", "Batch cook"). A recipe can belong to multiple collections.
-**Why now:** Users with 30+ recipes have no way to organise them beyond filters. Collections are the natural next organisational layer above tags.
-**UX:** "Add to collection" from recipe ··· menu. Collections page or section in /recipes. Create/rename/delete collections.
-**Data:** `cooked-collections` in localStorage + Dropbox `/collections.json`. Shape: `{ id, name, recipeIds[] }[]`.
-**Effort:** Medium. No new AI calls needed.
-
----
-
-### 🔴 F-NEW — Print / Share Recipe
-**What:** Share a recipe as formatted plain text (copy to clipboard) or open a print-friendly view. "Send to a friend" or "print for the kitchen".
-**Why now:** Very common real-world need, almost zero effort. A `window.print()` with a print stylesheet covers the core case.
-**UX:** "Share" option in recipe ··· menu → copy formatted text to clipboard · "Print" opens print view.
-**Effort:** Low. Print stylesheet + clipboard write. No new routes needed.
-
----
-
-### 🔴 F-NEW — Ingredient Substitution (AI)
-**What:** From the recipe detail or cooking mode, tap an ingredient → "I don't have this" → Claude suggests 2–3 substitutes with ratio adjustments. Inline, contextual, fast.
-**Why now:** A daily kitchen problem. The AI infrastructure is already in place. Haiku call + inline UI — no new data model needed.
-**UX:** Long-press or tap on ingredient name in recipe detail → substitution sheet. Could also live in the AI prompt bar ("replace heavy cream in X").
-**Effort:** Medium. New API route + small UI. Haiku keeps it fast and cheap.
-
----
-
 ### 🔴 F-8 — Meal Planner
 **What:** Weekly calendar. Drag recipes into days. Auto-generates a combined shopping list for the week.
 **Why later:** High value but high effort. Needs careful UX scoping (mobile drag-and-drop is hard). Should follow F-9 Shopping List since they share infrastructure.
 **Decisions needed:** 7-day vs rolling week · integration with shopping list · Dropbox sync shape.
+
+---
+
+### 🔴 F-NEW — Collections / Folders
+Group recipes into named collections ("Sunday roasts", "Quick weeknight"). A recipe can belong to multiple collections. "Add to collection" from recipe ··· menu. Dropbox-synced.
+
+---
+
+### 🔴 F-NEW — Ingredient Substitution (AI)
+Tap an ingredient in recipe detail → "I don't have this" → Claude (Haiku) suggests 2–3 substitutes with ratio notes. No new data model — Haiku call + inline sheet UI.
 
 ---
 
