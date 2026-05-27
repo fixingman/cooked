@@ -19,15 +19,23 @@ import { normalizeForMatch } from "@/lib/ingredientUtils";
 import type { RankSignals } from "@/lib/rankRecipes";
 import type { MealTime } from "@/types/recipe";
 
-function BookmarkletHandler({ onOpen }: { onOpen: (url: string) => void }) {
+function BookmarkletHandler({ onOpen }: { onOpen: (url: string, text?: string) => void }) {
   const searchParams = useSearchParams();
   const router = useRouter();
   useEffect(() => {
     const mode = searchParams.get("import");
     const url = searchParams.get("url");
-    if (mode === "paste") {
-      onOpen(url ?? "");
+    const token = searchParams.get("token");
+    if (mode === "paste" || token) {
       router.replace("/");
+      if (token) {
+        fetch(`/api/bookmarklet/get?token=${encodeURIComponent(token)}`)
+          .then(r => r.json())
+          .then(d => onOpen(url ?? "", d.text ?? ""))
+          .catch(() => onOpen(url ?? ""));
+      } else {
+        onOpen(url ?? "");
+      }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -47,7 +55,7 @@ function getSecondaryMeal(primary: MealTime): { mealTime: MealTime; label: strin
 }
 
 export default function HomePage() {
-  const [bookmarkletImport, setBookmarkletImport] = useState<{ open: boolean; url: string }>({ open: false, url: "" });
+  const [bookmarkletImport, setBookmarkletImport] = useState<{ open: boolean; url: string; text?: string }>({ open: false, url: "" });
   const { recipes: userRecipes } = useUserRecipes();
   const { favouriteIds } = useFavourites();
   const { states, hasCooked } = useRecipeStates();
@@ -124,7 +132,7 @@ export default function HomePage() {
   return (
     <div className="px-4 py-6 md:px-8 max-w-6xl mx-auto space-y-8">
       <Suspense fallback={null}>
-        <BookmarkletHandler onOpen={url => setBookmarkletImport({ open: true, url })} />
+        <BookmarkletHandler onOpen={(url, text) => setBookmarkletImport({ open: true, url, text })} />
       </Suspense>
       <TimeGreeting />
       <AIPromptBar />
@@ -152,6 +160,7 @@ export default function HomePage() {
           <ImportRecipeModal
             initialMode="text"
             initialPasteUrl={bookmarkletImport.url}
+            initialPasteText={bookmarkletImport.text}
             onClose={() => setBookmarkletImport({ open: false, url: "" })}
           />
         )}

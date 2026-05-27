@@ -119,6 +119,7 @@ Three files must always match:
 - `0.20.21` fix: ingredient parsing — flatMap recipeIngredient array by \n before parsing; fixes sites (e.g. barefootcontessa.com) that pack all ingredients into one array element
 - `0.20.22` fix: bookmarklet — navigator.clipboard.writeText primary path + window.focus()+execCommand fallback; fixes silent copy failure when document loses focus to browser chrome on bookmark click
 - `0.20.23` fix: bookmarklet — inject floating "Save to Cooked →" button onto recipe page; clipboard write happens on genuine button click (page-scoped gesture), bypassing Chromium's bookmarklet clipboard restriction; auto-removes after 15s
+- `0.20.24` feat: bookmarklet server relay — button click POSTs text to /api/bookmarklet/store (Netlify Blobs, CORS-enabled), navigates with token; Cooked fetches text server-side, pre-fills textarea, auto-triggers import — no clipboard or ⌘V needed
 
 ---
 

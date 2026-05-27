@@ -27,9 +27,10 @@ interface ImportRecipeModalProps {
   onSave?: (recipe: Recipe) => void;
   initialMode?: ImportMode;
   initialPasteUrl?: string;
+  initialPasteText?: string;
 }
 
-export function ImportRecipeModal({ onClose, initialDraft, generatedDraft, onSave, initialMode, initialPasteUrl }: ImportRecipeModalProps) {
+export function ImportRecipeModal({ onClose, initialDraft, generatedDraft, onSave, initialMode, initialPasteUrl, initialPasteText }: ImportRecipeModalProps) {
   const router = useRouter();
   const { recipes, addRecipe, updateRecipe } = useUserRecipes();
   const { status: dropboxStatus, getValidAccessToken } = useDropboxAuth();
@@ -42,7 +43,7 @@ export function ImportRecipeModal({ onClose, initialDraft, generatedDraft, onSav
   const [stage, setStage] = useState<Stage>(seedDraft ? "review" : "input");
   const [importMode, setImportMode] = useState<ImportMode>(initialMode ?? "url");
   const [url, setUrl] = useState(initialPasteUrl ?? "");
-  const [pasteText, setPasteText] = useState("");
+  const [pasteText, setPasteText] = useState(initialPasteText ?? "");
   const [urlError, setUrlError] = useState("");
   const [error, setError] = useState("");
   const [draft, setDraft] = useState<(Recipe & { sourceUrl?: string }) | null>(seedDraft);
@@ -64,7 +65,7 @@ export function ImportRecipeModal({ onClose, initialDraft, generatedDraft, onSav
   const bookmarkletHref = useMemo(() => {
     if (typeof window === "undefined") return "";
     const origin = window.location.origin;
-    return `javascript:(function(){var t=document.body.innerText.slice(0,50000);var u='${origin}/?import=paste&url='+encodeURIComponent(location.href);var old=document.getElementById('_cooked_btn');if(old)old.remove();var b=document.createElement('button');b.id='_cooked_btn';b.textContent='Save to Cooked →';b.style.cssText='position:fixed;bottom:24px;right:24px;z-index:2147483647;background:#E8890C;color:#fff;border:none;padding:12px 20px;border-radius:12px;font:600 15px/1 system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.25)';b.onclick=function(){navigator.clipboard.writeText(t).then(function(){window.location.href=u},function(){var ta=document.createElement('textarea');ta.value=t;ta.style.cssText='position:fixed;top:0;left:0;opacity:0';document.body.appendChild(ta);ta.focus();ta.select();try{document.execCommand('copy')}catch(e){}ta.remove();window.location.href=u})};document.body.appendChild(b);setTimeout(function(){if(b.parentNode)b.remove()},15000)})()`;
+    return `javascript:(function(){var t=document.body.innerText.slice(0,50000);var base='${origin}';var old=document.getElementById('_cooked_btn');if(old)old.remove();var b=document.createElement('button');b.id='_cooked_btn';b.textContent='Save to Cooked →';b.style.cssText='position:fixed;bottom:24px;right:24px;z-index:2147483647;background:#E8890C;color:#fff;border:none;padding:12px 20px;border-radius:12px;font:600 15px/1 system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.25)';b.onclick=function(){b.textContent='Saving…';b.style.opacity='0.7';fetch(base+'/api/bookmarklet/store',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:t})}).then(function(r){return r.json()}).then(function(d){window.location.href=base+'/?import=paste&token='+d.token+'&url='+encodeURIComponent(location.href)}).catch(function(){b.textContent='Error — try again';b.style.opacity='1'})};document.body.appendChild(b);setTimeout(function(){if(b.parentNode)b.remove()},15000)})()`;
   }, []);
 
   function handleCopyBookmarklet() {
@@ -73,6 +74,14 @@ export function ImportRecipeModal({ onClose, initialDraft, generatedDraft, onSav
       setTimeout(() => setBookmarkletCopied(false), 2000);
     });
   }
+
+  // Auto-import when text arrives pre-filled from bookmarklet relay
+  useEffect(() => {
+    if (initialPasteText && initialPasteText.trim().length >= 50) {
+      handleTextImport();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Initialise synchronously from window so animation direction is correct on first render
   const [isDesktop, setIsDesktop] = useState(() =>
