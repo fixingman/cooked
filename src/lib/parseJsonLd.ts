@@ -251,9 +251,12 @@ export function buildRecipeFromSchema(
     ? (parseInt(String(rawYield[0])) || 4)
     : (parseInt(String(rawYield ?? "4")) || 4);
 
-  const ingredients = parseIngredients(
-    Array.isArray(schema.recipeIngredient) ? (schema.recipeIngredient as string[]) : []
-  );
+  const rawIngredients: string[] = Array.isArray(schema.recipeIngredient)
+    ? (schema.recipeIngredient as unknown[]).map(s => String(s))
+    : [];
+  // Some sites (e.g. barefootcontessa.com) pack all ingredients into one array element separated by \n
+  const flatIngredients = rawIngredients.flatMap(s => s.split(/\r?\n/)).filter(s => s.trim());
+  const ingredients = parseIngredients(flatIngredients);
   const steps = parseSteps(
     Array.isArray(schema.recipeInstructions) ? (schema.recipeInstructions as unknown[]) : []
   );
