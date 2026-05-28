@@ -13,7 +13,7 @@ const HEADERS = (key: string) => ({
 // but rare in English. Free, instant — only fires the translation call when needed.
 export function looksNonEnglish(recipe: { title: string; ingredients: { name: string }[] }): boolean {
   const sample = recipe.title + " " + recipe.ingredients.slice(0, 6).map(i => i.name).join(" ");
-  return /[åäöéèêëàâùûôîïçüßñøæœ]/i.test(sample);
+  return /[åäöéèêëàâùûôîïçüßñøæœğşı]/i.test(sample);
 }
 
 export async function translateRecipe(

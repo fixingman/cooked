@@ -60,7 +60,8 @@ export async function POST(req: Request) {
   if (!apiKey) return Response.json({ error: "AI not configured" }, { status: 503 });
 
   const lower = text.toLowerCase();
-  if (!RECIPE_SIGNAL_WORDS.some(w => lower.includes(w))) {
+  const hasNonAscii = /[^\x00-\x7F]/.test(text);
+  if (!hasNonAscii && !RECIPE_SIGNAL_WORDS.some(w => lower.includes(w))) {
     return Response.json({ error: "This text doesn't appear to contain a recipe." }, { status: 422 });
   }
 

@@ -14,7 +14,13 @@ export async function extractWithClaude(
   id: string,
   apiKey: string,
 ): Promise<Recipe | null> {
-  const prompt = `Extract the recipe from the following webpage text and return ONLY a valid JSON object with these exact fields (use null for missing values):
+  const prompt = `Extract a recipe from the text below and return ONLY a valid JSON object with these exact fields (use null for missing values).
+
+The input may be a full recipe page, a structured recipe, or informal cooking notes (e.g. a bullet list of steps). In all cases:
+- Infer a concise recipe title if none is explicitly given
+- Extract all ingredients, including ones mentioned only within the instructions (e.g. "add 2 onions" → ingredient: "2 onions")
+- Write clean step-by-step instructions
+- Translate everything to English if the text is in another language
 
 {
   "name": "recipe title",
@@ -31,14 +37,12 @@ export async function extractWithClaude(
   "image": "image URL if found",
   "suitableForDiet": ["VegetarianDiet", "VeganDiet", etc — only if clearly stated],
   "typeTags": ["soup"|"pasta"|"bake"|"salad" — only tags that clearly apply, can be empty array],
-  "chefNotes": "any chef tips, notes, variations or serving suggestions from the page — concise prose, or null"
+  "chefNotes": "any chef tips, notes, variations or serving suggestions — concise prose, or null"
 }
-
-If the page content is not in English, translate all text fields (name, description, ingredients, instructions, chefNotes) to English.
 
 Return ONLY the JSON object, no explanation, no markdown fences.
 
-Webpage text (truncated):
+Text:
 ${pageText.slice(0, 40_000)}`;
 
   const res = await fetch("https://api.anthropic.com/v1/messages", {

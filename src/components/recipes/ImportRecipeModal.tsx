@@ -470,8 +470,8 @@ export function ImportRecipeModal({ onClose, initialDraft, generatedDraft, onSav
                 {importMode === "text" ? (
                   <>
                     <p className="text-sm text-ink-500">
-                      Open the recipe in your browser, select all text (⌘A / Ctrl+A), copy (⌘C), and paste below.
-                      Works with Cookidoo, NYT Cooking, or any page you can read.
+                      Paste a full recipe, a copied page, or even informal notes — Claude will extract and structure it.
+                      Works in any language.
                     </p>
                     <textarea
                       value={pasteText}
