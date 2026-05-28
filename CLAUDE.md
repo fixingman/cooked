@@ -126,6 +126,7 @@ Three files must always match:
 - `0.20.28` fix: bookmarklet — read URL params from window.location.search directly (not reactive useSearchParams) to prevent race where router.replace clears params before effect reads them
 - `0.20.29` fix: bookmarklet — switch to URL hash transport (#bm?...) so payload is never sent to Netlify server; bypasses ~16KB CDN URL limit that was silently dropping the text param; add console.log debug trace at each handoff step
 - `0.20.30` feat: Web Share Target — PWA manifest share_target registers Cooked as a share destination; /share route redirects to home with share_url param; ShareHandler opens URL import modal and auto-triggers import; replaces broken bookmarklet for Dia/Chromium
+- `0.20.31` fix: remove bookmarklet drag link from Paste tab (Dia/Chromium sandboxes javascript: bookmarks in about:blank — no reliable fix without extension); add flame SVG to PWA manifest icons; F-13 branding backlog entry
 
 ---
 

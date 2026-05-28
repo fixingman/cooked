@@ -55,6 +55,12 @@ Tap an ingredient in recipe detail → "I don't have this" → Claude (Haiku) su
 
 ---
 
+### 🔴 F-13 — Branding & App Icon
+**What:** Custom Cooked brand identity. App icon (PWA + apple-touch-icon + favicon), wordmark, and any custom illustration for the flame logo. Currently using lucide Flame as SVG placeholder in manifest; PNG icons still show old letter "F".
+**Scope:** Design proper icon at 192×192 and 512×512 PNG, update `public/icons/icon-192.png`, `public/icons/icon-512.png`, `public/icons/apple-touch-icon.png`, `public/favicon.ico`, update manifest. Optional: custom typeface for the "Cooked" wordmark in SideNav/Settings header.
+
+---
+
 ### 🔴 F-6 — Auth & User Profiles
 Supabase Auth (magic link or Google). Needed for social features, multi-device without Dropbox, sharing collections publicly. Not urgent while Dropbox covers persistence.
 

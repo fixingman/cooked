@@ -1,7 +1,7 @@
 "use client";
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Link2, Loader2, Check, AlertCircle, ChefHat, Clock, Users, Globe, ArrowLeft, Camera, ImagePlus, ClipboardPaste, Copy, Bookmark } from "lucide-react";
+import { X, Link2, Loader2, Check, AlertCircle, ChefHat, Clock, Users, Globe, ArrowLeft, Camera, ImagePlus, ClipboardPaste } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useUserRecipes } from "@/hooks/useUserRecipes";
 import { useDropboxAuth } from "@/hooks/useDropboxAuth";
@@ -61,20 +61,6 @@ export function ImportRecipeModal({ onClose, initialDraft, generatedDraft, onSav
   const [timesEnrichState, setTimesEnrichState] = useState<"idle" | "pending" | "done" | "failed">("idle");
   const [duplicateOf, setDuplicateOf] = useState<Recipe | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [bookmarkletCopied, setBookmarkletCopied] = useState(false);
-
-  const bookmarkletHref = useMemo(() => {
-    if (typeof window === "undefined") return "";
-    const origin = window.location.origin;
-    return `javascript:(function(){var ld='';try{var ss=document.querySelectorAll('script[type="application/ld+json"]');for(var i=0;i<ss.length;i++){if(ss[i].textContent.indexOf('Recipe')>-1){ld=ss[i].textContent.trim();break;}}}catch(e){}var t=ld||document.body.innerText.slice(0,4000);console.log('[Cooked BM] captured',{type:ld?'json-ld':'innerText',len:t.length,preview:t.slice(0,80)});var dest='${origin}/#bm?url='+encodeURIComponent(location.href)+'&text='+encodeURIComponent(t);console.log('[Cooked BM] navigating, hash payload len',dest.length);window.location.href=dest;})()`;
-  }, []);
-
-  function handleCopyBookmarklet() {
-    navigator.clipboard.writeText(bookmarkletHref).then(() => {
-      setBookmarkletCopied(true);
-      setTimeout(() => setBookmarkletCopied(false), 2000);
-    });
-  }
 
   // Auto-import when pre-filled from bookmarklet (text) or Web Share Target (url)
   useEffect(() => {
@@ -486,32 +472,6 @@ export function ImportRecipeModal({ onClose, initialDraft, generatedDraft, onSav
                       Open the recipe in your browser, select all text (⌘A / Ctrl+A), copy (⌘C), and paste below.
                       Works with Cookidoo, NYT Cooking, or any page you can read.
                     </p>
-                    {bookmarkletHref && (
-                      <div className="flex items-center gap-3 rounded-xl bg-parchment-200 border border-parchment-300 px-3 py-2.5">
-                        <Bookmark size={14} className="text-ink-400 shrink-0" />
-                        <p className="text-xs text-ink-500 flex-1 leading-relaxed">
-                          Or drag <strong className="text-ink-700">Save to Cooked</strong> to your bookmarks bar — one click copies any page and opens this tab.
-                        </p>
-                        <div className="flex items-center gap-1 shrink-0">
-                          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-                          <a
-                            href={bookmarkletHref}
-                            onClick={e => e.preventDefault()}
-                            draggable
-                            className="text-xs font-medium px-2.5 py-1 rounded-lg bg-saffron-100 text-saffron-700 border border-saffron-200 cursor-grab active:cursor-grabbing select-none whitespace-nowrap"
-                          >
-                            Save to Cooked
-                          </a>
-                          <button
-                            onClick={handleCopyBookmarklet}
-                            title="Copy bookmarklet"
-                            className="p-1.5 rounded-lg text-ink-400 hover:text-ink-600 hover:bg-parchment-300 transition-colors"
-                          >
-                            {bookmarkletCopied ? <Check size={12} className="text-sage-500" /> : <Copy size={12} />}
-                          </button>
-                        </div>
-                      </div>
-                    )}
                     <textarea
                       value={pasteText}
                       onChange={e => setPasteText(e.target.value)}
