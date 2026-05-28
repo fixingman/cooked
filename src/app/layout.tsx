@@ -28,6 +28,18 @@ export const metadata: Metadata = {
     title: "Cooked",
   },
   formatDetection: { telephone: false },
+  openGraph: {
+    title: "Cooked",
+    description: "Your interactive cooking companion. Beautiful recipes, step-by-step guidance.",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Cooked — Your cooking companion" }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Cooked",
+    description: "Your interactive cooking companion. Beautiful recipes, step-by-step guidance.",
+    images: ["/opengraph-image"],
+  },
 };
 
 export const viewport: Viewport = {
@@ -42,7 +54,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${playfair.variable} ${inter.variable}`}>
       <head>
-        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
