@@ -17,7 +17,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  metadataBase: process.env.NEXT_PUBLIC_APP_URL ? new URL(process.env.NEXT_PUBLIC_APP_URL) : undefined,
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "https://coooked.netlify.app"),
   title: { default: "Cooked", template: "%s — Cooked" },
   description: "Your interactive cooking companion. Beautiful recipes, step-by-step guidance.",
   keywords: ["cooking", "recipes", "cookbook", "food"],
