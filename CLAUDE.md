@@ -1,9 +1,10 @@
 # Cooked — Claude Instructions
 
 ## Reference docs
+- Product principles, design guidelines, voice & tone: **`PRODUCT.md`** — read this before proposing any new feature or UI change; flag misalignments
 - Architecture, design system, hooks, routes: **`MEMORY.md`**
 - Feature backlog and shipped log: **`BACKLOG.md`**
-- Always update both when shipping a feature or changing architecture.
+- Always update MEMORY.md and BACKLOG.md when shipping a feature or changing architecture.
 
 ---
 

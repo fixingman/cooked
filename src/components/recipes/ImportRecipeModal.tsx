@@ -499,7 +499,7 @@ export function ImportRecipeModal({ onClose, initialDraft, generatedDraft, onSav
                     >
                       Import from text
                     </motion.button>
-                    <p className="text-xs text-ink-300">Powered by Claude · text is not stored</p>
+                    <p className="text-xs text-ink-300">All pasted content is private for you.</p>
                   </>
                 ) : importMode === "url" ? (
                   <>
