@@ -29,6 +29,7 @@ export const metadata: Metadata = {
   },
   formatDetection: { telephone: false },
   openGraph: {
+    siteName: "Cooked",
     title: "Cooked",
     description: "Your interactive cooking companion. Beautiful recipes, step-by-step guidance.",
     images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Cooked — Your cooking companion" }],

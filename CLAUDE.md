@@ -130,6 +130,7 @@ Three files must always match:
 - `0.20.32` feat: image picker search bar — type any query to re-search Unsplash; input pre-filled with auto-generated query so user can see and refine it; Enter or button triggers search
 - `0.20.33` fix: PWA flame icon — icon.tsx + apple-icon.tsx via next/og ImageResponse replace browser tab "F" favicon; /pwa-icon/[size] edge route serves 192/512 PNGs for manifest; manifest updated to use dynamic icon routes
 - `0.20.34` feat: OG image for iMessage/WhatsApp previews — opengraph-image.tsx generates 1200×630 branded image; openGraph + twitter card metadata added to layout
+- `0.20.35` fix: add og:site_name — shows "Cooked" label on LinkedIn/Slack previews
 
 ---
 
