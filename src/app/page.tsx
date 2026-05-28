@@ -34,6 +34,18 @@ function BookmarkletHandler({ onOpen }: { onOpen: (url: string, text?: string) =
   return null;
 }
 
+function ShareHandler({ onOpen }: { onOpen: (url: string) => void }) {
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const shareUrl = params.get("share_url");
+    if (!shareUrl?.startsWith("http")) return;
+    window.history.replaceState(null, '', window.location.pathname);
+    onOpen(shareUrl);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return null;
+}
+
 function getCurrentMeal(): { mealTime: MealTime; label: string } {
   const hour = new Date().getHours();
   if (hour < 11) return { mealTime: "breakfast", label: "For Breakfast" };
@@ -48,6 +60,7 @@ function getSecondaryMeal(primary: MealTime): { mealTime: MealTime; label: strin
 
 export default function HomePage() {
   const [bookmarkletImport, setBookmarkletImport] = useState<{ open: boolean; url: string; text?: string }>({ open: false, url: "" });
+  const [shareImport, setShareImport] = useState<{ open: boolean; url: string }>({ open: false, url: "" });
   const { recipes: userRecipes } = useUserRecipes();
   const { favouriteIds } = useFavourites();
   const { states, hasCooked } = useRecipeStates();
@@ -125,6 +138,7 @@ export default function HomePage() {
     <div className="px-4 py-6 md:px-8 max-w-6xl mx-auto space-y-8">
       <Suspense fallback={null}>
         <BookmarkletHandler onOpen={(url, text) => setBookmarkletImport({ open: true, url, text })} />
+        <ShareHandler onOpen={(url) => setShareImport({ open: true, url })} />
       </Suspense>
       <TimeGreeting />
       <AIPromptBar />
@@ -154,6 +168,14 @@ export default function HomePage() {
             initialPasteUrl={bookmarkletImport.url}
             initialPasteText={bookmarkletImport.text}
             onClose={() => setBookmarkletImport({ open: false, url: "" })}
+          />
+        )}
+        {shareImport.open && (
+          <ImportRecipeModal
+            initialMode="url"
+            initialPasteUrl={shareImport.url}
+            autoImport
+            onClose={() => setShareImport({ open: false, url: "" })}
           />
         )}
       </AnimatePresence>

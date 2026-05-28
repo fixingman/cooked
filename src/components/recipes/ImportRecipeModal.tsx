@@ -28,9 +28,10 @@ interface ImportRecipeModalProps {
   initialMode?: ImportMode;
   initialPasteUrl?: string;
   initialPasteText?: string;
+  autoImport?: boolean;
 }
 
-export function ImportRecipeModal({ onClose, initialDraft, generatedDraft, onSave, initialMode, initialPasteUrl, initialPasteText }: ImportRecipeModalProps) {
+export function ImportRecipeModal({ onClose, initialDraft, generatedDraft, onSave, initialMode, initialPasteUrl, initialPasteText, autoImport }: ImportRecipeModalProps) {
   const router = useRouter();
   const { recipes, addRecipe, updateRecipe } = useUserRecipes();
   const { status: dropboxStatus, getValidAccessToken } = useDropboxAuth();
@@ -75,12 +76,15 @@ export function ImportRecipeModal({ onClose, initialDraft, generatedDraft, onSav
     });
   }
 
-  // Auto-import when text arrives pre-filled from bookmarklet
+  // Auto-import when pre-filled from bookmarklet (text) or Web Share Target (url)
   useEffect(() => {
     console.log('[Cooked BM] modal mounted, initialPasteText len:', initialPasteText?.length ?? 0);
     if (initialPasteText && initialPasteText.trim().length >= 50) {
-      console.log('[Cooked BM] auto-triggering import');
+      console.log('[Cooked BM] auto-triggering text import');
       handleTextImport();
+    } else if (autoImport && initialPasteUrl?.startsWith("http")) {
+      console.log('[Cooked BM] auto-triggering URL import from share target');
+      handleImport();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
