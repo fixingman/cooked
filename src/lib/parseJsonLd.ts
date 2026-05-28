@@ -248,8 +248,8 @@ export function buildRecipeFromSchema(
 
   const rawYield = schema.recipeYield;
   const servings = Array.isArray(rawYield)
-    ? (parseInt(String(rawYield[0])) || 4)
-    : (parseInt(String(rawYield ?? "4")) || 4);
+    ? (parseInt(String(rawYield[0])) || 0)
+    : (parseInt(String(rawYield ?? "0")) || 0);
 
   const rawIngredients: string[] = Array.isArray(schema.recipeIngredient)
     ? (schema.recipeIngredient as unknown[]).map(s => String(s))

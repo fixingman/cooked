@@ -308,7 +308,8 @@ export function ImportRecipeModal({ onClose, initialDraft, generatedDraft, onSav
         .then(r => r.json())
         .then(data => {
           if (data.nutrition) {
-            updateRecipe(recipeId, data.nutrition);
+            const patch = { ...data.nutrition, ...(data.servings ? { servings: data.servings } : {}) };
+            updateRecipe(recipeId, patch);
             setNutritionEnrichState("done");
           } else {
             setNutritionEnrichState("failed");

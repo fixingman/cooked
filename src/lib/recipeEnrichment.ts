@@ -155,18 +155,26 @@ Use multiples of 5. totalTimeMinutes should equal prep + cook (plus any passive 
 export async function estimateNutrition(
   recipe: { title: string; servings: number; ingredients: { quantity: number; unit: string; name: string }[] },
   apiKey: string,
-): Promise<{ calories?: number; protein?: number; fat?: number; carbs?: number; fiber?: number; sugar?: number; sodium?: number; saturatedFat?: number; cholesterol?: number; transFat?: number }> {
+): Promise<{ calories?: number; protein?: number; fat?: number; carbs?: number; fiber?: number; sugar?: number; sodium?: number; saturatedFat?: number; cholesterol?: number; transFat?: number; servings?: number }> {
   const ingredientList = recipe.ingredients
     .map(i => `${i.quantity > 0 ? i.quantity : ""} ${i.unit} ${i.name}`.trim())
     .join(", ");
 
+  const unknownServings = recipe.servings <= 0;
+  const servingsLine = unknownServings
+    ? `Servings: unknown — estimate how many servings this recipe makes`
+    : `Servings: ${recipe.servings}`;
+  const extraField = unknownServings
+    ? `, "servings": number`
+    : "";
+
   const prompt = `Estimate nutrition per serving for this recipe.
 Title: ${recipe.title}
-Servings: ${recipe.servings}
+${servingsLine}
 Ingredients: ${ingredientList}
 
 Return ONLY a JSON object with numeric values per serving (integers except transFat which can be a decimal):
-{"calories": number, "protein": number, "fat": number, "carbs": number, "fiber": number, "sugar": number, "sodium": number, "saturatedFat": number, "cholesterol": number, "transFat": number}
+{"calories": number, "protein": number, "fat": number, "carbs": number, "fiber": number, "sugar": number, "sodium": number, "saturatedFat": number, "cholesterol": number, "transFat": number${extraField}}
 Use 0 for transFat if negligible. sodium is in mg, cholesterol is in mg, all others in g except calories in kcal.`;
 
   try {
@@ -175,7 +183,7 @@ Use 0 for transFat if negligible. sodium is in mg, cholesterol is in mg, all oth
       headers: HEADERS(apiKey),
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
-        max_tokens: 128,
+        max_tokens: 160,
         messages: [{ role: "user", content: prompt }],
       }),
       signal: AbortSignal.timeout(8_000),
@@ -192,6 +200,7 @@ Use 0 for transFat if negligible. sodium is in mg, cholesterol is in mg, all oth
       carbs: num("carbs"), fiber: num("fiber"), sugar: num("sugar"),
       sodium: num("sodium"), saturatedFat: num("saturatedFat"),
       cholesterol: num("cholesterol"), transFat: dec("transFat"),
+      ...(unknownServings && num("servings") ? { servings: num("servings") } : {}),
     };
   } catch {
     return {};

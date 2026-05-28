@@ -31,14 +31,15 @@ export function ServingsAdjuster({ servings, onIncrement, onDecrement }: Serving
             transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
             className="w-6 text-center font-serif text-lg font-semibold text-ink-900"
           >
-            {servings}
+            {servings > 0 ? servings : "—"}
           </motion.span>
         </AnimatePresence>
 
         <motion.button
           whileTap={{ scale: 0.82 }}
           onClick={onIncrement}
-          className="w-8 h-8 flex items-center justify-center rounded-lg text-ink-500 hover:text-ink-900 hover:bg-parchment-300 transition-colors"
+          disabled={servings <= 0}
+          className="w-8 h-8 flex items-center justify-center rounded-lg text-ink-500 hover:text-ink-900 hover:bg-parchment-300 transition-colors disabled:opacity-40"
         >
           <Plus size={14} strokeWidth={2.5} />
         </motion.button>

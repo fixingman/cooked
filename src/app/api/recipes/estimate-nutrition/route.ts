@@ -13,9 +13,10 @@ export async function POST(req: Request) {
     return Response.json({ error: "Invalid request body" }, { status: 400 });
   }
 
-  const nutrition = await estimateNutrition(recipe, apiKey);
+  const result = await estimateNutrition(recipe, apiKey);
+  const { servings, ...nutrition } = result;
   if (Object.keys(nutrition).length === 0) {
     return Response.json({ error: "Could not estimate nutrition" }, { status: 422 });
   }
-  return Response.json({ nutrition });
+  return Response.json({ nutrition, ...(servings ? { servings } : {}) });
 }
