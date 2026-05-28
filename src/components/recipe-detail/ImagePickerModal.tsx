@@ -1,7 +1,7 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Check, Loader2 } from "lucide-react";
+import { X, Check, Loader2, Search } from "lucide-react";
 import { useUserRecipes } from "@/hooks/useUserRecipes";
 import { useDropboxAuth } from "@/hooks/useDropboxAuth";
 import { uploadBinary } from "@/lib/dropbox/client";
@@ -31,6 +31,9 @@ export function ImagePickerModal({ recipe, currentSrc, onClose }: ImagePickerMod
   const [fetchError, setFetchError] = useState("");
   const [selected, setSelected] = useState<ImageOption | null>(null);
   const [saving, setSaving] = useState(false);
+  const [searchInput, setSearchInput] = useState("");
+  const [searching, setSearching] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
 
   const [isDesktop, setIsDesktop] = useState(() =>
     typeof window !== "undefined" ? window.innerWidth >= 768 : false
@@ -49,20 +52,23 @@ export function ImagePickerModal({ recipe, currentSrc, onClose }: ImagePickerMod
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
 
-  useEffect(() => {
+  function fetchImages(customQuery?: string) {
+    const isSearch = !!customQuery;
+    if (isSearch) setSearching(true); else setLoading(true);
     fetch("/api/recipes/search-images", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         title: recipe.title,
         cuisine: recipe.cuisine,
-        sourceUrl: recipe.sourceUrl ?? null,
+        sourceUrl: isSearch ? null : (recipe.sourceUrl ?? null),
+        query: customQuery,
       }),
     })
       .then(r => r.json())
       .then(data => {
         setUnsplashImages(data.images ?? []);
-        if (data.sourceImageUrl) {
+        if (!isSearch && data.sourceImageUrl) {
           setSourceImage({
             url: data.sourceImageUrl,
             thumb: data.sourceImageUrl,
@@ -70,10 +76,13 @@ export function ImagePickerModal({ recipe, currentSrc, onClose }: ImagePickerMod
             badge: "From source",
           });
         }
-        setLoading(false);
+        if (data.usedQuery) setSearchInput(data.usedQuery);
+        if (isSearch) setSearching(false); else setLoading(false);
       })
-      .catch(() => { setFetchError("Could not load images."); setLoading(false); });
-  }, [recipe.title, recipe.cuisine, recipe.sourceUrl]);
+      .catch(() => { setFetchError("Could not load images."); setLoading(false); setSearching(false); });
+  }
+
+  useEffect(() => { fetchImages(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Current image always shown first
   const currentOption: ImageOption | null = (currentSrc ?? recipe.heroImageUrl)
@@ -183,6 +192,28 @@ export function ImagePickerModal({ recipe, currentSrc, onClose }: ImagePickerMod
           >
             <X size={18} className="text-ink-500" />
           </button>
+        </div>
+
+        <div className="shrink-0 px-5 pt-3 pb-3 border-b border-parchment-300">
+          <div className="relative flex items-center">
+            <Search size={14} className="absolute left-3 text-ink-400 pointer-events-none" />
+            <input
+              ref={searchRef}
+              type="text"
+              value={searchInput}
+              onChange={e => setSearchInput(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter" && searchInput.trim()) fetchImages(searchInput.trim()); }}
+              placeholder="Search Unsplash…"
+              className="w-full pl-8 pr-10 py-2 bg-parchment-200 border border-parchment-300 rounded-xl text-sm text-ink-800 placeholder:text-ink-300 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/30"
+            />
+            <button
+              onClick={() => { if (searchInput.trim()) fetchImages(searchInput.trim()); }}
+              disabled={!searchInput.trim() || searching}
+              className="absolute right-2 flex items-center justify-center w-6 h-6 rounded-lg bg-saffron-500 text-white disabled:opacity-30 transition-opacity"
+            >
+              {searching ? <Loader2 size={11} className="animate-spin" /> : <Search size={11} />}
+            </button>
+          </div>
         </div>
 
         <div className="flex-1 min-h-0 overflow-y-auto p-5">

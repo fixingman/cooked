@@ -37,7 +37,7 @@ export async function POST(req: Request) {
   const unsplashKey = process.env.UNSPLASH_ACCESS_KEY;
   if (!unsplashKey) return Response.json({ error: "Unsplash not configured" }, { status: 503 });
 
-  let body: { title: string; cuisine?: string; sourceUrl?: string };
+  let body: { title: string; cuisine?: string; sourceUrl?: string; query?: string };
   try {
     body = await req.json();
   } catch {
@@ -47,7 +47,7 @@ export async function POST(req: Request) {
   const { title, cuisine, sourceUrl } = body;
   if (!title) return Response.json({ error: "title is required" }, { status: 400 });
 
-  const query = buildImageQuery(title, cuisine);
+  const query = body.query?.trim() || buildImageQuery(title, cuisine);
 
   async function unsplashSearch(q: string) {
     const res = await fetch(
@@ -89,5 +89,5 @@ export async function POST(req: Request) {
 
   const sourceImageUrl = sourceImage.status === "fulfilled" ? sourceImage.value : null;
 
-  return Response.json({ images, sourceImageUrl });
+  return Response.json({ images, sourceImageUrl, usedQuery: query });
 }
