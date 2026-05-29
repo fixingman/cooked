@@ -55,9 +55,15 @@ Tap an ingredient in recipe detail → "I don't have this" → Claude (Haiku) su
 
 ---
 
-### 🔴 F-13 — Branding & App Icon
-**What:** Custom Cooked brand identity. App icon (PWA + apple-touch-icon + favicon), wordmark, and any custom illustration for the flame logo. Currently using lucide Flame as SVG placeholder in manifest; PNG icons still show old letter "F".
-**Scope:** Design proper icon at 192×192 and 512×512 PNG, update `public/icons/icon-192.png`, `public/icons/icon-512.png`, `public/icons/apple-touch-icon.png`, `public/favicon.ico`, update manifest. Optional: custom typeface for the "Cooked" wordmark in SideNav/Settings header.
+### 🔴 F-13 — Branding, App Icon & Visual Delight
+**What:** Two linked workstreams:
+
+**Branding & Icon:** Custom Cooked brand identity. App icon (PWA + apple-touch-icon + favicon), wordmark, and custom flame illustration. Current icons are programmatic SVG placeholders (good enough for now, not final).
+**Scope:** Design icon at 192×192 and 512×512 PNG, update `public/icons/icon-192.png`, `public/icons/icon-512.png`, `public/icons/apple-touch-icon.png`, update manifest. Custom wordmark for "Cooked" in SideNav/Settings header.
+
+**Visual Delight:** Enhance the well-worn cookbook feeling without being skeuomorphic. Previous attempt (v0.21.0) was reverted — the grain, ruled lines, inset shadow, and stamp ring didn't land right.
+**Direction to explore:** Subtle depth and material quality that reads as craft, not as UI chrome. Could include: warm drop shadows with amber tint, typographic ornaments as section dividers (already shipped Divider component), seasonal or contextual micro-illustrations, richer recipe card hover states, or print-inspired layout details. Should feel like a designed object, not a decorated app.
+**Constraint:** No literal paper textures, no skeuomorphic UI, no noise overlays.
 
 ---
 
