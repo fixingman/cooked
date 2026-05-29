@@ -139,7 +139,7 @@ export function ImageRefreshSection() {
             <div className="flex items-center gap-2 text-xs text-ink-500">
               <Loader2 size={13} className="animate-spin" />
               {progress.warmingUp
-                ? "Warming up AI upscaler…"
+                ? "Improving image quality…"
                 : `Checking ${progress.done + 1} of ${progress.total}…`}
             </div>
             <div className="mt-2 h-1 bg-parchment-300 rounded-full overflow-hidden">

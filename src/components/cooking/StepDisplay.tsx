@@ -134,8 +134,14 @@ export function StepDisplay({ step, direction, overrideInstruction, overrideLabe
                 <TmInstructions text={instruction} />
               </div>
             ) : (
-              <div className="flex items-center justify-center min-h-full">
-                <p className="font-serif text-ink-900 text-xl md:text-2xl leading-relaxed text-balance md:text-center">
+              <div
+                className="flex items-center justify-center min-h-full rounded-xl"
+                style={{
+                  backgroundImage: "repeating-linear-gradient(transparent, transparent 31px, rgba(26,18,8,0.045) 31px, rgba(26,18,8,0.045) 32px)",
+                  backgroundPositionY: "8px",
+                }}
+              >
+                <p className="font-serif text-ink-900 text-xl md:text-2xl leading-relaxed text-balance md:text-center px-4">
                   {instruction}
                 </p>
               </div>

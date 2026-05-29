@@ -41,8 +41,19 @@ export function CompletionScreen({ recipe }: CompletionScreenProps) {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      className="absolute inset-0 bg-parchment-100 flex flex-col items-center justify-center p-8 z-10"
+      className="absolute inset-0 bg-parchment-100 flex flex-col items-center justify-center p-8 z-10 overflow-hidden"
     >
+      {/* Stamp ring — decorative, behind content */}
+      <div
+        className="absolute w-72 h-72 rounded-full pointer-events-none"
+        style={{
+          border: "3px solid rgba(232,137,12,0.09)",
+          transform: "rotate(-14deg)",
+          top: "50%",
+          left: "50%",
+          translate: "-50% -50%",
+        }}
+      />
       <motion.div
         initial={{ scale: 0, rotate: -20 }}
         animate={{ scale: 1, rotate: 0 }}
@@ -56,7 +67,7 @@ export function CompletionScreen({ recipe }: CompletionScreenProps) {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="font-serif text-3xl text-ink-900 mb-2 text-center"
+        className="font-display text-3xl text-ink-900 mb-2 text-center"
       >
         You cooked it!
       </motion.h2>
@@ -111,7 +122,7 @@ export function CompletionScreen({ recipe }: CompletionScreenProps) {
       >
         <button onClick={() => router.replace("/recipes")} className="flex-1">
           <div className="w-full py-3 px-4 bg-parchment-200 border border-parchment-300 rounded-xl text-center text-sm font-medium text-ink-700">
-            Browse More
+            Back to recipes
           </div>
         </button>
         <button onClick={() => router.replace(`/recipes/${recipe.slug}`)} className="flex-1">

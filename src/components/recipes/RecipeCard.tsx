@@ -74,7 +74,7 @@ export const RecipeCard = memo(function RecipeCard({ recipe, viewMode = "grid", 
       whileHover={{ y: -4 }}
     >
       <Link href={`/recipes/${recipe.slug}`}>
-        <div className="group bg-parchment-200 rounded-card overflow-hidden border border-parchment-300 hover:shadow-card-md transition-shadow duration-300 cursor-pointer">
+        <div className="group bg-parchment-200 rounded-card overflow-hidden border border-parchment-300 shadow-inset-warm hover:shadow-card-md transition-shadow duration-300 cursor-pointer">
           <div className="relative aspect-[4/3] overflow-hidden">
             <FoodImage
               src={imageSrc}
@@ -83,7 +83,7 @@ export const RecipeCard = memo(function RecipeCard({ recipe, viewMode = "grid", 
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               containerClassName="absolute inset-0"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent transition-opacity duration-300 group-hover:opacity-0" />
+            <div className="absolute inset-0 bg-gradient-to-t from-ink-900/25 to-transparent transition-opacity duration-300 group-hover:opacity-0" />
             {recipe.dietaryTags.includes("vegetarian") && (
               <div className="absolute top-2.5 right-2.5 bg-sage-500 text-white text-[0.6rem] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">
                 Veg

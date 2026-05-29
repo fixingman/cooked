@@ -11,7 +11,7 @@ export function TimeGreeting() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
     >
-      <h1 className="font-serif text-display text-ink-900 font-semibold leading-none tracking-tight">
+      <h1 className="font-display text-display text-ink-900 font-semibold leading-none tracking-tight">
         {greeting}
       </h1>
     </motion.div>

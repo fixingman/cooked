@@ -22,8 +22,8 @@ async function loadGoogleFont(family: string, text: string): Promise<ArrayBuffer
 }
 
 export default async function Image() {
-  const [playfair, inter] = await Promise.all([
-    loadGoogleFont("Playfair+Display:wght@700", "Cooked"),
+  const [texturina, inter] = await Promise.all([
+    loadGoogleFont("Texturina:wght@700", "Cooked"),
     loadGoogleFont("Inter:wght@400", "Your cooking companion"),
   ]);
 
@@ -74,7 +74,7 @@ export default async function Image() {
           color: "#1C1917",
           letterSpacing: "-3px",
           lineHeight: 1,
-          fontFamily: "Playfair Display",
+          fontFamily: "Texturina",
         }}
       >
         Cooked
@@ -96,7 +96,7 @@ export default async function Image() {
       width: 1200,
       height: 630,
       fonts: [
-        { name: "Playfair Display", data: playfair, weight: 700, style: "normal" },
+        { name: "Texturina", data: texturina, weight: 700, style: "normal" },
         { name: "Inter", data: inter, weight: 400, style: "normal" },
       ],
     }

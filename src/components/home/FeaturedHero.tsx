@@ -36,7 +36,7 @@ export function FeaturedHero({ recipe }: FeaturedHeroProps) {
               {recipe.cuisine && recipe.cuisine !== "any" && <Badge label={recipe.cuisine} />}
               <RecipeRating rating={recipe.rating} size={12} className="text-saffron-400" valueClassName="text-sm text-parchment-200" />
             </div>
-            <h2 className="font-serif text-white text-2xl md:text-3xl font-semibold leading-tight text-balance group-hover:text-saffron-300 transition-colors duration-300">
+            <h2 className="font-display text-white text-2xl md:text-3xl font-semibold leading-tight text-balance group-hover:text-saffron-300 transition-colors duration-300">
               {recipe.title}
             </h2>
             {recipe.subtitle && (

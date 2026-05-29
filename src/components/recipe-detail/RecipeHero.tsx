@@ -148,7 +148,7 @@ export function RecipeHero({ recipe, onEdit, onDelete, onChangeImage }: RecipeHe
             whileTap={{ scale: 0.85 }}
             onClick={() => {
               toggleWantToCook(recipe.id);
-              showToast(bookmarked ? "Removed from list" : "Added to cook later");
+              showToast(bookmarked ? "Removed from list" : "Saved for later.");
             }}
             className="w-10 h-10 bg-parchment-100/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-card"
             aria-label={bookmarked ? "Remove from cook later list" : "Save to cook later"}
@@ -213,7 +213,7 @@ export function RecipeHero({ recipe, onEdit, onDelete, onChangeImage }: RecipeHe
             </span>
           ))}
         </div>
-        <h1 className="font-serif text-white text-2xl md:text-3xl font-semibold leading-tight text-balance">
+        <h1 className="font-display text-white text-2xl md:text-3xl font-semibold leading-tight text-balance">
           {recipe.title}
         </h1>
         {recipe.subtitle && (

@@ -17,7 +17,7 @@ export function AIIntegrationToggle({ enabled, onToggle }: AIIntegrationTogglePr
         <div>
           <p className="text-sm font-medium text-ink-900">AI Suggestions</p>
           <p className="text-xs text-ink-400 mt-0.5 max-w-[220px]">
-            Suggest recipes from your library or generate new ones
+            Get ideas from what you have, or conjure something new.
           </p>
         </div>
       </div>

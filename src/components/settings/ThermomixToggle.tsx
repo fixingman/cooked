@@ -21,7 +21,7 @@ export function ThermomixToggle({ enabled, onToggle }: ThermomixToggleProps) {
         <div>
           <p className="text-sm font-medium text-ink-900">Thermomix Mode</p>
           <p className="text-xs text-ink-400 mt-0.5 max-w-[220px]">
-            Show Thermomix cooking instructions for compatible recipes
+            Adds speed, temperature, and time for every compatible step.
           </p>
         </div>
       </div>

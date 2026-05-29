@@ -102,7 +102,7 @@ function RecipesContent() {
     <div className="px-4 py-6 md:px-8 max-w-6xl mx-auto">
       <div className="mb-6">
         <div className="flex items-center justify-between mb-5">
-          <h1 className="font-serif text-heading text-ink-900 font-semibold">Recipes</h1>
+          <h1 className="font-display text-heading text-ink-900 font-semibold">Recipes</h1>
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={() => setShowImport(true)}
@@ -145,8 +145,8 @@ function RecipesContent() {
           <div className="w-16 h-16 bg-parchment-200 rounded-full flex items-center justify-center mb-4">
             <ChefHat size={28} className="text-ink-300" />
           </div>
-          <p className="font-serif text-lg text-ink-700 mb-1">No recipes found</p>
-          <p className="text-sm text-ink-400 mb-4">Try a different search or filter</p>
+          <p className="font-serif text-lg text-ink-700 mb-1">Nothing here yet</p>
+          <p className="text-sm text-ink-400 mb-4">Try a different search or clear the filters</p>
           <button
             onClick={() => setShowImport(true)}
             className="flex items-center gap-1.5 text-sm text-saffron-500 hover:text-saffron-600 font-medium transition-colors"

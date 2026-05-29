@@ -41,8 +41,9 @@ const config: Config = {
         },
       },
       fontFamily: {
-        serif: ["var(--font-playfair)", "Georgia", "serif"],
-        sans: ["var(--font-inter)", "system-ui", "sans-serif"],
+        display: ["var(--font-texturina)", "Georgia", "serif"],
+        serif:   ["var(--font-fraunces)", "Georgia", "serif"],
+        sans:    ["var(--font-inter)", "system-ui", "sans-serif"],
       },
       fontSize: {
         "timer-xl": ["6rem",   { lineHeight: "1",    letterSpacing: "-0.03em", fontWeight: "300" }],
@@ -101,6 +102,7 @@ const config: Config = {
         "sage-cta":     "0 4px 20px rgba(107, 140, 95, 0.35)",
         "sage-cta-lg":  "0 4px 24px rgba(107, 140, 95, 0.4)",
         "inset-top":    "inset 0 2px 8px rgba(26, 18, 8, 0.06)",
+        "inset-warm":   "inset 0 -2px 0 0 rgba(186, 155, 112, 0.22), inset 0 0 0 1px rgba(186, 155, 112, 0.12)",
       },
       backgroundImage: {
         "shimmer-gradient": "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.6) 50%, transparent 100%)",

@@ -37,8 +37,8 @@ export default function SettingsPage() {
           <Flame size={20} className="text-white" />
         </div>
         <div>
-          <h1 className="font-serif text-xl font-semibold text-ink-900">Cooked</h1>
-          <p className="text-xs text-ink-400">v0.20.38 — Your cooking companion</p>
+          <h1 className="font-display text-xl font-semibold text-ink-900">Cooked</h1>
+          <p className="text-xs text-ink-400">v0.21.0 — Your cooking companion</p>
         </div>
       </div>
 

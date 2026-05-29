@@ -660,7 +660,7 @@ export function ImportRecipeModal({ onClose, initialDraft, generatedDraft, onSav
 
                   return (
                     <div>
-                      <p className="text-xs font-medium text-ink-400 uppercase tracking-wider mb-2">Metadata</p>
+                      <p className="text-xs font-medium text-ink-400 uppercase tracking-wider mb-2">Added automatically</p>
                       <div className="bg-parchment-200 rounded-xl divide-y divide-parchment-300">
                         <div className="flex items-center justify-between px-3 py-2.5 first:border-t-0">
                           <span className="text-sm text-ink-700">Macros</span>

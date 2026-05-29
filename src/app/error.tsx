@@ -18,7 +18,7 @@ export default function GlobalError({
       <div className="w-16 h-16 bg-red-50 border border-red-100 rounded-2xl flex items-center justify-center mb-6">
         <AlertTriangle size={28} className="text-red-400" />
       </div>
-      <h1 className="font-serif text-2xl font-semibold text-ink-900 mb-2">Something went wrong</h1>
+      <h1 className="font-display text-2xl font-semibold text-ink-900 mb-2">Something went wrong</h1>
       <p className="text-ink-500 text-sm mb-8 max-w-xs">
         An unexpected error occurred. Your recipes are safe — try refreshing the page.
       </p>
