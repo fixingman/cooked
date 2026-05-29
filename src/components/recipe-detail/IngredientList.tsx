@@ -27,6 +27,27 @@ function groupIngredients(ingredients: Ingredient[]): Map<string, Ingredient[]> 
   return groups;
 }
 
+function convertToImperial(qty: number, unit: string): { qty: number; unit: string } | null {
+  const u = (unit ?? "").toLowerCase();
+  if (u === "g") {
+    if (qty >= 454) return { qty: qty / 453.592, unit: "lb" };
+    return { qty: qty / 28.3495, unit: "oz" };
+  }
+  if (u === "kg") return { qty: qty * 2.20462, unit: "lb" };
+  if (u === "ml") {
+    if (qty >= 240) return { qty: qty / 240, unit: "cup" };
+    if (qty >= 14) return { qty: qty / 14.7868, unit: "tbsp" };
+    if (qty >= 4)  return { qty: qty / 4.92892, unit: "tsp" };
+    return { qty: qty / 29.5735, unit: "fl oz" };
+  }
+  if (u === "l") {
+    const ml = qty * 1000;
+    if (ml >= 240) return { qty: ml / 240, unit: "cup" };
+    return { qty: qty * 33.814, unit: "fl oz" };
+  }
+  return null;
+}
+
 export function IngredientList({ ingredients, scale, units = "metric", pantryNames }: IngredientListProps) {
   const groups = useMemo(() => groupIngredients(ingredients), [ingredients]);
 
@@ -39,11 +60,21 @@ export function IngredientList({ ingredients, scale, units = "metric", pantryNam
           )}
           <ul className="space-y-2.5">
             {items.map((ing) => {
-              const useImperial = units === "imperial" && ing.unitImperial;
-              const qty = useImperial
-                ? scaleQuantity(ing.quantityImperial!, scale)
-                : scaleQuantity(ing.quantity, scale);
-              const unit = useImperial ? ing.unitImperial! : ing.unit;
+              let qty: string;
+              let unit: string | undefined;
+
+              if (units === "imperial" && ing.unitImperial) {
+                qty = scaleQuantity(ing.quantityImperial!, scale);
+                unit = ing.unitImperial;
+              } else if (units === "imperial" && ing.unit) {
+                const scaledQty = ing.quantity * scale;
+                const conv = convertToImperial(scaledQty, ing.unit);
+                qty = conv ? scaleQuantity(conv.qty, 1) : scaleQuantity(ing.quantity, scale);
+                unit = conv ? conv.unit : ing.unit;
+              } else {
+                qty = scaleQuantity(ing.quantity, scale);
+                unit = ing.unit;
+              }
 
               const ABBREV: Record<string, string> = { tablespoon: "tbsp", tablespoons: "tbsp", teaspoon: "tsp", teaspoons: "tsp" };
               const normUnit = unit ? (ABBREV[unit.toLowerCase()] ?? unit) : unit;
@@ -74,7 +105,8 @@ export function IngredientList({ ingredients, scale, units = "metric", pantryNam
                       <span className="text-ink-400 text-xs ml-1.5">(optional)</span>
                     )}
                   </span>
-                  {pantryNames?.has(normalizeForMatch(ing.name)) && (
+                  {pantryNames?.has(normalizeForMatch(ing.name))
+                    && ing.unit !== "pinch" && ing.unit !== "handful" && (
                     <Check size={13} className="text-sage-500 shrink-0" strokeWidth={2.5} />
                   )}
                 </li>

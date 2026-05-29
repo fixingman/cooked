@@ -52,6 +52,14 @@ export function ImagePickerModal({ recipe, currentSrc, onClose }: ImagePickerMod
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
 
+  // Pre-populate source image immediately from stored URL (no API round-trip needed)
+  useEffect(() => {
+    const stored = recipe.heroImageSourceUrl;
+    if (stored && stored !== recipe.heroImageUrl) {
+      setSourceImage({ url: stored, thumb: stored, alt: recipe.title, badge: "From source" });
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   function fetchImages(customQuery?: string) {
     const isSearch = !!customQuery;
     if (isSearch) setSearching(true); else setLoading(true);
@@ -62,6 +70,7 @@ export function ImagePickerModal({ recipe, currentSrc, onClose }: ImagePickerMod
         title: recipe.title,
         cuisine: recipe.cuisine,
         sourceUrl: isSearch ? null : (recipe.sourceUrl ?? null),
+        sourceImageUrl: isSearch ? null : (recipe.heroImageSourceUrl ?? null),
         query: customQuery,
       }),
     })

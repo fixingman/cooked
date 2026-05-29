@@ -16,6 +16,7 @@ import { ImportRecipeModal } from "@/components/recipes/ImportRecipeModal";
 import { Badge } from "@/components/ui/Badge";
 import { Divider } from "@/components/ui/Divider";
 import { useServingsScale } from "@/hooks/useServingsScale";
+import { useSettings } from "@/hooks/useSettings";
 import { useUserRecipes } from "@/hooks/useUserRecipes";
 import { useCookingHistory } from "@/hooks/useCookingHistory";
 import { useRecipeStates } from "@/hooks/useRecipeStates";
@@ -140,6 +141,7 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
   const { removeRecipe } = useUserRecipes();
   const { addEntry, deleteLastEntry, deleteRecipeHistory } = useCookingHistory();
   const { deleteState, markCooked, unmarkCooked, hasCooked, getState } = useRecipeStates();
+  const { settings } = useSettings();
   const { servings, scale, increment, decrement } = useServingsScale(recipe.servings);
   const { items: pantryItems, addItem: addToPantry } = usePantry();
   const dropboxImage = useDropboxImage(recipe.heroImageDropboxPath);
@@ -299,6 +301,7 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
           <IngredientList
             ingredients={recipe.ingredients}
             scale={scale}
+            units={settings.units}
             pantryNames={new Set(pantryItems.map(i => normalizeForMatch(i.name)))}
           />
         </div>

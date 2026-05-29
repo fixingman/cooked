@@ -19,6 +19,7 @@ export async function extractWithClaude(
 The input may be a full recipe page, a structured recipe, or informal cooking notes (e.g. a bullet list of steps). In all cases:
 - Infer a concise recipe title if none is explicitly given
 - Extract all ingredients, including ones mentioned only within the instructions (e.g. "add 2 onions" → ingredient: "2 onions")
+- Use metric units throughout: g for solids, ml for liquids, L for large volumes. Convert any imperial measures (cups → ml, oz → g, lb → g, tsp → ml, tbsp → ml). Keep "tsp" and "tbsp" as-is for small amounts under 15ml.
 - Write clean step-by-step instructions
 - Translate everything to English if the text is in another language
 
@@ -87,6 +88,7 @@ export async function buildImportResponse(
   const r = recipe;
   const { apiKey, unsplashKey } = opts;
 
+  const rawSourceImageUrl = r.heroImageUrl || null; // Capture before resolveRecipeImage may replace it
   const needsTimeSplit = r.prepTimeMinutes === 0 && r.cookTimeMinutes === 0 && r.totalTimeMinutes > 0;
   const needsTranslation = !!apiKey && looksNonEnglish(r);
 
@@ -142,6 +144,7 @@ export async function buildImportResponse(
     heroImageUrl: imageResult.url ?? r.heroImageUrl,
     imageSource: imageResult.source,
     imageQuality: imageResult.quality,
+    ...(rawSourceImageUrl ? { heroImageSourceUrl: rawSourceImageUrl } : {}),
     ...(classification.chefNotes && !r.chefNotes ? { chefNotes: classification.chefNotes } : {}),
     ...(classification.cuisine && (!r.cuisine || r.cuisine === "any") ? { cuisine: classification.cuisine } : {}),
     ...(needsTimeSplit
