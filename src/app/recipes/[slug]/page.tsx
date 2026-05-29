@@ -83,7 +83,13 @@ function RecipeDetailSkeleton() {
 function NutritionSkeleton() {
   return (
     <div className="py-5 border-b border-parchment-300">
-      <div className="h-3 w-36 bg-parchment-200 rounded-full animate-pulse mb-3" />
+      <div className="flex items-center gap-2 mb-3">
+        <p className="font-display text-label uppercase tracking-widest text-ink-400">Nutrition per serving</p>
+        <div className="flex items-center gap-1.5 text-xs text-ink-300">
+          <Loader2 size={11} className="animate-spin shrink-0" />
+          Estimating macros…
+        </div>
+      </div>
       <div className="flex gap-2">
         {[0, 1, 2, 3].map(i => (
           <div key={i} className="flex-1 h-[68px] bg-parchment-200 rounded-2xl animate-pulse" />
@@ -108,9 +114,8 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
   // Subscribe to background enrichment updates from useUserRecipes.updateRecipe
   useEffect(() => {
     if (!isUserRecipe) return;
-    const handler = (e: Event) => {
-      const { id } = (e as CustomEvent<{ id: string }>).detail;
-      if (id !== initialRecipe.id) return;
+
+    function applyEnrichment(id: string) {
       try {
         const stored = localStorage.getItem("cooked-user-recipes");
         const updated = stored ? (JSON.parse(stored) as Recipe[]).find(r => r.id === id) : null;
@@ -123,6 +128,14 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
           try { sessionStorage.removeItem(`cooked-enriching-${id}`); } catch {}
         }
       } catch {}
+    }
+
+    // Check immediately — enrichment may have completed before this listener attached
+    applyEnrichment(initialRecipe.id);
+
+    const handler = (e: Event) => {
+      const { id } = (e as CustomEvent<{ id: string }>).detail;
+      if (id === initialRecipe.id) applyEnrichment(id);
     };
     window.addEventListener("cooked:recipe-updated", handler);
     return () => window.removeEventListener("cooked:recipe-updated", handler);
