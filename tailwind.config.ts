@@ -102,7 +102,6 @@ const config: Config = {
         "sage-cta":     "0 4px 20px rgba(107, 140, 95, 0.35)",
         "sage-cta-lg":  "0 4px 24px rgba(107, 140, 95, 0.4)",
         "inset-top":    "inset 0 2px 8px rgba(26, 18, 8, 0.06)",
-        "inset-warm":   "inset 0 -2px 0 0 rgba(186, 155, 112, 0.22), inset 0 0 0 1px rgba(186, 155, 112, 0.12)",
       },
       backgroundImage: {
         "shimmer-gradient": "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.6) 50%, transparent 100%)",
