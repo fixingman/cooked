@@ -107,11 +107,6 @@ export function StepDisplay({ step, direction, overrideInstruction, overrideLabe
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      {/* Step label */}
-      <div className="mb-4 md:text-center shrink-0">
-        <p className="font-medium text-ink-500 text-sm">{label}</p>
-      </div>
-
       <div className="flex-1 relative overflow-hidden min-h-0">
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
