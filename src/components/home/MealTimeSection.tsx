@@ -28,7 +28,7 @@ export function MealTimeSection({ recipes, label, mealTime, seeAllHref }: MealTi
       transition={{ delay: 0.25, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
     >
       <div className="flex items-center justify-between mb-3">
-        <p className="text-label uppercase tracking-widest text-ink-400">{label}</p>
+        <p className="font-display text-label uppercase tracking-widest text-ink-400">{label}</p>
         {href && (
           <Link href={href} className="text-xs text-saffron-500 font-medium hover:text-saffron-600 transition-colors">
             See all →

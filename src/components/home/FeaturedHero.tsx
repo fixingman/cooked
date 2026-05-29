@@ -19,7 +19,7 @@ export function FeaturedHero({ recipe }: FeaturedHeroProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.15, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
     >
-      <p className="text-label uppercase tracking-widest text-ink-400 mb-3">Featured Today</p>
+      <p className="font-display text-label uppercase tracking-widest text-ink-400 mb-3">Featured Today</p>
       <Link href={`/recipes/${recipe.slug}`}>
         <div className="group relative rounded-card overflow-hidden aspect-[16/9] md:aspect-[21/9] cursor-pointer">
           <FoodImage

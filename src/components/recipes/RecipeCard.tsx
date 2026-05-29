@@ -72,9 +72,10 @@ export const RecipeCard = memo(function RecipeCard({ recipe, viewMode = "grid", 
       animate={{ opacity: 1 }}
       transition={{ delay: Math.min(index * 0.04, 0.24), duration: 0.2 }}
       whileHover={{ y: -4 }}
+      className="h-full"
     >
-      <Link href={`/recipes/${recipe.slug}`}>
-        <div className="group bg-parchment-200 rounded-card overflow-hidden border border-parchment-300 shadow-inset-warm hover:shadow-card-md transition-shadow duration-300 cursor-pointer">
+      <Link href={`/recipes/${recipe.slug}`} className="h-full block">
+        <div className="group bg-parchment-200 rounded-card overflow-hidden border border-parchment-300 shadow-inset-warm hover:shadow-card-md transition-shadow duration-300 cursor-pointer h-full flex flex-col">
           <div className="relative aspect-[4/3] overflow-hidden">
             <FoodImage
               src={imageSrc}
@@ -95,7 +96,7 @@ export const RecipeCard = memo(function RecipeCard({ recipe, viewMode = "grid", 
               </div>
             )}
           </div>
-          <div className="p-3.5">
+          <div className="p-3.5 flex flex-col flex-1">
             <h3 className={cn(
               "font-serif font-medium text-ink-900 leading-snug group-hover:text-saffron-600 transition-colors duration-200 line-clamp-2 mb-2 text-balance",
               "text-[1rem]"

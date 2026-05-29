@@ -139,6 +139,10 @@ export async function POST(req: Request) {
         html = botHtml;
         pageText = stripHtmlToText(botHtml);
         jsonLdRecipe = botRecipe;
+      } else {
+        // No JSON-LD but Googlebot may return richer HTML for Claude fallback
+        const botPageText = stripHtmlToText(botHtml);
+        if (botPageText.length > pageText.length + 200) pageText = botPageText;
       }
     } catch {}
   }

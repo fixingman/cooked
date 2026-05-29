@@ -91,7 +91,7 @@ export function NutritionPanel({ recipe }: NutritionPanelProps) {
   return (
     <div className="py-5 border-b border-parchment-300">
       <div className="flex items-baseline gap-2 mb-3">
-        <p className="text-label uppercase tracking-widest text-ink-400">Nutrition per serving</p>
+        <p className="font-display text-label uppercase tracking-widest text-ink-400">Nutrition per serving</p>
         {servingGrams ? <span className="text-[10px] text-ink-300">~{servingGrams}g per serving</span> : null}
       </div>
 

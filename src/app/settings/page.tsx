@@ -17,7 +17,7 @@ import { usePantry } from "@/hooks/usePantry";
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="mb-8">
-      <h2 className="text-label uppercase tracking-widest text-ink-400 mb-4">{title}</h2>
+      <h2 className="font-display text-label uppercase tracking-widest text-ink-400 mb-4">{title}</h2>
       <div className="bg-parchment-200 border border-parchment-300 rounded-card px-4">
         {children}
       </div>
@@ -38,7 +38,7 @@ export default function SettingsPage() {
         </div>
         <div>
           <h1 className="font-display text-xl font-semibold text-ink-900">Cooked</h1>
-          <p className="text-xs text-ink-400">v0.21.1 — Your cooking companion</p>
+          <p className="text-xs text-ink-400">v0.21.2 — Your cooking companion</p>
         </div>
       </div>
 

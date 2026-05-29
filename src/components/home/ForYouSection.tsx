@@ -24,7 +24,7 @@ export function ForYouSection({ recipes, pantryNames }: ForYouSectionProps) {
     >
       <div className="flex items-center gap-1.5 mb-3">
         <Sparkles size={12} className="text-saffron-500 shrink-0" />
-        <p className="text-label uppercase tracking-widest text-ink-400">For You</p>
+        <p className="font-display text-label uppercase tracking-widest text-ink-400">For You</p>
       </div>
 
       <div className="flex gap-3 overflow-x-auto hide-scrollbar pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-4">
