@@ -14,6 +14,7 @@ import { NutritionPanel } from "@/components/recipe-detail/NutritionPanel";
 import { CookedStatus } from "@/components/recipe-detail/CookedStatus";
 import { ImportRecipeModal } from "@/components/recipes/ImportRecipeModal";
 import { Badge } from "@/components/ui/Badge";
+import { Divider } from "@/components/ui/Divider";
 import { useServingsScale } from "@/hooks/useServingsScale";
 import { useUserRecipes } from "@/hooks/useUserRecipes";
 import { useCookingHistory } from "@/hooks/useCookingHistory";
@@ -248,9 +249,10 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
         </div>
 
         {/* Description */}
-        <div className="py-5 border-b border-parchment-300">
+        <div className="py-5">
           <p className="font-serif text-ink-700 leading-relaxed text-[1.05rem]">{recipe.description}</p>
         </div>
+        <Divider className="mb-1" />
 
         {enriching && !recipe.calories && !recipe.protein
           ? <NutritionSkeleton />
@@ -258,12 +260,13 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
         }
 
         {/* Servings */}
-        <div className="py-5 border-b border-parchment-300">
+        <div className="py-5">
           <ServingsAdjuster servings={servings} onIncrement={increment} onDecrement={decrement} />
         </div>
+        <Divider className="mb-1" />
 
         {/* Ingredients */}
-        <div className="py-5 border-b border-parchment-300">
+        <div className="py-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-serif text-lg font-semibold text-ink-900">Ingredients</h2>
             <button
@@ -300,8 +303,9 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
           />
         </div>
 
+        <Divider className="mb-1" />
         {/* Method */}
-        <div className="py-5 border-b border-parchment-300">
+        <div className="py-5">
           <h2 className="font-serif text-lg font-semibold text-ink-900 mb-5">Method</h2>
           <InstructionSteps steps={recipe.steps} />
         </div>
