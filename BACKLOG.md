@@ -26,7 +26,7 @@ Ordered by user value × feasibility.
 
 ---
 
-### 🔴 F-9 — Ingredient Shopping List
+### ✅ F-9 — Ingredient Shopping List
 **What:** Checklist of ingredients from one or more recipes. Tap to check off as you shop. Persistent across sessions.
 **Why first:** Highest utility per effort in the backlog. Ingredient data already exists on every recipe. Completes the pantry → shop → cook loop. No new data model complexity.
 **UX:** "Add to list" on recipe detail → bottom-sheet checklist accessible from homepage or nav. Combine ingredients from multiple recipes. Clear list action.
@@ -136,6 +136,7 @@ Ordered by impact.
 | Pantry: add ingredients from recipe detail | 0.19.5 |
 | Pantry: fuzzy matching — strips prep context for comparison | 0.19.9 |
 | F-5 + H-1B Recipe ranking engine + "For You" carousel | 0.20.0 |
+| F-9 Shopping List — /shopping route, add from recipe (skip-pantry), dedupe + sum quantities, check→pantry | 0.23.0 |
 | F-14 AI recipe creation — FlavorGraph pairings + pantry chip + GeneratedRecipeModal + Regenerate + example prompts | 0.22.0 |
 | Paste-text import mode — auth-gated sites (Cookidoo, NYT) | 0.20.5 |
 | Source URL field in paste tab — parallel image fetch | 0.20.6 |

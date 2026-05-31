@@ -132,6 +132,10 @@ Three files must always match:
 - `0.20.33` fix: PWA flame icon — icon.tsx + apple-icon.tsx via next/og ImageResponse replace browser tab "F" favicon; /pwa-icon/[size] edge route serves 192/512 PNGs for manifest; manifest updated to use dynamic icon routes
 - `0.20.34` feat: OG image for iMessage/WhatsApp previews — opengraph-image.tsx generates 1200×630 branded image; openGraph + twitter card metadata added to layout
 - `0.20.35` fix: add og:site_name — shows "Cooked" label on LinkedIn/Slack previews
+- `0.21.0`–`0.21.2` Typography refresh (Texturina + Fraunces) · voice + delight · Divider in recipe detail · equal-height cards · metric/imperial fixes
+- `0.21.3` fix: remove redundant sans-serif step label in cook mode (TM panel already shows the label)
+- `0.22.0` F-14 AI recipe creation — FlavorGraph TS pairing engine + `/api/flavor/pairings`; "Use what I have" pantry chip + pairing panel; GeneratedRecipeModal (AI badge, Regenerate); example prompts; forceGenerate escape hatch · first-run seed: 12 starter recipes (`src/data/starterRecipes.ts`), merges with existing library on first launch
+- `0.23.0` F-9 Shopping List — `/shopping` route + `useShoppingList` (`/shopping-list.json`); "Add to list" on recipe detail (skips pantry items); dedupe by name + sum quantities by unit (within-recipe + across recipes); check-off auto-adds to pantry; manual add; Shopping nav entry (SideNav + BottomNav)
 
 ---
 

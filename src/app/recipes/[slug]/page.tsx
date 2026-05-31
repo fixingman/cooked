@@ -2,7 +2,7 @@
 import React from "react";
 import { notFound, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Clock, Users, BarChart2, Star, CheckCircle, X, ShoppingBasket, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
+import { Clock, Users, BarChart2, Star, CheckCircle, X, ShoppingBasket, ShoppingCart, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RecipeHero } from "@/components/recipe-detail/RecipeHero";
 import { ImagePickerModal } from "@/components/recipe-detail/ImagePickerModal";
@@ -23,6 +23,7 @@ import { useRecipeStates } from "@/hooks/useRecipeStates";
 import { useDropboxAuth } from "@/hooks/useDropboxAuth";
 import { useDropboxImage } from "@/hooks/useDropboxImage";
 import { usePantry } from "@/hooks/usePantry";
+import { useShoppingList } from "@/hooks/useShoppingList";
 import { PantryModal } from "@/components/pantry/PantryModal";
 import { getRecipe } from "@/lib/recipes";
 import { formatMinutes } from "@/lib/formatTime";
@@ -157,9 +158,12 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
   const { settings } = useSettings();
   const { servings, scale, increment, decrement } = useServingsScale(recipe.servings);
   const { items: pantryItems, addItem: addToPantry } = usePantry();
+  const { addFromRecipe } = useShoppingList();
   const dropboxImage = useDropboxImage(recipe.heroImageDropboxPath);
   const [pantryOpen, setPantryOpen] = useState(false);
   const [showAddToPantry, setShowAddToPantry] = useState(false);
+  const [showAddToList, setShowAddToList] = useState(false);
+  const [listAdded, setListAdded] = useState(false);
 
   const cooked = hasCooked(recipe.id);
   const state = getState(recipe.id);
@@ -282,18 +286,48 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
 
         {/* Ingredients */}
         <div className="py-5">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between gap-3 mb-4">
             <h2 className="font-serif text-lg font-semibold text-ink-900">Ingredients</h2>
-            <button
-              onClick={() => setShowAddToPantry(v => !v)}
-              className="flex items-center gap-1.5 text-xs text-ink-400 hover:text-ink-700 transition-colors"
-            >
-              <ShoppingBasket size={14} />
-              <span>Add to pantry</span>
-              {showAddToPantry ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-            </button>
+            <div className="flex items-center gap-3 shrink-0">
+              <button
+                onClick={() => { setShowAddToList(v => !v); setShowAddToPantry(false); }}
+                className="flex items-center gap-1.5 text-xs text-ink-400 hover:text-ink-700 transition-colors"
+              >
+                <ShoppingCart size={14} />
+                <span>Add to list</span>
+                {showAddToList ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+              </button>
+              <button
+                onClick={() => { setShowAddToPantry(v => !v); setShowAddToList(false); }}
+                className="flex items-center gap-1.5 text-xs text-ink-400 hover:text-ink-700 transition-colors"
+              >
+                <ShoppingBasket size={14} />
+                <span>Add to pantry</span>
+                {showAddToPantry ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+              </button>
+            </div>
           </div>
           <AnimatePresence>
+            {showAddToList && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden mb-4"
+              >
+                <AddToListPanel
+                  ingredients={recipe.ingredients}
+                  pantryItems={pantryItems}
+                  added={listAdded}
+                  onAdd={(items) => {
+                    addFromRecipe(items, recipe.id, recipe.title);
+                    setListAdded(true);
+                    setTimeout(() => { setShowAddToList(false); setListAdded(false); }, 1200);
+                  }}
+                />
+              </motion.div>
+            )}
             {showAddToPantry && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
@@ -457,6 +491,85 @@ function AddToPantryPanel({
           View pantry
         </button>
       </div>
+    </div>
+  );
+}
+
+function AddToListPanel({
+  ingredients,
+  pantryItems,
+  added,
+  onAdd,
+}: {
+  ingredients: import("@/types/recipe").Ingredient[];
+  pantryItems: import("@/types/pantry").PantryItem[];
+  added: boolean;
+  onAdd: (items: import("@/types/recipe").Ingredient[]) => void;
+}) {
+  const normalizedPantry = new Set(pantryItems.map(i => normalizeForMatch(i.name)));
+  // Skip ingredients already in the pantry — you don't need to shop for those.
+  const available = ingredients.filter(i => !normalizedPantry.has(normalizeForMatch(i.name)));
+  const [selected, setSelected] = useState<Set<string>>(() => new Set(available.map(i => i.id)));
+
+  function toggle(id: string) {
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+
+  if (added) {
+    return (
+      <div className="bg-sage-50 border border-sage-200 rounded-xl p-3 flex items-center gap-2">
+        <CheckCircle size={15} className="text-sage-500" />
+        <p className="text-sm text-sage-700">Added to your shopping list.</p>
+      </div>
+    );
+  }
+
+  if (available.length === 0) {
+    return (
+      <div className="bg-parchment-200/60 rounded-xl p-3">
+        <p className="text-sm text-ink-400">You already have everything in your pantry.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-parchment-200/60 rounded-xl p-3 space-y-2">
+      <ul className="space-y-0.5 max-h-48 overflow-y-auto">
+        {available.map(ing => {
+          const checked = selected.has(ing.id);
+          return (
+            <li key={ing.id}>
+              <button
+                onClick={() => toggle(ing.id)}
+                className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-parchment-300 transition-colors text-left"
+              >
+                <span className={[
+                  "w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors",
+                  checked ? "bg-saffron-500 border-saffron-500" : "border-parchment-400 bg-parchment-100",
+                ].join(" ")}>
+                  {checked && <CheckCircle size={10} className="text-white" fill="currentColor" strokeWidth={0} />}
+                </span>
+                <span className="text-sm text-ink-800 flex-1">{cleanForPantry(ing.name)}</span>
+                {ing.quantity > 0 && (
+                  <span className="text-xs text-ink-400 tabular-nums">{ing.quantity}{ing.unit ? ` ${ing.unit}` : ""}</span>
+                )}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+      <motion.button
+        whileTap={{ scale: 0.96 }}
+        onClick={() => onAdd(available.filter(i => selected.has(i.id)))}
+        disabled={selected.size === 0}
+        className="w-full py-2 bg-saffron-500 text-white rounded-xl text-sm font-medium hover:bg-saffron-600 disabled:opacity-40 transition-colors"
+      >
+        Add {selected.size > 0 ? `${selected.size} item${selected.size !== 1 ? "s" : ""} to list` : "to list"}
+      </motion.button>
     </div>
   );
 }

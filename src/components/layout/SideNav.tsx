@@ -1,14 +1,15 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, BookOpen, Settings, Flame } from "lucide-react";
+import { Home, BookOpen, ShoppingCart, Settings, Flame } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { motion } from "framer-motion";
 
 const navItems = [
-  { href: "/",         icon: Home,     label: "Home" },
-  { href: "/recipes",  icon: BookOpen, label: "Recipes" },
-  { href: "/settings", icon: Settings, label: "Settings" },
+  { href: "/",         icon: Home,         label: "Home" },
+  { href: "/recipes",  icon: BookOpen,     label: "Recipes" },
+  { href: "/shopping", icon: ShoppingCart, label: "Shopping" },
+  { href: "/settings", icon: Settings,     label: "Settings" },
 ];
 
 export function SideNav() {
@@ -61,7 +62,7 @@ export function SideNav() {
       {/* Version */}
       <div className="p-4 hidden xl:block">
 
-        <p className="text-label text-ink-300 tracking-widest uppercase">v0.22.0</p>
+        <p className="text-label text-ink-300 tracking-widest uppercase">v0.23.0</p>
       </div>
     </aside>
   );

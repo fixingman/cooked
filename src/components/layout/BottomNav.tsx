@@ -1,14 +1,15 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, BookOpen, Settings } from "lucide-react";
+import { Home, BookOpen, ShoppingCart, Settings } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { motion } from "framer-motion";
 
 const navItems = [
-  { href: "/",         icon: Home,      label: "Home" },
-  { href: "/recipes",  icon: BookOpen,  label: "Recipes" },
-  { href: "/settings", icon: Settings,  label: "Settings" },
+  { href: "/",         icon: Home,         label: "Home" },
+  { href: "/recipes",  icon: BookOpen,     label: "Recipes" },
+  { href: "/shopping", icon: ShoppingCart, label: "Shopping" },
+  { href: "/settings", icon: Settings,     label: "Settings" },
 ];
 
 export function BottomNav() {

@@ -25,6 +25,7 @@ Next.js 14 App Router · TypeScript · Tailwind CSS · Framer Motion · Lucide R
 | `/recipes` | Client | Grid/list, search, filter chips, sort |
 | `/recipes/[slug]` | Client | Hero, meta, servings adjuster, ingredients, steps, attribution |
 | `/recipes/[slug]/cook` | Server | Full-screen cooking mode — no nav shell |
+| `/shopping` | Client | Shopping list — add from recipe, dedupe + sum qty, check→pantry |
 | `/settings` | Client | Units, dietary, AI toggle, Dropbox connect |
 | `/auth/dropbox/callback` | Client | PKCE OAuth callback |
 | `/api/dropbox/token` | Route | Exchange code for tokens |
@@ -39,6 +40,8 @@ Next.js 14 App Router · TypeScript · Tailwind CSS · Framer Motion · Lucide R
 | `/history.json` | `useCookingHistory` | `cooked-history` |
 | `/recipes/index.json` | `useUserRecipes` | `cooked-user-recipes` |
 | `/images/[id].jpg` | `useDropboxImage` | `cooked-img-cache:[path]` (4h TTL) |
+| `/pantry.json` | `usePantry` | `cooked-pantry` |
+| `/shopping-list.json` | `useShoppingList` | `cooked-shopping-list` |
 
 ## Data Model
 ```ts
