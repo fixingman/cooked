@@ -2,7 +2,19 @@
 import { useCallback } from "react";
 import { useDropboxAuth } from "./useDropboxAuth";
 import { useDropboxSync } from "./useDropboxSync";
+import { STARTER_RECIPES } from "@/data/starterRecipes";
 import type { Recipe } from "@/types/recipe";
+
+// Seed starter recipes on first launch (before hook initialises from localStorage).
+// Runs synchronously so useDropboxSync picks them up as the initial value.
+if (typeof window !== "undefined") {
+  const SEEDED_KEY = "cooked-seeded";
+  const RECIPES_KEY = "cooked-user-recipes";
+  if (!localStorage.getItem(SEEDED_KEY) && !localStorage.getItem(RECIPES_KEY)) {
+    localStorage.setItem(RECIPES_KEY, JSON.stringify(STARTER_RECIPES));
+    localStorage.setItem(SEEDED_KEY, "1");
+  }
+}
 
 // Remote wins for recipes that exist in both (remote may have edits from another device).
 // Local-only recipes (added while offline / disconnected) are prepended.
