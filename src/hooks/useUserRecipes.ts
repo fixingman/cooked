@@ -5,15 +5,20 @@ import { useDropboxSync } from "./useDropboxSync";
 import { STARTER_RECIPES } from "@/data/starterRecipes";
 import type { Recipe } from "@/types/recipe";
 
-// Seed starter recipes on first launch (before hook initialises from localStorage).
-// Runs synchronously so useDropboxSync picks them up as the initial value.
-if (typeof window !== "undefined") {
-  const SEEDED_KEY = "cooked-seeded";
-  const RECIPES_KEY = "cooked-user-recipes";
-  if (!localStorage.getItem(SEEDED_KEY) && !localStorage.getItem(RECIPES_KEY)) {
-    localStorage.setItem(RECIPES_KEY, JSON.stringify(STARTER_RECIPES));
-    localStorage.setItem(SEEDED_KEY, "1");
-  }
+// Merge starter recipes into the library on first ever launch — runs synchronously
+// so useDropboxSync picks up the merged value as its initial state.
+// Existing user recipes are preserved; starters are appended at the end.
+// The cooked-seeded flag prevents re-seeding on subsequent loads.
+if (typeof window !== "undefined" && !localStorage.getItem("cooked-seeded")) {
+  try {
+    const raw = localStorage.getItem("cooked-user-recipes");
+    const existing: Recipe[] = raw ? JSON.parse(raw) : [];
+    const existingIds = new Set(existing.map((r: Recipe) => r.id));
+    const newStarters = STARTER_RECIPES.filter(r => !existingIds.has(r.id));
+    const merged = [...existing, ...newStarters];
+    localStorage.setItem("cooked-user-recipes", JSON.stringify(merged));
+  } catch {}
+  localStorage.setItem("cooked-seeded", "1");
 }
 
 // Remote wins for recipes that exist in both (remote may have edits from another device).
