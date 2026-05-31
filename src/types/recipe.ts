@@ -1,5 +1,5 @@
 export type Difficulty = "easy" | "medium" | "hard";
-export type RecipeSource = "builtin" | "url" | "image" | "authored";
+export type RecipeSource = "builtin" | "url" | "image" | "authored" | "ai";
 export type MealTime = "breakfast" | "lunch" | "dinner" | "snack" | "dessert";
 export type Cuisine = string;
 export type DietaryTag =

@@ -6,6 +6,11 @@ const nextConfig = {
       { protocol: "https", hostname: "**" },
     ],
   },
+  experimental: {
+    outputFileTracingIncludes: {
+      "/api/flavor/pairings": ["./src/data/flavor/**"],
+    },
+  },
 };
 
 export default withPWA({

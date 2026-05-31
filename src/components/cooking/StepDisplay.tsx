@@ -6,7 +6,6 @@ interface StepDisplayProps {
   step: CookingStep;
   direction: number;
   overrideInstruction?: string;
-  overrideLabel?: string;
 }
 
 const variants = {
@@ -100,18 +99,12 @@ function TmInstructions({ text }: { text: string }) {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export function StepDisplay({ step, direction, overrideInstruction, overrideLabel }: StepDisplayProps) {
+export function StepDisplay({ step, direction, overrideInstruction }: StepDisplayProps) {
   const instruction = overrideInstruction ?? step.instruction;
-  const label = overrideLabel ?? step.shortLabel;
   const isTm = !!overrideInstruction;
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      {/* Step label */}
-      <div className="mb-4 md:text-center shrink-0">
-        <p className="font-medium text-ink-500 text-sm">{label}</p>
-      </div>
-
       <div className="flex-1 relative overflow-hidden min-h-0">
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div

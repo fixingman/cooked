@@ -128,7 +128,6 @@ export function CookingShell({ recipe, thermomixMode = false }: CookingShellProp
               step={step}
               direction={direction}
               overrideInstruction={thermomixMode && step.thermomix ? step.thermomix.instruction : undefined}
-              overrideLabel={thermomixMode && step.thermomix?.label ? step.thermomix.label : undefined}
             />
           </div>
         </div>

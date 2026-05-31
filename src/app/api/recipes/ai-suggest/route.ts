@@ -20,8 +20,10 @@ export async function POST(req: Request) {
 
   let prompt: string;
   let recipes: RecipeSummary[];
+  let pantryItems: string[] | undefined;
+  let flavorHints: Record<string, string[]> | undefined;
   try {
-    ({ prompt, recipes } = await req.json());
+    ({ prompt, recipes, pantryItems, flavorHints } = await req.json());
   } catch {
     return Response.json({ error: "Invalid request" }, { status: 400 });
   }
@@ -36,9 +38,21 @@ export async function POST(req: Request) {
       )}`
     : "\n\nThe user's recipe library is empty.";
 
+  const pantrySection = pantryItems?.length
+    ? `\n\nUser's pantry: ${pantryItems.join(", ")}.`
+    : "";
+
+  const flavorSection = flavorHints && Object.keys(flavorHints).length
+    ? `\n\nFlavour-science pairings for their ingredients (use these to build the recipe):\n${
+        Object.entries(flavorHints)
+          .map(([ing, pairs]) => `• ${ing} pairs well with: ${pairs.join(", ")}`)
+          .join("\n")
+      }`
+    : "";
+
   const claudePrompt = `You are a recipe assistant for a personal cookbook app.
 
-User's request: "${prompt.trim()}"${librarySection}
+User's request: "${prompt.trim()}"${librarySection}${pantrySection}${flavorSection}
 
 Choose the response mode:
 - "suggest": if the library has relevant matches (user asks what to cook, mentions an ingredient or cuisine that's in the library, wants recommendations)
@@ -92,7 +106,11 @@ Generate format:
       // Try to find a relevant image via Unsplash
       const unsplashKey = process.env.UNSPLASH_ACCESS_KEY;
       const imageResult = await resolveRecipeImage(undefined, recipe.title, recipe.cuisine ?? "any", unsplashKey).catch(() => null);
-      const enrichedRecipe = imageResult?.url ? { ...recipe, heroImageUrl: imageResult.url, imageSource: imageResult.source, imageQuality: imageResult.quality } : recipe;
+      const enrichedRecipe = {
+        ...recipe,
+        sourceType: "ai" as const,
+        ...(imageResult?.url ? { heroImageUrl: imageResult.url, imageSource: imageResult.source, imageQuality: imageResult.quality } : {}),
+      };
 
       return Response.json({ mode: "generate", recipe: enrichedRecipe });
     }
