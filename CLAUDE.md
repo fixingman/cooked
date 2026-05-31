@@ -138,6 +138,7 @@ Three files must always match:
 - `0.23.0` F-9 Shopping List — `/shopping` route + `useShoppingList` (`/shopping-list.json`); "Add to list" on recipe detail (skips pantry items); dedupe by name + sum quantities by unit (within-recipe + across recipes); check-off auto-adds to pantry; manual add; Shopping nav entry (SideNav + BottomNav)
 - `0.23.1` feat: larger desktop "Cooked" wordmark · sans-serif Inter → Sofia Sans Semi Condensed (`--font-sans`); OG image font matched
 - `0.24.0` feat: Pantry ⇄ Shopping loop — marking a pantry item "low" auto-adds it to the shopping list (`fromPantry`, shows "running low"); checking it off restocks the pantry + clears the low flag (`addItem` clears low on existing); un-marking low removes the unbought line; homepage PantryWidget routes to `/shopping`; new `useKitchen` coordination hook (composes pantry + shopping, avoids circular import)
+- `0.25.0` feat: UI/body sans → Alegreya Sans (weights 400/500/700) · recipe card hover action "add to shopping" — adds the recipe's not-in-pantry ingredients to the list in one tap (hooks lifted to RecipeGrid, passed as `onAddToShopping`; per-card sage check feedback)
 
 ---
 

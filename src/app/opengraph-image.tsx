@@ -22,9 +22,9 @@ async function loadGoogleFont(family: string, text: string): Promise<ArrayBuffer
 }
 
 export default async function Image() {
-  const [texturina, sofiaSans] = await Promise.all([
+  const [texturina, alegreyaSans] = await Promise.all([
     loadGoogleFont("Texturina:wght@700", "Cooked"),
-    loadGoogleFont("Sofia Sans Semi Condensed:wght@400", "Your cooking companion"),
+    loadGoogleFont("Alegreya Sans:wght@400", "Your cooking companion"),
   ]);
 
   return new ImageResponse(
@@ -85,7 +85,7 @@ export default async function Image() {
           fontSize: 30,
           color: "#78716C",
           marginTop: 20,
-          fontFamily: "Sofia Sans Semi Condensed",
+          fontFamily: "Alegreya Sans",
           letterSpacing: "0.3px",
         }}
       >
@@ -97,7 +97,7 @@ export default async function Image() {
       height: 630,
       fonts: [
         { name: "Texturina", data: texturina, weight: 700, style: "normal" },
-        { name: "Sofia Sans Semi Condensed", data: sofiaSans, weight: 400, style: "normal" },
+        { name: "Alegreya Sans", data: alegreyaSans, weight: 400, style: "normal" },
       ],
     }
   );

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Texturina, Fraunces, Sofia_Sans_Semi_Condensed } from "next/font/google";
+import { Texturina, Fraunces, Alegreya_Sans } from "next/font/google";
 import "./globals.css";
 import { AppShell } from "@/components/layout/AppShell";
 
@@ -17,10 +17,11 @@ const fraunces = Fraunces({
   weight: ["400", "500", "600", "700"],
 });
 
-const sofiaSans = Sofia_Sans_Semi_Condensed({
+const alegreyaSans = Alegreya_Sans({
   subsets: ["latin"],
   variable: "--font-sans",
   display: "swap",
+  weight: ["400", "500", "700"],
 });
 
 export const metadata: Metadata = {
@@ -61,7 +62,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${texturina.variable} ${fraunces.variable} ${sofiaSans.variable}`}>
+    <html lang="en" className={`${texturina.variable} ${fraunces.variable} ${alegreyaSans.variable}`}>
       <head>
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />

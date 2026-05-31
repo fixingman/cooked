@@ -1,8 +1,8 @@
 "use client";
-import { memo } from "react";
+import { memo, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Clock } from "lucide-react";
+import { Clock, ShoppingCart, Check } from "lucide-react";
 import { FoodImage } from "@/components/ui/FoodImage";
 import { Badge } from "@/components/ui/Badge";
 import { RecipeRating } from "@/components/ui/RecipeRating";
@@ -16,9 +16,53 @@ interface RecipeCardProps {
   viewMode?: "grid" | "list";
   index?: number;
   isCooked?: boolean;
+  onAddToShopping?: (recipe: Recipe) => number;
 }
 
-export const RecipeCard = memo(function RecipeCard({ recipe, viewMode = "grid", index = 0, isCooked = false }: RecipeCardProps) {
+// Hover affordance: add the recipe's not-in-pantry ingredients to the shopping list.
+function AddToShoppingButton({
+  recipe,
+  onAddToShopping,
+  className,
+}: {
+  recipe: Recipe;
+  onAddToShopping?: (recipe: Recipe) => number;
+  className?: string;
+}) {
+  const [feedback, setFeedback] = useState<"idle" | "added" | "have">("idle");
+  if (!onAddToShopping) return null;
+
+  function handleClick(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    const n = onAddToShopping!(recipe);
+    setFeedback(n > 0 ? "added" : "have");
+    setTimeout(() => setFeedback("idle"), 1600);
+  }
+
+  const title =
+    feedback === "added" ? "Added to shopping list"
+    : feedback === "have" ? "You already have everything"
+    : "Add to shopping list";
+
+  return (
+    <button
+      onClick={handleClick}
+      title={title}
+      aria-label={title}
+      className={cn(
+        "flex items-center justify-center w-8 h-8 rounded-full shadow-card transition-all duration-200",
+        feedback === "added" ? "bg-sage-500 text-parchment-100"
+          : "bg-parchment-100/90 backdrop-blur-sm text-ink-700 hover:bg-parchment-100 hover:text-saffron-600",
+        className
+      )}
+    >
+      {feedback === "added" ? <Check size={15} strokeWidth={2.5} /> : <ShoppingCart size={15} />}
+    </button>
+  );
+}
+
+export const RecipeCard = memo(function RecipeCard({ recipe, viewMode = "grid", index = 0, isCooked = false, onAddToShopping }: RecipeCardProps) {
   // Prefer Dropbox copy whenever available — external URLs can expire or be blocked.
   const dropboxImage = useDropboxImage(recipe.heroImageDropboxPath);
   const imageSrc = dropboxImage ?? recipe.heroImageUrl;
@@ -60,6 +104,9 @@ export const RecipeCard = memo(function RecipeCard({ recipe, viewMode = "grid", 
                 )}
               </div>
             </div>
+            <div className="self-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 shrink-0">
+              <AddToShoppingButton recipe={recipe} onAddToShopping={onAddToShopping} />
+            </div>
           </div>
         </Link>
       </motion.div>
@@ -95,6 +142,9 @@ export const RecipeCard = memo(function RecipeCard({ recipe, viewMode = "grid", 
                 ✓ Cooked
               </div>
             )}
+            <div className="absolute bottom-2.5 right-2.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <AddToShoppingButton recipe={recipe} onAddToShopping={onAddToShopping} />
+            </div>
           </div>
           <div className="p-3.5 flex flex-col flex-1">
             <h3 className={cn(
