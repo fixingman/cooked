@@ -1,6 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
-import { Sparkles, X, Loader2, ShoppingBasket, ChevronRight } from "lucide-react";
+import { Sparkles, X, Loader2, ShoppingBasket, ChevronRight, WandSparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
@@ -55,7 +55,7 @@ export function AIPromptBar() {
 
   // ── Suggest / generate flow ────────────────────────────────────────────────
 
-  async function handleSubmit(overridePrompt?: string, pantryCtx?: { pantryItems: string[]; flavorHints: Record<string, string[]> }) {
+  async function handleSubmit(overridePrompt?: string, pantryCtx?: { pantryItems: string[]; flavorHints: Record<string, string[]> }, forceGenerate?: boolean) {
     const q = (overridePrompt ?? prompt).trim();
     if (!q || state === "loading") return;
     setState("loading");
@@ -71,7 +71,7 @@ export function AIPromptBar() {
       const res = await fetch("/api/recipes/ai-suggest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: q, recipes: summaries, ...pantryCtx }),
+        body: JSON.stringify({ prompt: q, recipes: summaries, ...(forceGenerate ? { forceGenerate: true } : {}), ...pantryCtx }),
       });
       const data = await res.json();
 
@@ -199,6 +199,17 @@ export function AIPromptBar() {
                   Use what I have
                 </button>
               )}
+              <button
+                onClick={() => {
+                  const q = prompt.trim() || "Surprise me with something delicious";
+                  setPrompt(q);
+                  handleSubmit(q, undefined, true);
+                }}
+                className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border border-saffron-300 bg-saffron-50 text-saffron-700 hover:bg-saffron-100 transition-colors"
+              >
+                <WandSparkles size={12} />
+                Create new recipe
+              </button>
               {EXAMPLE_PROMPTS.map(ex => (
                 <button
                   key={ex}
@@ -232,13 +243,27 @@ export function AIPromptBar() {
                   </Link>
                 );
               })}
+              <button
+                onClick={() => handleSubmit(prompt, undefined, true)}
+                className="flex items-center gap-1.5 text-xs text-saffron-600 hover:text-saffron-700 transition-colors px-1 pt-1"
+              >
+                <WandSparkles size={12} />
+                Generate a new recipe instead →
+              </button>
             </motion.div>
           )}
 
           {state === "suggest" && results.length === 0 && (
-            <motion.p key="no-results" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-xs text-ink-400 px-1">
-              Nothing in your library matched — try a different prompt.
-            </motion.p>
+            <motion.div key="no-results" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center justify-between px-1">
+              <p className="text-xs text-ink-400">Nothing in your library matched.</p>
+              <button
+                onClick={() => handleSubmit(prompt, undefined, true)}
+                className="flex items-center gap-1.5 text-xs text-saffron-600 hover:text-saffron-700 transition-colors"
+              >
+                <WandSparkles size={12} />
+                Generate new recipe →
+              </button>
+            </motion.div>
           )}
 
           {/* Pairing panel */}

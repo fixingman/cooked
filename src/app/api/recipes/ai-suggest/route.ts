@@ -22,8 +22,9 @@ export async function POST(req: Request) {
   let recipes: RecipeSummary[];
   let pantryItems: string[] | undefined;
   let flavorHints: Record<string, string[]> | undefined;
+  let forceGenerate: boolean | undefined;
   try {
-    ({ prompt, recipes, pantryItems, flavorHints } = await req.json());
+    ({ prompt, recipes, pantryItems, flavorHints, forceGenerate } = await req.json());
   } catch {
     return Response.json({ error: "Invalid request" }, { status: 400 });
   }
@@ -54,12 +55,12 @@ export async function POST(req: Request) {
 
 User's request: "${prompt.trim()}"${librarySection}${pantrySection}${flavorSection}
 
-Choose the response mode:
-- "suggest": if the library has relevant matches (user asks what to cook, mentions an ingredient or cuisine that's in the library, wants recommendations)
-- "generate": if the request is for something new/specific not in the library, the library is empty, or the user explicitly asks to create/make/invent a recipe
+${forceGenerate ? 'Always use "generate" mode — create a brand-new recipe.' : `Choose the response mode:
+- "suggest": user is asking what to cook from their existing library (phrases like "what should I make", "what do I have", or a cuisine/ingredient already well-covered in their library)
+- "generate": user wants something new, specific, or not well-covered in the library — prefer this when in doubt
 
 For "suggest": return the top 1–3 most relevant recipe IDs with a concise 1-sentence reason each.
-For "generate": return a complete new recipe.
+For "generate": return a complete new recipe.`}
 
 Return ONLY valid JSON — no markdown fences, no explanation.
 
