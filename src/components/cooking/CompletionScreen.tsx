@@ -41,19 +41,8 @@ export function CompletionScreen({ recipe }: CompletionScreenProps) {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      className="absolute inset-0 bg-parchment-100 flex flex-col items-center justify-center p-8 z-10 overflow-hidden"
+      className="absolute inset-0 bg-parchment-100 flex flex-col items-center justify-center p-8 z-10"
     >
-      {/* Stamp ring — decorative, behind content */}
-      <div
-        className="absolute w-72 h-72 rounded-full pointer-events-none"
-        style={{
-          border: "3px solid rgba(232,137,12,0.09)",
-          transform: "rotate(-14deg)",
-          top: "50%",
-          left: "50%",
-          translate: "-50% -50%",
-        }}
-      />
       <motion.div
         initial={{ scale: 0, rotate: -20 }}
         animate={{ scale: 1, rotate: 0 }}
