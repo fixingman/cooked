@@ -43,7 +43,7 @@ const config: Config = {
       fontFamily: {
         display: ["var(--font-texturina)", "Georgia", "serif"],
         serif:   ["var(--font-fraunces)", "Georgia", "serif"],
-        sans:    ["var(--font-inter)", "system-ui", "sans-serif"],
+        sans:    ["var(--font-sans)", "system-ui", "sans-serif"],
       },
       fontSize: {
         "timer-xl": ["6rem",   { lineHeight: "1",    letterSpacing: "-0.03em", fontWeight: "300" }],

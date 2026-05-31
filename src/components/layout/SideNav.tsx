@@ -22,7 +22,7 @@ export function SideNav() {
         <div className="w-9 h-9 bg-saffron-500 rounded-xl flex items-center justify-center shrink-0">
           <Flame size={18} className="text-white" strokeWidth={2.5} />
         </div>
-        <span className="font-display font-semibold text-ink-900 text-lg hidden xl:block tracking-tight">
+        <span className="font-display font-semibold text-ink-900 text-2xl xl:text-3xl hidden xl:block tracking-tight">
           Cooked
         </span>
       </Link>
@@ -62,7 +62,7 @@ export function SideNav() {
       {/* Version */}
       <div className="p-4 hidden xl:block">
 
-        <p className="text-label text-ink-300 tracking-widest uppercase">v0.23.0</p>
+        <p className="text-label text-ink-300 tracking-widest uppercase">v0.23.1</p>
       </div>
     </aside>
   );
