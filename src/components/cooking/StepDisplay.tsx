@@ -6,7 +6,6 @@ interface StepDisplayProps {
   step: CookingStep;
   direction: number;
   overrideInstruction?: string;
-  overrideLabel?: string;
 }
 
 const variants = {
@@ -100,9 +99,8 @@ function TmInstructions({ text }: { text: string }) {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export function StepDisplay({ step, direction, overrideInstruction, overrideLabel }: StepDisplayProps) {
+export function StepDisplay({ step, direction, overrideInstruction }: StepDisplayProps) {
   const instruction = overrideInstruction ?? step.instruction;
-  const label = overrideLabel ?? step.shortLabel;
   const isTm = !!overrideInstruction;
 
   return (

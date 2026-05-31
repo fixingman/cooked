@@ -122,14 +122,13 @@ export function AIPromptBar() {
   function toggleChip(name: string) {
     setSelected(prev => {
       const next = new Set(prev);
-      next.has(name) ? next.delete(name) : next.add(name);
+      if (next.has(name)) { next.delete(name); } else { next.add(name); }
       return next;
     });
   }
 
   function handleGenerateFromPantry() {
     const pantryNames = pantryItems.map(i => i.name);
-    const selectedArr = Array.from(selected);
     const flavorHints: Record<string, string[]> = {};
     for (const p of pairings) {
       const hits = p.suggests.filter(s => selected.has(s));
