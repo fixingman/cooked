@@ -1,66 +1,81 @@
 "use client";
-import { useState, useRef } from "react";
-import { Sparkles, ArrowRight, X, Loader2 } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Sparkles, X, Loader2, ShoppingBasket, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useUserRecipes } from "@/hooks/useUserRecipes";
 import { useSettings } from "@/hooks/useSettings";
-import { ImportRecipeModal } from "@/components/recipes/ImportRecipeModal";
+import { usePantry } from "@/hooks/usePantry";
+import { normalizeForMatch } from "@/lib/ingredientUtils";
+import { GeneratedRecipeModal } from "@/components/home/GeneratedRecipeModal";
 import type { Recipe } from "@/types/recipe";
 
-type State = "idle" | "loading" | "suggest" | "error";
+type State = "idle" | "loading" | "suggest" | "pairing" | "error";
 
 interface SuggestResult {
   id: string;
   reason: string;
 }
 
+interface Pairing {
+  ingredient: string;
+  suggests: string[];
+}
+
+const EXAMPLE_PROMPTS = [
+  "Something quick with chicken",
+  "Vegetarian comfort food",
+  "Impress guests on a Sunday",
+];
+
 export function AIPromptBar() {
   const { settings } = useSettings();
   const { recipes } = useUserRecipes();
+  const { items: pantryItems } = usePantry();
   const router = useRouter();
+
   const [prompt, setPrompt] = useState("");
   const [state, setState] = useState<State>("idle");
   const [results, setResults] = useState<SuggestResult[]>([]);
+  const [pairings, setPairings] = useState<Pairing[]>([]);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
   const [generatedRecipe, setGeneratedRecipe] = useState<Recipe | null>(null);
   const [error, setError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  if (!settings.aiEnabled) return null;
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
-  async function handleSubmit() {
-    const q = prompt.trim();
+  if (!mounted || !settings.aiEnabled) return null;
+
+  const hasPantry = pantryItems.length > 0;
+  const isBusy = state === "loading";
+
+  // ── Suggest / generate flow ────────────────────────────────────────────────
+
+  async function handleSubmit(overridePrompt?: string, pantryCtx?: { pantryItems: string[]; flavorHints: Record<string, string[]> }) {
+    const q = (overridePrompt ?? prompt).trim();
     if (!q || state === "loading") return;
     setState("loading");
     setError("");
     setResults([]);
 
-    try {
-      const summaries = recipes.map(r => ({
-        id: r.id,
-        slug: r.slug,
-        title: r.title,
-        description: r.description,
-        cuisine: r.cuisine,
-        mealTimes: r.mealTimes,
-        tags: r.tags,
-        dietaryTags: r.dietaryTags,
-      }));
+    const summaries = recipes.map(r => ({
+      id: r.id, slug: r.slug, title: r.title, description: r.description,
+      cuisine: r.cuisine, mealTimes: r.mealTimes, tags: r.tags, dietaryTags: r.dietaryTags,
+    }));
 
+    try {
       const res = await fetch("/api/recipes/ai-suggest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: q, recipes: summaries }),
+        body: JSON.stringify({ prompt: q, recipes: summaries, ...pantryCtx }),
       });
       const data = await res.json();
 
-      if (!res.ok) {
-        setError(data.error ?? "Something went wrong.");
-        setState("error");
-        return;
-      }
+      if (!res.ok) { setError(data.error ?? "Something went wrong."); setState("error"); return; }
 
       if (data.mode === "suggest") {
         setResults(data.results ?? []);
@@ -69,28 +84,76 @@ export function AIPromptBar() {
         setGeneratedRecipe(data.recipe);
         setState("idle");
       } else {
-        setError("Unexpected response — try again.");
-        setState("error");
+        setError("Unexpected response — try again."); setState("error");
       }
     } catch {
-      setError("Network error — check your connection.");
-      setState("error");
+      setError("Network error — check your connection."); setState("error");
     }
   }
 
+  // ── "Use what I have" — load pairings, show pairing panel ─────────────────
+
+  async function handleUsePantry() {
+    setState("loading");
+    const names = pantryItems.map(i => normalizeForMatch(i.name));
+
+    try {
+      const res = await fetch("/api/flavor/pairings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ingredients: names }),
+      });
+      const data = await res.json();
+      const ps: Pairing[] = data.pairings ?? [];
+      setPairings(ps);
+
+      // Pre-select all suggestions
+      const allSuggests = new Set(ps.flatMap(p => p.suggests));
+      setSelected(allSuggests);
+
+      setState("pairing");
+    } catch {
+      // Fallback: skip pairing panel, go straight to generate
+      const pantryNames = pantryItems.map(i => i.name);
+      handleSubmit(`I have: ${pantryNames.join(", ")}. What should I make?`);
+    }
+  }
+
+  function toggleChip(name: string) {
+    setSelected(prev => {
+      const next = new Set(prev);
+      next.has(name) ? next.delete(name) : next.add(name);
+      return next;
+    });
+  }
+
+  function handleGenerateFromPantry() {
+    const pantryNames = pantryItems.map(i => i.name);
+    const selectedArr = Array.from(selected);
+    const flavorHints: Record<string, string[]> = {};
+    for (const p of pairings) {
+      const hits = p.suggests.filter(s => selected.has(s));
+      if (hits.length) flavorHints[p.ingredient] = hits;
+    }
+    const q = `I have: ${pantryNames.join(", ")}. Make something delicious.`;
+    setPairings([]);
+    setSelected(new Set());
+    handleSubmit(q, { pantryItems: pantryNames, flavorHints });
+  }
+
   function clear() {
-    setPrompt("");
-    setResults([]);
-    setState("idle");
-    setError("");
+    setPrompt(""); setResults([]); setPairings([]); setSelected(new Set());
+    setState("idle"); setError("");
     inputRef.current?.focus();
   }
 
-  const isBusy = state === "loading";
+  const showExamples = state === "idle" && !prompt && !results.length;
+  const showClear = (prompt || results.length > 0 || state === "error" || state === "pairing") && !isBusy;
 
   return (
     <>
       <div className="space-y-2">
+        {/* Input row */}
         <div className="relative">
           <span className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none">
             {isBusy
@@ -110,49 +173,63 @@ export function AIPromptBar() {
               isBusy ? "border-saffron-300 placeholder:animate-pulse" : "border-parchment-300 focus:border-saffron-400"
             }`}
           />
-          {(prompt || results.length > 0 || state === "error") && !isBusy && (
-            <button
-              onClick={clear}
-              className="absolute right-3 inset-y-0 my-auto flex items-center justify-center w-6 h-6 rounded-full text-ink-400 hover:text-ink-700 transition-colors"
-            >
+          {showClear && (
+            <button onClick={clear} className="absolute right-3 inset-y-0 my-auto flex items-center justify-center w-6 h-6 rounded-full text-ink-400 hover:text-ink-700 transition-colors">
               <X size={14} />
             </button>
           )}
         </div>
 
+        {/* Example prompts — shown when idle + empty */}
         <AnimatePresence>
-          {state === "suggest" && results.length > 0 && (
+          {showExamples && (
             <motion.div
-              key="suggest"
+              key="examples"
               initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.2 }}
-              className="space-y-2 pt-1"
+              transition={{ duration: 0.18 }}
+              className="flex flex-wrap gap-2"
             >
+              {hasPantry && (
+                <button
+                  onClick={handleUsePantry}
+                  className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border border-parchment-300 bg-parchment-200 text-ink-600 hover:bg-parchment-300 transition-colors"
+                >
+                  <ShoppingBasket size={12} className="text-sage-500" />
+                  Use what I have
+                </button>
+              )}
+              {EXAMPLE_PROMPTS.map(ex => (
+                <button
+                  key={ex}
+                  onClick={() => { setPrompt(ex); handleSubmit(ex); }}
+                  className="text-xs px-3 py-1.5 rounded-full border border-parchment-300 bg-parchment-200 text-ink-500 hover:bg-parchment-300 transition-colors"
+                >
+                  {ex}
+                </button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {/* Suggest results */}
+          {state === "suggest" && results.length > 0 && (
+            <motion.div key="suggest" initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.2 }} className="space-y-2 pt-1">
               {results.map(result => {
                 const recipe = recipes.find(r => r.id === result.id);
                 if (!recipe) return null;
                 return (
-                  <Link
-                    key={result.id}
-                    href={`/recipes/${recipe.slug}`}
-                    className="flex items-center gap-3 bg-parchment-200 border border-parchment-300 rounded-xl px-4 py-3 hover:bg-parchment-300 transition-colors group"
-                  >
+                  <Link key={result.id} href={`/recipes/${recipe.slug}`} className="flex items-center gap-3 bg-parchment-200 border border-parchment-300 rounded-xl px-4 py-3 hover:bg-parchment-300 transition-colors group">
                     {recipe.heroImageUrl && (
-                      <Image
-                        src={recipe.heroImageUrl}
-                        alt=""
-                        width={44}
-                        height={44}
-                        className="rounded-lg object-cover shrink-0"
-                      />
+                      <Image src={recipe.heroImageUrl} alt="" width={44} height={44} className="rounded-lg object-cover shrink-0" />
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-ink-900 truncate">{recipe.title}</p>
                       <p className="text-xs text-ink-500 mt-0.5 line-clamp-2">{result.reason}</p>
                     </div>
-                    <ArrowRight size={14} className="shrink-0 text-ink-400 group-hover:text-ink-700 transition-colors" />
+                    <ChevronRight size={14} className="shrink-0 text-ink-400 group-hover:text-ink-700 transition-colors" />
                   </Link>
                 );
               })}
@@ -160,38 +237,67 @@ export function AIPromptBar() {
           )}
 
           {state === "suggest" && results.length === 0 && (
-            <motion.p
-              key="no-results"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="text-xs text-ink-400 px-1"
-            >
+            <motion.p key="no-results" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-xs text-ink-400 px-1">
               Nothing in your library matched — try a different prompt.
             </motion.p>
           )}
 
+          {/* Pairing panel */}
+          {state === "pairing" && pairings.length > 0 && (
+            <motion.div key="pairing" initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.2 }} className="space-y-3 pt-1">
+              <p className="text-xs text-ink-500 px-1">Based on flavour science, these pair well with your pantry:</p>
+              {pairings.map(p => (
+                <div key={p.ingredient} className="space-y-1.5">
+                  <p className="text-[11px] text-ink-400 uppercase tracking-widest">Your {p.ingredient}</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {p.suggests.map(s => (
+                      <button
+                        key={s}
+                        onClick={() => toggleChip(s)}
+                        className={`text-xs px-3 py-1 rounded-full border transition-colors ${
+                          selected.has(s)
+                            ? "bg-ink-900 text-parchment-100 border-ink-900"
+                            : "bg-parchment-200 text-ink-500 border-parchment-300 hover:bg-parchment-300"
+                        }`}
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              <button
+                onClick={handleGenerateFromPantry}
+                className="w-full bg-saffron-500 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-saffron-600 transition-colors"
+              >
+                Generate with these →
+              </button>
+            </motion.div>
+          )}
+
+          {/* Error */}
           {state === "error" && (
-            <motion.p
-              key="error"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="text-xs text-red-500 px-1"
-            >
+            <motion.p key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-xs text-red-500 px-1">
               {error}
             </motion.p>
           )}
         </AnimatePresence>
       </div>
 
-      {generatedRecipe && (
-        <ImportRecipeModal
-          generatedDraft={generatedRecipe}
-          onClose={() => { setGeneratedRecipe(null); setPrompt(""); }}
-          onSave={saved => { setGeneratedRecipe(null); setPrompt(""); router.push(`/recipes/${saved.slug}`); }}
-        />
-      )}
+      {/* Generated recipe modal */}
+      <AnimatePresence>
+        {generatedRecipe && (
+          <GeneratedRecipeModal
+            draft={generatedRecipe}
+            onClose={() => { setGeneratedRecipe(null); setPrompt(""); }}
+            onSave={saved => { setGeneratedRecipe(null); setPrompt(""); router.push(`/recipes/${saved.slug}`); }}
+            onRegenerate={() => {
+              setGeneratedRecipe(null);
+              handleSubmit(prompt);
+            }}
+          />
+        )}
+      </AnimatePresence>
     </>
   );
 }

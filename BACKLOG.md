@@ -14,6 +14,18 @@ Ordered by user value × feasibility.
 
 ---
 
+### ✅ F-14 — Improved AI Recipe Creation Flow
+**What:** Rethink the generate-mode experience end-to-end — from the prompt bar through the review modal to the saved recipe.
+**Why:** The current flow (v0.17.0) is functional but rough: the prompt is a plain text bar with no guidance, the generated recipe goes straight into the import modal which was designed for URL/photo imports, and there's no way to iterate or refine before saving.
+**Decisions needed:**
+- Prompt guidance — examples, suggested prompts, or a structured form (cuisine + dietary + time) vs free text?
+- Review step — dedicated "generated recipe" modal vs reusing ImportRecipeModal with a "regenerate" action?
+- Iteration — should the user be able to say "make it spicier" / "swap chicken for tofu" before saving?
+- Confidence signal — how do we communicate that the recipe is AI-generated and untested?
+**Out of scope:** Real-time streaming output, voice input (separate feature), social sharing of generated recipes.
+
+---
+
 ### 🔴 F-9 — Ingredient Shopping List
 **What:** Checklist of ingredients from one or more recipes. Tap to check off as you shop. Persistent across sessions.
 **Why first:** Highest utility per effort in the backlog. Ingredient data already exists on every recipe. Completes the pantry → shop → cook loop. No new data model complexity.
@@ -77,8 +89,8 @@ Ordered by impact.
 | # | Description | Area | Notes |
 |---|-------------|------|-------|
 | U-28 | Unified AI + recipe search bar | Homepage | Merge AI prompt bar and recipe search into one input. Short query = filter library; natural-language sentence = AI suggest/generate. Needs clear mode-switch UX. |
+| U-29 | Homepage improvements | Homepage | Improve carousel logic, section ordering, empty states, and overall first-impression quality. Decisions needed: what signals drive each carousel · how to handle a sparse library (< 5 recipes) · whether to surface pantry-matched recipes more prominently. |
 | U-24 | Wire mic & camera permission toggles | Settings | Current toggles are dead UI. Call `navigator.mediaDevices.getUserMedia` / `navigator.permissions.query`, reflect live browser state. Effectively a bug. |
-| U-16 | Related recipes at bottom of recipe detail | Recipe detail | Increases session depth. `getRelatedRecipes()` already exists in `src/lib/recipes.ts`. Low effort. |
 | U-23 | Quick-bookmark from recipe card | Recipe list | Long-press / hover action. Bookmark currently only accessible from detail page. Small discoverability win. |
 
 ---
@@ -118,6 +130,7 @@ Ordered by impact.
 | Pantry: add ingredients from recipe detail | 0.19.5 |
 | Pantry: fuzzy matching — strips prep context for comparison | 0.19.9 |
 | F-5 + H-1B Recipe ranking engine + "For You" carousel | 0.20.0 |
+| F-14 AI recipe creation — FlavorGraph pairings + pantry chip + GeneratedRecipeModal + Regenerate + example prompts | 0.22.0 |
 | Paste-text import mode — auth-gated sites (Cookidoo, NYT) | 0.20.5 |
 | Source URL field in paste tab — parallel image fetch | 0.20.6 |
 | Deferred nutrition estimation — post-save, same pattern as Thermomix | 0.20.8 |
