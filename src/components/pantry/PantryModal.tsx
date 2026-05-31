@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import { X, AlertTriangle, Search, Download, Upload, Sparkles, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePantry } from "@/hooks/usePantry";
+import { useKitchen } from "@/hooks/useKitchen";
 import { COMMON_INGREDIENTS } from "@/data/commonIngredients";
 import { CATEGORY_LABELS, CATEGORY_ORDER, inferCategory } from "@/data/ingredientCategories";
 import { cn } from "@/lib/cn";
@@ -16,7 +17,8 @@ interface PantryModalProps {
 const EXIT_EASE: [number, number, number, number] = [0.4, 0, 1, 1];
 
 export function PantryModal({ onClose }: PantryModalProps) {
-  const { items, addItem, removeItem, toggleLow, updateCategory, importItems } = usePantry();
+  const { items, addItem, removeItem, updateCategory, importItems } = usePantry();
+  const { toggleLow } = useKitchen();
   const [categorising, setCategorising] = useState(false);
   const [query, setQuery] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -298,7 +300,7 @@ export function PantryModal({ onClose }: PantryModalProps) {
                         </span>
                         <button
                           onClick={() => toggleLow(item.id)}
-                          title="Mark as running low"
+                          title={item.low ? "Running low — on your shopping list" : "Mark low — adds to shopping list"}
                           className={cn(
                             "p-1 rounded-lg transition-colors",
                             item.low

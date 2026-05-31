@@ -97,6 +97,39 @@ export function useShoppingList() {
     if (item && willCheck) addToPantry(item.name);
   }, [list, setValue, addToPantry]);
 
+  // Pantry → shopping: a pantry item ran low. Add it (deduped by name); if it's
+  // already on the list from a recipe, just flag it as also-low and un-check it.
+  const addFromPantry = useCallback((name: string) => {
+    const clean = name.trim();
+    if (!clean) return;
+    const key = normalizeForMatch(clean);
+    if (!key) return;
+    setValue(prev => {
+      const existing = prev.find(i => normalizeForMatch(i.name) === key);
+      if (existing) {
+        return prev.map(i => i === existing ? { ...i, fromPantry: true, checked: false } : i);
+      }
+      const item: ShoppingItem = {
+        id: crypto.randomUUID(),
+        name: cleanForPantry(clean),
+        checked: false,
+        addedAt: new Date().toISOString(),
+        sources: [],
+        fromPantry: true,
+      };
+      return [item, ...prev];
+    });
+  }, [setValue]);
+
+  // Un-marking low removes the line only if it's a pure pantry item still unbought
+  // (never yank a recipe-sourced or already-checked line).
+  const removeFromPantry = useCallback((name: string) => {
+    const key = normalizeForMatch(name);
+    setValue(prev => prev.filter(i =>
+      !(normalizeForMatch(i.name) === key && i.fromPantry && i.sources.length === 0 && !i.checked)
+    ));
+  }, [setValue]);
+
   const removeItem = useCallback((id: string) => {
     setValue(prev => prev.filter(i => i.id !== id));
   }, [setValue]);
@@ -109,5 +142,5 @@ export function useShoppingList() {
     setValue([]);
   }, [setValue]);
 
-  return { list, addManual, addFromRecipe, toggleChecked, removeItem, clearChecked, clearAll };
+  return { list, addManual, addFromRecipe, addFromPantry, removeFromPantry, toggleChecked, removeItem, clearChecked, clearAll };
 }

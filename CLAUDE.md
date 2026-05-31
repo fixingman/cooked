@@ -136,6 +136,8 @@ Three files must always match:
 - `0.21.3` fix: remove redundant sans-serif step label in cook mode (TM panel already shows the label)
 - `0.22.0` F-14 AI recipe creation — FlavorGraph TS pairing engine + `/api/flavor/pairings`; "Use what I have" pantry chip + pairing panel; GeneratedRecipeModal (AI badge, Regenerate); example prompts; forceGenerate escape hatch · first-run seed: 12 starter recipes (`src/data/starterRecipes.ts`), merges with existing library on first launch
 - `0.23.0` F-9 Shopping List — `/shopping` route + `useShoppingList` (`/shopping-list.json`); "Add to list" on recipe detail (skips pantry items); dedupe by name + sum quantities by unit (within-recipe + across recipes); check-off auto-adds to pantry; manual add; Shopping nav entry (SideNav + BottomNav)
+- `0.23.1` feat: larger desktop "Cooked" wordmark · sans-serif Inter → Sofia Sans Semi Condensed (`--font-sans`); OG image font matched
+- `0.24.0` feat: Pantry ⇄ Shopping loop — marking a pantry item "low" auto-adds it to the shopping list (`fromPantry`, shows "running low"); checking it off restocks the pantry + clears the low flag (`addItem` clears low on existing); un-marking low removes the unbought line; homepage PantryWidget routes to `/shopping`; new `useKitchen` coordination hook (composes pantry + shopping, avoids circular import)
 
 ---
 

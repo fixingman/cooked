@@ -105,8 +105,11 @@ export default function ShoppingPage() {
                     <p className={`text-sm transition-colors ${item.checked ? "text-ink-400 line-through" : "text-ink-900"}`}>
                       {item.name}
                     </p>
-                    {titles.length > 0 && !item.checked && (
-                      <p className="text-xs text-ink-400 mt-0.5 truncate">from {titles.join(", ")}</p>
+                    {!item.checked && (titles.length > 0 || item.fromPantry) && (
+                      <p className="text-xs text-ink-400 mt-0.5 truncate">
+                        {[item.fromPantry ? "running low" : null, ...titles.map(t => `from ${t}`)]
+                          .filter(Boolean).join(" · ")}
+                      </p>
                     )}
                   </div>
 

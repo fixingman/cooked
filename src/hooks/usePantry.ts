@@ -41,7 +41,12 @@ export function usePantry() {
     const normalised = name.trim();
     if (!normalised) return;
     setValue(prev => {
-      if (prev.some(i => i.name.toLowerCase() === normalised.toLowerCase())) return prev;
+      // Already have it — clear any "low" flag (re-adding = restocked) and keep the rest.
+      if (prev.some(i => i.name.toLowerCase() === normalised.toLowerCase())) {
+        return prev.map(i =>
+          i.name.toLowerCase() === normalised.toLowerCase() && i.low ? { ...i, low: false } : i
+        );
+      }
       const item: PantryItem = {
         id: crypto.randomUUID(),
         name: normalised,

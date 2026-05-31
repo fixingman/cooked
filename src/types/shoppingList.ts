@@ -13,4 +13,5 @@ export interface ShoppingItem {
   addedAt: string;
   sources: ShoppingSource[];  // deduped by recipe; summed by unit for display
   manual?: boolean;           // added by hand, not from a recipe
+  fromPantry?: boolean;       // auto-added because the pantry item ran low
 }
