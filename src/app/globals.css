@@ -20,8 +20,8 @@
 
 html {
   /* Alegreya Sans has a slightly smaller x-height than the previous face;
-     nudge the whole rem scale up by ~1pt to restore comfortable body size. */
-  font-size: calc(100% + 1pt);
+     nudge the whole rem scale up by ~2pt to restore comfortable body size. */
+  font-size: calc(100% + 2pt);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
