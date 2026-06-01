@@ -1,6 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
-import { Sparkles, X, Loader2, ShoppingBasket, ChevronRight, WandSparkles } from "lucide-react";
+import { Sparkles, X, Loader2, Archive, ChevronRight, WandSparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
@@ -195,7 +195,7 @@ export function AIPromptBar() {
                   onClick={handleUsePantry}
                   className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border border-parchment-300 bg-parchment-200 text-ink-600 hover:bg-parchment-300 transition-colors"
                 >
-                  <ShoppingBasket size={12} className="text-sage-500" />
+                  <Archive size={12} className="text-sage-500" />
                   Use what I have
                 </button>
               )}

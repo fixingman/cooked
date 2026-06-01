@@ -2,7 +2,7 @@
 import React from "react";
 import { notFound, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Clock, Users, BarChart2, Star, CheckCircle, X, ShoppingBasket, ShoppingCart, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
+import { Clock, Users, BarChart2, Star, CheckCircle, X, Archive, ShoppingCart, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RecipeHero } from "@/components/recipe-detail/RecipeHero";
 import { ImagePickerModal } from "@/components/recipe-detail/ImagePickerModal";
@@ -301,7 +301,7 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
                 onClick={() => { setShowAddToPantry(v => !v); setShowAddToList(false); }}
                 className="flex items-center gap-1.5 text-xs text-ink-400 hover:text-ink-700 transition-colors"
               >
-                <ShoppingBasket size={14} />
+                <Archive size={14} />
                 <span>Add to pantry</span>
                 {showAddToPantry ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
               </button>

@@ -139,6 +139,8 @@ Three files must always match:
 - `0.23.1` feat: larger desktop "Cooked" wordmark · sans-serif Inter → Sofia Sans Semi Condensed (`--font-sans`); OG image font matched
 - `0.24.0` feat: Pantry ⇄ Shopping loop — marking a pantry item "low" auto-adds it to the shopping list (`fromPantry`, shows "running low"); checking it off restocks the pantry + clears the low flag (`addItem` clears low on existing); un-marking low removes the unbought line; homepage PantryWidget routes to `/shopping`; new `useKitchen` coordination hook (composes pantry + shopping, avoids circular import)
 - `0.25.0` feat: UI/body sans → Alegreya Sans (weights 400/500/700) · recipe card hover action "add to shopping" — adds the recipe's not-in-pantry ingredients to the list in one tap (hooks lifted to RecipeGrid, passed as `onAddToShopping`; per-card sage check feedback)
+- `0.25.1` feat: access pantry from the shopping list page (Pantry button → PantryModal)
+- `0.25.2` fix: pantry ⚠ low-toggle now updates the UI — was toggling a different `usePantry` instance (via `useKitchen`) than the one rendering; `useDropboxSync` state is per-instance, so the list never re-rendered. Coordination moved inline into `PantryModal` (same instance) + `useShoppingList`; `useKitchen` removed · pantry icon `ShoppingBasket` → `Archive` (distinct from cart) app-wide · removed "n to buy" header label · body scale +1pt (Alegreya Sans x-height)
 
 ---
 

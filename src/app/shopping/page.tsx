@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
-import { Plus, Check, X, Trash2, ShoppingCart, ShoppingBasket } from "lucide-react";
+import { Plus, Check, X, Trash2, ShoppingCart, Archive } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useShoppingList } from "@/hooks/useShoppingList";
 import { PantryModal } from "@/components/pantry/PantryModal";
@@ -33,18 +33,13 @@ export default function ShoppingPage() {
     <div className="px-4 py-6 md:px-8 max-w-2xl mx-auto pb-28 md:pb-12">
       <div className="flex items-center justify-between gap-3 mb-6">
         <h1 className="font-display text-3xl md:text-4xl text-ink-900">Shopping List</h1>
-        <div className="flex items-center gap-3 shrink-0">
-          {mounted && list.length > 0 && (
-            <span className="text-sm text-ink-400">{list.length - checkedCount} to buy</span>
-          )}
-          <button
-            onClick={() => setPantryOpen(true)}
-            className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-parchment-300 text-ink-600 hover:bg-parchment-200 transition-colors"
-          >
-            <ShoppingBasket size={14} className="text-sage-500" />
-            Pantry
-          </button>
-        </div>
+        <button
+          onClick={() => setPantryOpen(true)}
+          className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-parchment-300 text-ink-600 hover:bg-parchment-200 transition-colors shrink-0"
+        >
+          <Archive size={14} className="text-sage-500" />
+          Pantry
+        </button>
       </div>
 
       {/* Manual add */}

@@ -89,7 +89,7 @@ Split layout (md+): left = food image + timer, right = step instruction. Stacked
 `useDropboxAuth` — PKCE OAuth, returns `{ status, accountName, connect, disconnect, getValidAccessToken }`
 `useDropboxImage(path)` — resolves `/images/[id].jpg` → 4h cached Dropbox temp URL
 `useUserRecipes` — `addRecipe` (upsert by id), `removeRecipe`, `getUserRecipe(slug)`
-`useKitchen` — coordination layer above `usePantry` + `useShoppingList`; `toggleLow` marks pantry low + auto-adds/removes the shopping line (avoids circular import)
+`usePantry` + `useShoppingList` — pantry↔shopping coordination is done inline in `PantryModal` (toggle low on the same `usePantry` instance that renders, then call `addFromPantry`/`removeFromPantry`). NOTE: `useDropboxSync` state is per-instance — don't toggle one surface from a different hook instance than the one rendering, or the UI won't update.
 `useServingsScale` — scale factor for ingredient quantities
 `useRecipeFilter` — filter reducer: query/category/dietary/sort/viewMode
 

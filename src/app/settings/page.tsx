@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Mic, Camera, Flame, ShoppingBasket } from "lucide-react";
+import { Mic, Camera, Flame, Archive } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import { UnitToggle } from "@/components/settings/UnitToggle";
 import { DietaryPreferences } from "@/components/settings/DietaryPreferences";
@@ -39,7 +39,7 @@ export default function SettingsPage() {
         <div>
           <h1 className="font-display text-xl font-semibold text-ink-900">Cooked</h1>
 
-          <p className="text-xs text-ink-400">v0.25.1 — Your cooking companion</p>
+          <p className="text-xs text-ink-400">v0.25.2 — Your cooking companion</p>
         </div>
       </div>
 
@@ -77,7 +77,7 @@ export default function SettingsPage() {
         <div className="py-4">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-3">
-              <ShoppingBasket size={18} className="text-ink-500 shrink-0 mt-0.5" />
+              <Archive size={18} className="text-ink-500 shrink-0 mt-0.5" />
               <div>
                 <p className="text-sm font-medium text-ink-800">My Pantry</p>
                 <p className="text-xs text-ink-400 mt-0.5">
