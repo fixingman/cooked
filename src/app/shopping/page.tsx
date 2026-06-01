@@ -1,13 +1,15 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
-import { Plus, Check, X, Trash2, ShoppingCart } from "lucide-react";
+import { Plus, Check, X, Trash2, ShoppingCart, ShoppingBasket } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useShoppingList } from "@/hooks/useShoppingList";
+import { PantryModal } from "@/components/pantry/PantryModal";
 import { summarizeQuantity, sourceTitles } from "@/lib/shoppingList";
 
 export default function ShoppingPage() {
   const { list, addManual, toggleChecked, removeItem, clearChecked, clearAll } = useShoppingList();
   const [draft, setDraft] = useState("");
+  const [pantryOpen, setPantryOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
@@ -29,11 +31,20 @@ export default function ShoppingPage() {
 
   return (
     <div className="px-4 py-6 md:px-8 max-w-2xl mx-auto pb-28 md:pb-12">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between gap-3 mb-6">
         <h1 className="font-display text-3xl md:text-4xl text-ink-900">Shopping List</h1>
-        {mounted && list.length > 0 && (
-          <span className="text-sm text-ink-400">{list.length - checkedCount} to buy</span>
-        )}
+        <div className="flex items-center gap-3 shrink-0">
+          {mounted && list.length > 0 && (
+            <span className="text-sm text-ink-400">{list.length - checkedCount} to buy</span>
+          )}
+          <button
+            onClick={() => setPantryOpen(true)}
+            className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-parchment-300 text-ink-600 hover:bg-parchment-200 transition-colors"
+          >
+            <ShoppingBasket size={14} className="text-sage-500" />
+            Pantry
+          </button>
+        </div>
       </div>
 
       {/* Manual add */}
@@ -156,6 +167,10 @@ export default function ShoppingPage() {
           </button>
         </div>
       )}
+
+      <AnimatePresence>
+        {pantryOpen && <PantryModal onClose={() => setPantryOpen(false)} />}
+      </AnimatePresence>
     </div>
   );
 }
