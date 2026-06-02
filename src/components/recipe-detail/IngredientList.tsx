@@ -1,6 +1,6 @@
 "use client";
 import { useMemo } from "react";
-import { Check } from "lucide-react";
+import { Check, Replace } from "lucide-react";
 import { scaleQuantity } from "@/lib/scaleIngredient";
 import { normalizeForMatch } from "@/lib/ingredientUtils";
 import type { Ingredient } from "@/types/recipe";
@@ -11,6 +11,7 @@ interface IngredientListProps {
   scale: number;
   units?: "metric" | "imperial";
   pantryNames?: Set<string>;
+  onSubstitute?: (ing: Ingredient) => void;
 }
 
 function groupIngredients(ingredients: Ingredient[]): Map<string, Ingredient[]> {
@@ -48,7 +49,7 @@ function convertToImperial(qty: number, unit: string): { qty: number; unit: stri
   return null;
 }
 
-export function IngredientList({ ingredients, scale, units = "metric", pantryNames }: IngredientListProps) {
+export function IngredientList({ ingredients, scale, units = "metric", pantryNames, onSubstitute }: IngredientListProps) {
   const groups = useMemo(() => groupIngredients(ingredients), [ingredients]);
 
   return (
@@ -85,7 +86,7 @@ export function IngredientList({ ingredients, scale, units = "metric", pantryNam
                 <li
                   key={ing.id}
                   className={cn(
-                    "flex items-baseline gap-3 py-2 border-b border-parchment-300/60 last:border-0",
+                    "group flex items-baseline gap-3 py-2 border-b border-parchment-300/60 last:border-0",
                     ing.optional && "opacity-70"
                   )}
                 >
@@ -107,7 +108,17 @@ export function IngredientList({ ingredients, scale, units = "metric", pantryNam
                   </span>
                   {pantryNames?.has(normalizeForMatch(ing.name))
                     && ing.unit !== "pinch" && ing.unit !== "handful" && (
-                    <Check size={13} className="text-sage-500 shrink-0" strokeWidth={2.5} />
+                    <Check size={13} className="text-sage-500 shrink-0 self-center" strokeWidth={2.5} />
+                  )}
+                  {onSubstitute && (
+                    <button
+                      onClick={() => onSubstitute(ing)}
+                      title="Find a substitute"
+                      aria-label={`Find a substitute for ${ing.name}`}
+                      className="shrink-0 self-center p-1 -mr-1 rounded-md text-ink-300 hover:text-saffron-600 hover:bg-parchment-200 transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100"
+                    >
+                      <Replace size={13} />
+                    </button>
                   )}
                 </li>
               );

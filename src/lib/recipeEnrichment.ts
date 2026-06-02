@@ -337,3 +337,61 @@ Return ONLY valid JSON: {"typeTags": [...], "dietaryTags": [...], "mealTimes": [
     return { typeTags: [], dietaryTags: [], mealTimes: [], thermomixSuitable: true };
   }
 }
+
+export interface Substitute {
+  name: string;
+  ratio: string;
+  note: string;
+}
+
+// Suggest 2–3 ingredient substitutes via Haiku. Recipe context sharpens the
+// suggestion; dietary constraints are only added when the caller passes them.
+export async function suggestSubstitutes(
+  input: { ingredient: string; quantity?: number; unit?: string; recipeTitle?: string; cuisine?: string; dietaryPreferences?: string[] },
+  apiKey: string,
+): Promise<Substitute[] | null> {
+  const amount = input.quantity && input.quantity > 0
+    ? `${input.quantity}${input.unit ? ` ${input.unit}` : ""} `
+    : "";
+  const context = input.recipeTitle
+    ? ` as used in "${input.recipeTitle}"${input.cuisine ? ` (${input.cuisine})` : ""}`
+    : "";
+  const dietary = input.dietaryPreferences?.length
+    ? `\nEvery substitute must be ${input.dietaryPreferences.join(" and ")}-friendly.`
+    : "";
+
+  const prompt = `Suggest 2-3 practical substitutes for ${amount}${input.ingredient}${context}.
+For each: a swap "ratio" (e.g. "1:1", "¾ cup per cup") and a one-line "note" on how it changes the result or how to use it.${dietary}
+
+Return ONLY JSON: {"substitutes":[{"name":"...","ratio":"...","note":"..."}]}`;
+
+  try {
+    const res = await fetch(API_BASE, {
+      method: "POST",
+      headers: HEADERS(apiKey),
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 256,
+        messages: [{ role: "user", content: prompt }],
+      }),
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const text = (data?.content?.[0]?.text as string | undefined) ?? "";
+    const raw = text.match(/\{[\s\S]+\}/)?.[0] ?? text.trim();
+    const json = JSON.parse(raw);
+    if (!Array.isArray(json.substitutes)) return null;
+    const subs: Substitute[] = json.substitutes
+      .filter((s: unknown): s is Substitute => !!s && typeof (s as Substitute).name === "string")
+      .map((s: Substitute) => ({
+        name: String(s.name).trim(),
+        ratio: typeof s.ratio === "string" ? s.ratio.trim() : "",
+        note: typeof s.note === "string" ? s.note.trim() : "",
+      }))
+      .slice(0, 3);
+    return subs;
+  } catch {
+    return null;
+  }
+}

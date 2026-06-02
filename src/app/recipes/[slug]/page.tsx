@@ -8,6 +8,7 @@ import { RecipeHero } from "@/components/recipe-detail/RecipeHero";
 import { ImagePickerModal } from "@/components/recipe-detail/ImagePickerModal";
 import { ServingsAdjuster } from "@/components/recipe-detail/ServingsAdjuster";
 import { IngredientList } from "@/components/recipe-detail/IngredientList";
+import { SubstituteSheet } from "@/components/recipe-detail/SubstituteSheet";
 import { InstructionSteps } from "@/components/recipe-detail/InstructionSteps";
 import { StartCookingButton } from "@/components/recipe-detail/StartCookingButton";
 import { NutritionPanel } from "@/components/recipe-detail/NutritionPanel";
@@ -28,7 +29,7 @@ import { PantryModal } from "@/components/pantry/PantryModal";
 import { getRecipe } from "@/lib/recipes";
 import { formatMinutes } from "@/lib/formatTime";
 import { normalizeForMatch, cleanForPantry } from "@/lib/ingredientUtils";
-import type { Recipe } from "@/types/recipe";
+import type { Recipe, Ingredient } from "@/types/recipe";
 
 interface PageProps {
   params: { slug: string };
@@ -164,6 +165,7 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
   const [showAddToPantry, setShowAddToPantry] = useState(false);
   const [showAddToList, setShowAddToList] = useState(false);
   const [listAdded, setListAdded] = useState(false);
+  const [subIngredient, setSubIngredient] = useState<Ingredient | null>(null);
 
   const cooked = hasCooked(recipe.id);
   const state = getState(recipe.id);
@@ -350,6 +352,7 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
             scale={scale}
             units={settings.units}
             pantryNames={new Set(pantryItems.map(i => normalizeForMatch(i.name)))}
+            onSubstitute={settings.aiEnabled ? setSubIngredient : undefined}
           />
         </div>
 
@@ -407,6 +410,18 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
 
       <AnimatePresence>
         {pantryOpen && <PantryModal onClose={() => setPantryOpen(false)} />}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {subIngredient && (
+          <SubstituteSheet
+            ingredient={subIngredient}
+            recipeTitle={recipe.title}
+            cuisine={recipe.cuisine}
+            dietaryPreferences={settings.dietaryPreferences}
+            onClose={() => setSubIngredient(null)}
+          />
+        )}
       </AnimatePresence>
     </div>
   );

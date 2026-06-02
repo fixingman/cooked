@@ -20,9 +20,6 @@ Ordered by user value × feasibility.
 ### 🔴 F-11 — Collections / Folders
 Group recipes into named collections ("Sunday roasts", "Quick weeknight"). A recipe can belong to multiple collections. "Add to collection" from the recipe ··· menu. Dropbox-synced.
 
-### 🔴 F-12 — Ingredient Substitution (AI)
-Tap an ingredient in recipe detail → "I don't have this" → Claude (Haiku) suggests 2–3 substitutes with ratio notes. No new data model — Haiku call + inline sheet UI.
-
 ### 🔴 F-13 — Branding, App Icon & Visual Delight
 **Branding & Icon:** Custom app icon (PWA + apple-touch-icon + favicon), wordmark, custom flame illustration. Current icons are programmatic SVG placeholders. Design at 192×192 and 512×512 PNG; update `public/icons/*` + manifest.
 **Visual Delight:** Enhance the well-worn-cookbook feel without skeuomorphism. (A v0.21.0 attempt — grain, ruled lines, inset shadow, stamp ring — was reverted as too literal.) Explore subtle depth and material quality that reads as craft, not chrome: warm amber-tinted shadows, typographic ornaments, contextual micro-illustrations, richer card hover states.
@@ -93,3 +90,4 @@ Ordered by impact.
 | F-9 Shopping List — /shopping, add-from-recipe (skip pantry), dedupe + sum qty, check→pantry | 0.23.0 |
 | Pantry ⇄ Shopping loop — low items flow to the list, restock clears low | 0.24.0 |
 | UI font → Alegreya Sans · recipe-card "add to shopping" hover · larger wordmark · pantry from shopping list | 0.25.0–0.25.3 |
+| F-12 Ingredient Substitution (AI) — tap ingredient → Haiku swaps with ratio notes, dietary-aware, read-only sheet | 0.26.0 |

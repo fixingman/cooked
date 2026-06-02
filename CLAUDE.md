@@ -141,6 +141,8 @@ Three files must always match:
 - `0.25.0` feat: UI/body sans → Alegreya Sans (weights 400/500/700) · recipe card hover action "add to shopping" — adds the recipe's not-in-pantry ingredients to the list in one tap (hooks lifted to RecipeGrid, passed as `onAddToShopping`; per-card sage check feedback)
 - `0.25.1` feat: access pantry from the shopping list page (Pantry button → PantryModal)
 - `0.25.2` fix: pantry ⚠ low-toggle now updates the UI — was toggling a different `usePantry` instance (via `useKitchen`) than the one rendering; `useDropboxSync` state is per-instance, so the list never re-rendered. Coordination moved inline into `PantryModal` (same instance) + `useShoppingList`; `useKitchen` removed · pantry icon `ShoppingBasket` → `Archive` (distinct from cart) app-wide · removed "n to buy" header label · body scale +1pt (Alegreya Sans x-height)
+- `0.25.3` fix: bump body scale to +2pt
+- `0.26.0` F-12 Ingredient Substitution (AI) — tap an ingredient row's swap icon (AI-gated, hover-revealed on desktop) → `SubstituteSheet` shows 2–3 Haiku substitutes with ratio + note; recipe context always sent, dietary prefs only when set; read-only. `suggestSubstitutes()` in `recipeEnrichment.ts` + thin `/api/recipes/ingredient-substitutes` route + `onSubstitute` prop on `IngredientList`
 
 ---
 
