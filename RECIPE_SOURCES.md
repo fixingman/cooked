@@ -24,6 +24,7 @@ Status: ✅ reliable · ⚠️ works with a workaround · ❌ needs work.
 | Site | Domain | Parse path | Status | Notes |
 |------|--------|-----------|--------|-------|
 | BBC Good Food | bbcgoodfood.com | JSON-LD | ✅ | Full JSON-LD incl. nutrition. Clean fast path. |
+| BBC Food | bbc.co.uk/food | JSON-LD | ✅ | Dual metric/imperial measures joined by slash with no space (`400ml/14fl oz`, `50g/1¾oz`) broke the quantity regex → qty 0. Fixed v0.26.1 via `stripDualUnit()` (keep metric, drop imperial). |
 | Waitrose | waitrose.com | JSON-LD | ✅ | JSON-LD in `<head>`, 80KB+ page → stream early-exit on `</head>`. |
 | The Modern Proper | themodernproper.com | JSON-LD | ✅ | JSON-LD in `<body>` ~byte 200K → stream early-exit on complete block. |
 | Barefoot Contessa | barefootcontessa.com | JSON-LD | ⚠️ | All ingredients packed in one array element → `flatMap` split by `\n`. |

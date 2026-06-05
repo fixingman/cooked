@@ -121,9 +121,19 @@ const FRACTION_MAP: Record<string, number> = {
   "½": 0.5, "¼": 0.25, "¾": 0.75, "⅓": 0.3333, "⅔": 0.6667, "⅛": 0.125,
 };
 
+// Some sites (e.g. BBC Food) give a dual metric/imperial measure joined by a slash
+// with no space: "400ml/14fl oz chicken stock", "50g/1¾oz pasta". The imperial half
+// breaks the quantity regex, so keep the metric measure and drop the imperial one.
+function stripDualUnit(s: string): string {
+  return s.replace(
+    /(\d[\d.,]*\s?(?:g|kg|mg|ml|l|cm))\/\s?[\d¼½¾⅓⅔⅛.\s]*\s?(?:fl\s?oz|oz|lb|lbs|pint|pints|in|inch|inches)\b\.?/gi,
+    "$1 ",
+  );
+}
+
 function parseIngredients(strs: string[]): Ingredient[] {
   return strs.map((str, i) => {
-    const s = cleanText(str);
+    const s = stripDualUnit(cleanText(str));
     let quantity = 0;
     let unit = "";
     let name = s;

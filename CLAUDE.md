@@ -144,6 +144,7 @@ Three files must always match:
 - `0.25.2` fix: pantry ⚠ low-toggle now updates the UI — was toggling a different `usePantry` instance (via `useKitchen`) than the one rendering; `useDropboxSync` state is per-instance, so the list never re-rendered. Coordination moved inline into `PantryModal` (same instance) + `useShoppingList`; `useKitchen` removed · pantry icon `ShoppingBasket` → `Archive` (distinct from cart) app-wide · removed "n to buy" header label · body scale +1pt (Alegreya Sans x-height)
 - `0.25.3` fix: bump body scale to +2pt
 - `0.26.0` F-12 Ingredient Substitution (AI) — tap an ingredient row's swap icon (AI-gated, hover-revealed on desktop) → `SubstituteSheet` shows 2–3 Haiku substitutes with ratio + note; recipe context always sent, dietary prefs only when set; read-only. `suggestSubstitutes()` in `recipeEnrichment.ts` + thin `/api/recipes/ingredient-substitutes` route + `onSubstitute` prop on `IngredientList`
+- `0.26.1` fix: BBC Food ingredient quantities — dual metric/imperial measures joined by slash (`400ml/14fl oz`, `50g/1¾oz`) broke the quantity regex (qty 0, imperial half leaked into name). `stripDualUnit()` in `parseJsonLd.ts` keeps the metric measure, drops the imperial one · started `RECIPE_SOURCES.md` site-parsing log
 
 ---
 
