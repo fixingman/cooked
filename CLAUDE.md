@@ -4,6 +4,7 @@
 - Product principles, design guidelines, voice & tone: **`PRODUCT.md`** — read this before proposing any new feature or UI change; flag misalignments
 - Architecture, design system, hooks, routes: **`MEMORY.md`**
 - Feature backlog and shipped log: **`BACKLOG.md`**
+- Frequently-imported recipe sites + per-site parsing quirks: **`RECIPE_SOURCES.md`**
 - Always update MEMORY.md and BACKLOG.md when shipping a feature or changing architecture.
 
 ---

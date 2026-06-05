@@ -6,6 +6,23 @@ Active bugs only. Resolved bugs kept for reference with their fix summary.
 
 ## Open
 
+### BUG-012 — Some recipes appear doubled in the library
+
+**Status:** Open — needs repro + investigation
+
+**Symptom:** Some recipes show up twice in the recipe list.
+
+**Hypotheses to check (unconfirmed):**
+1. **First-run seed vs Dropbox merge** — `useUserRecipes` seeds 12 starters into localStorage on first launch (no `cooked-seeded` flag), then `useDropboxSync` downloads remote and `mergeRecipes` unions by `id`. Starters use *fixed* ids (`starter-carbonara`…), so id-union should dedupe — but if a starter was ever re-saved with a `user-*` slug / new UUID, the same dish would exist under two ids.
+2. **Content duplicate, different id** — an AI-generated or re-imported recipe with the same title but a fresh `crypto.randomUUID()` isn't caught by `addRecipe`'s id-based upsert or `mergeRecipes`' id-union. Duplicate-import block (v0.20.12) only guards the import modal, not seed/generate paths.
+3. **Same slug, different id** — two entries render as two cards but the detail route resolves by `slug`, so both open the same recipe.
+
+**Where to look:** `src/hooks/useUserRecipes.ts` (seed block + `mergeRecipes`), `src/hooks/useDropboxSync.ts` (merge call), `src/data/starterRecipes.ts` (fixed ids).
+
+**Needed to repro:** which recipes double (starters vs imported vs AI), single device or after multi-device sync, and whether clearing localStorage + reloading reproduces it.
+
+---
+
 ### BUG-003 — "Macros unavailable" on thermomix-recipes.net
 
 **Status:** Fix shipped v0.16.2 (deferred TM enrichment), pending confirmation
