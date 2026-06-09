@@ -1,24 +1,43 @@
 # Cooked — Backlog
 
-> 🔴 Not started · 🟡 In progress · ✅ Shipped (see Shipped log at bottom)
+> 🔴 Not started · 🟡 In progress · ✅ Shipped
 
 ---
 
-## Bugs
-See `BUGS.md` for active bug tracking.
+## All items
+
+| # | Title | Status | Version |
+|---|-------|--------|---------|
+| F-1 | Pantry — widget + modal, Dropbox-synced | ✅ Shipped | 0.19.0 |
+| F-3 | AI Suggestions & Creation — prompt bar, suggest + generate | ✅ Shipped | 0.17.0 |
+| F-4 | Photo import — Claude vision | ✅ Shipped | 0.12.0 |
+| F-5 | Recipe ranking engine + "For You" carousel | ✅ Shipped | 0.20.0 |
+| F-6 | Auth & User Profiles (Supabase magic link / Google) | 🔴 Not started | — |
+| F-7 | Database (Supabase Postgres) — depends on F-6 | 🔴 Not started | — |
+| F-8 | Meal Planner — weekly calendar + shopping list | 🔴 Not started | — |
+| F-9 | Shopping List — /shopping, add-from-recipe, check→pantry | ✅ Shipped | 0.23.0 |
+| F-10 | Bookmarklet / Web Share Target — one-click capture | ✅ Shipped | 0.20.16 |
+| F-11 | Collections / Folders — named recipe groups | 🔴 Not started | — |
+| F-12 | Ingredient Substitution (AI) — swap icon → Haiku suggestions | ✅ Shipped | 0.26.0 |
+| F-13 | Branding — custom app icon, wordmark, visual delight | ✅ Shipped | 0.27.1 |
+| F-14 | AI recipe creation — FlavorGraph pairings, GeneratedRecipeModal | ✅ Shipped | 0.22.0 |
+| U-23 | Quick-bookmark from recipe card (long-press / hover) | 🔴 Not started | — |
+| U-24 | Wire mic & camera permission toggles in Settings | 🔴 Not started | — |
+| U-25 | Richer greeting variety — 10–12 per time slot, daily rotation | ✅ Shipped | 0.18.0 |
+| U-28 | Unified AI + recipe search bar | 🔴 Not started | — |
+| U-29 | Homepage improvements — carousels, empty states, sparse-library | ✅ Shipped | 0.27.0 |
 
 ---
 
-## Features (not yet built)
-Ordered by user value × feasibility.
-
-### 🔴 F-8 — Meal Planner
-**What:** Weekly calendar. Drag recipes into days. Auto-generates a combined shopping list for the week.
-**Why later:** High value, high effort. Mobile drag-and-drop is hard. Builds on F-9 Shopping List (shipped) infrastructure.
-**Decisions needed:** 7-day vs rolling week · integration with the shopping list · Dropbox sync shape.
+## Open features
 
 ### 🔴 F-11 — Collections / Folders
 Group recipes into named collections ("Sunday roasts", "Quick weeknight"). A recipe can belong to multiple collections. "Add to collection" from the recipe ··· menu. Dropbox-synced.
+
+### 🔴 F-8 — Meal Planner
+**What:** Weekly calendar. Drag recipes into days. Auto-generates a combined shopping list for the week.
+**Why later:** High value, high effort. Mobile drag-and-drop is hard. Builds on F-9 Shopping List infrastructure.
+**Decisions needed:** 7-day vs rolling week · integration with the shopping list · Dropbox sync shape.
 
 ### 🔴 F-13 — Branding, App Icon & Visual Delight
 **Branding & Icon:** Custom app icon (PWA + apple-touch-icon + favicon), wordmark, custom flame illustration. Current icons are programmatic SVG placeholders. Design at 192×192 and 512×512 PNG; update `public/icons/*` + manifest.
@@ -33,8 +52,7 @@ Supabase Postgres. Server-side querying, multi-user, recipe search at scale. **D
 
 ---
 
-## UX / Polish (not yet built)
-Ordered by impact.
+## Open UX / polish
 
 | # | Description | Area | Notes |
 |---|-------------|------|-------|
@@ -45,7 +63,7 @@ Ordered by impact.
 
 ---
 
-## ✅ Shipped
+## ✅ Shipped log
 
 | Feature | Version |
 |---------|---------|
@@ -91,3 +109,5 @@ Ordered by impact.
 | Pantry ⇄ Shopping loop — low items flow to the list, restock clears low | 0.24.0 |
 | UI font → Alegreya Sans · recipe-card "add to shopping" hover · larger wordmark · pantry from shopping list | 0.25.0–0.25.3 |
 | F-12 Ingredient Substitution (AI) — tap ingredient → Haiku swaps with ratio notes, dietary-aware, read-only sheet | 0.26.0 |
+| U-29 Homepage improvements — cross-carousel dedup, "Ready to Cook" pantry carousel, sparse-library empty state, contextual hero label | 0.27.0 |
+| F-13 Branding & Visual Delight — gradient icon + filled flame; card image zoom + deeper shadow; saffron step circles + dashed connector; ingredient ◆ ornament | 0.27.1 |

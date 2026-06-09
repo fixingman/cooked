@@ -27,10 +27,22 @@ Next.js 14 App Router · TypeScript · Tailwind CSS · Framer Motion · Lucide R
 | `/recipes/[slug]/cook` | Server | Full-screen cooking mode — no nav shell |
 | `/shopping` | Client | Shopping list — add from recipe, dedupe + sum qty, check→pantry |
 | `/settings` | Client | Units, dietary, AI toggle, Dropbox connect |
+| `/share` | Server | Web Share Target — redirects to `/?share_url=…` for native share sheet |
 | `/auth/dropbox/callback` | Client | PKCE OAuth callback |
 | `/api/dropbox/token` | Route | Exchange code for tokens |
 | `/api/dropbox/refresh` | Route | Refresh access token |
 | `/api/recipes/import` | Route | Fetch URL → JSON-LD parse → Claude fallback → returns recipe + heroImageBase64 |
+| `/api/recipes/import-text` | Route | Paste-text import — Claude extraction on user-pasted HTML/text |
+| `/api/recipes/import-photo` | Route | Photo import — Claude vision |
+| `/api/recipes/enrich-thermomix` | Route | Post-save Thermomix step generation |
+| `/api/recipes/estimate-nutrition` | Route | Deferred macro estimation (Haiku) |
+| `/api/recipes/estimate-times` | Route | Deferred prep/cook time split (Haiku) |
+| `/api/recipes/ingredient-substitutes` | Route | AI substitution suggestions (Haiku) |
+| `/api/recipes/refresh-image` | Route | Manual image refresh — HF upscale + Unsplash fallback |
+| `/api/recipes/search-images` | Route | Unsplash search for image picker |
+| `/api/recipes/ai-suggest` | Route | AI suggest/generate recipes from prompt |
+| `/api/flavor/pairings` | Route | FlavorGraph-style ingredient pairings |
+| `/api/pantry/categorise` | Route | AI categorise pantry items (Haiku) |
 
 ## Dropbox Synced Files
 | Dropbox path | Hook | localStorage key |
@@ -64,7 +76,7 @@ interface Recipe {
 `ink-900` #1A1208 headings · `ink-700` #3D3020 body · `ink-500` #7A6A52 meta · `ink-300` #BBA98E disabled
 `saffron-500` #E8890C CTAs/nav · `sage-500` #6B8C5F cooking actions
 
-**Typography:** `font-serif` Playfair Display (headings, titles, steps) · `font-sans` Inter (UI, labels)
+**Typography:** `font-display` Texturina (hero headings) · `font-serif` Fraunces (recipe titles, steps) · `font-sans` Alegreya Sans 400/500/700 (UI, labels, body)
 Custom: `text-display` 3.5rem · `text-label` 0.75rem 600 uppercase · `text-timer-lg` 4.5rem 300
 
 **Easing:** spring `cubic-bezier(0.34,1.56,0.64,1)` taps · smooth `cubic-bezier(0.16,1,0.3,1)` nav · snap `cubic-bezier(0.25,0.46,0.45,0.94)` toggles
