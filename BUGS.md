@@ -18,6 +18,7 @@ Active bugs only. See `BUGS_ARCHIVE.md` for full details on resolved bugs.
 | BUG-010 | Low-res image not replaced when CDN omits content-length | ✅ Resolved | v0.16.0 |
 | BUG-011 | AI-generated recipe not saved, navigates to 404 | ✅ Resolved | v0.19.7 |
 | BUG-012 | Some recipes appear doubled in the library | 🔴 Open | — |
+| BUG-013 | Homepage carousel thumbnails appear blurry / low-res on load | ✅ Resolved | v0.27.2 |
 
 ---
 

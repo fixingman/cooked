@@ -4,6 +4,22 @@ Resolved bugs moved here from `BUGS.md`. Ordered newest fix first.
 
 ---
 
+### BUG-013 ✅ v0.27.2 — Homepage carousel thumbnails appear blurry / low-res on load
+
+**Symptom:** Recipe card thumbnails on the homepage carousels appeared blurry on initial load. After tapping through to a recipe and navigating back, that card's thumbnail became sharp.
+
+**Root cause (1 — wrong `sizes`):** Carousel cards used `sizes="160px"` (their mobile width), but the desktop 4-col grid renders them at ~270px. The browser selected a ~320w candidate from the next/image srcset when a retina 270px card needs ~540w → upscaled ≈1.7× → blurry. Visiting the recipe detail loaded a large variant of the same URL; on back-navigation the browser swapped in the larger cached candidate — explaining the "sharp after interacting" behaviour exactly.
+
+**Root cause (2 — BUG-008 recurring on home):** `MealTimeSection`, `ForYouSection`, `FeaturedHero`, and `ContinueCooking` rendered raw `heroImageUrl` and never loaded the Dropbox original, so genuinely low-res or expired external URLs were shown even when a full-quality Dropbox copy existed.
+
+**Contributing factor:** The v0.27.1 `transition-transform` zoom wrapper promoted card images to a GPU compositing layer, rasterising the low-res image and amplifying the blur. Removed in commit `21d6e8f`.
+
+**Fix:** `sizes="(max-width: 768px) 160px, 270px"` on carousel cards · `FoodImage` gains an optional `dropboxPath` prop that resolves via `useDropboxImage` and prefers the Dropbox copy (error state resets when the source swaps in); all four home components pass `heroImageDropboxPath`.
+
+**Files:** `src/components/ui/FoodImage.tsx`, `src/components/home/MealTimeSection.tsx`, `src/components/home/ForYouSection.tsx`, `src/components/home/FeaturedHero.tsx`, `src/components/home/ContinueCooking.tsx`
+
+---
+
 ### BUG-011 ✅ v0.19.7 — AI-generated recipe not saved, navigates to 404
 
 **Symptom:** After saving an AI-generated recipe via the ImportRecipeModal, the app navigated to a 404 page and the recipe did not appear in the recipe list.

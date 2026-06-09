@@ -147,6 +147,7 @@ Three files must always match:
 - `0.26.1` fix: BBC Food ingredient quantities — dual metric/imperial measures joined by slash (`400ml/14fl oz`, `50g/1¾oz`) broke the quantity regex (qty 0, imperial half leaked into name). `stripDualUnit()` in `parseJsonLd.ts` keeps the metric measure, drops the imperial one · started `RECIPE_SOURCES.md` site-parsing log
 - `0.27.0` feat: U-29 Homepage improvements — cross-carousel dedup (priority-ordered single useMemo); "Ready to Cook" carousel (pantry ≥40% match, ≥2 ingredients); sparse-library empty state `GettingStartedSection` (< 5 recipes, Import + Get Inspired CTAs); contextual FeaturedHero label (Tonight's Pick / Lunchtime Pick / This Morning's Pick); `MealTimeSection` gains optional `pantryNames` + `icon` props
 - `0.27.1` feat: F-13 Branding & Visual Delight — icon gradient bg + filled flame + inner highlight; recipe card image zoom + shadow-card-lg + y:-6 lift; step circles saffron + dashed connector + step hover; ingredient category ◆ ornament + row hover
+- `0.27.2` fix: BUG-013 blurry homepage thumbnails — carousel `sizes` was 160px but desktop grid renders ~270px (browser picked too-small srcset candidate, upscaled → blur; large variant cached after visiting detail explained "sharp on return") · `FoodImage` gains `dropboxPath` prop (resolves Dropbox original via `useDropboxImage`, prefers it over external URL); all home components pass `heroImageDropboxPath` — BUG-008 class fix applied to home
 
 ---
 

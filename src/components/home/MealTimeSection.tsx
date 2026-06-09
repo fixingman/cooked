@@ -57,7 +57,8 @@ export function MealTimeSection({ recipes, label, mealTime, seeAllHref, pantryNa
                     src={recipe.heroImageUrl}
                     alt={recipe.title}
                     fill
-                    sizes="160px"
+                    sizes="(max-width: 768px) 160px, 270px"
+                    dropboxPath={recipe.heroImageDropboxPath}
                     containerClassName="absolute inset-0"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/15 to-transparent transition-opacity duration-300 group-hover:opacity-0" />

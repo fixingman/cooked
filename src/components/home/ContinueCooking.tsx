@@ -56,6 +56,7 @@ export function ContinueCooking() {
                   alt={recipe!.title}
                   fill
                   sizes="56px"
+                  dropboxPath={recipe!.heroImageDropboxPath}
                   containerClassName="absolute inset-0"
                 />
               </div>

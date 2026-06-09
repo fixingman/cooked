@@ -29,6 +29,7 @@ export function FeaturedHero({ recipe, label = "Featured Today" }: FeaturedHeroP
             fill
             priority
             sizes="(max-width: 768px) 100vw, 80vw"
+            dropboxPath={recipe.heroImageDropboxPath}
             containerClassName="absolute inset-0"
           />
           <div className="absolute inset-0 bg-hero-scrim transition-opacity duration-400 group-hover:opacity-60" />
