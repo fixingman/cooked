@@ -1,5 +1,6 @@
 import { parseRecipeFromHtml, stripHtmlToText } from "@/lib/parseJsonLd";
 import { extractWithClaude, buildImportResponse, RECIPE_SIGNAL_WORDS } from "@/lib/recipeImport";
+import { isYouTubeUrl, extractVideoId, fetchYouTubeVideoData } from "@/lib/youtubeImport";
 
 export const maxDuration = 30;
 
@@ -108,6 +109,52 @@ export async function POST(req: Request) {
   }
 
   const id = crypto.randomUUID();
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const opts = { apiKey, unsplashKey: process.env.UNSPLASH_ACCESS_KEY };
+
+  async function finalise(recipe: import("@/types/recipe").Recipe, pageText: string) {
+    return Response.json(await buildImportResponse(recipe, pageText, opts));
+  }
+
+  // --- YouTube import path ---------------------------------------------------
+  if (isYouTubeUrl(parsed)) {
+    const videoId = extractVideoId(parsed);
+    if (!videoId) {
+      return Response.json({ error: "Could not extract video ID from this YouTube URL." }, { status: 422 });
+    }
+    if (!apiKey) {
+      return Response.json({ error: "AI extraction is required for YouTube recipes — no API key configured." }, { status: 422 });
+    }
+    const videoData = await fetchYouTubeVideoData(url, videoId);
+    if (!videoData) {
+      return Response.json({ error: "Could not fetch video details from YouTube." }, { status: 422 });
+    }
+    if (!videoData.description) {
+      return Response.json({
+        error: "This video has no description. Try copying the recipe text and using Paste import instead.",
+      }, { status: 422 });
+    }
+    const videoText = `Video: ${videoData.title}\nChannel: ${videoData.channelName}\n\n${videoData.description}`;
+    const lower = videoText.toLowerCase();
+    if (!RECIPE_SIGNAL_WORDS.some(w => lower.includes(w))) {
+      return Response.json({
+        error: "This video description doesn't appear to contain a recipe. Try copying the text and using Paste import instead.",
+      }, { status: 422 });
+    }
+    try {
+      const recipe = await extractWithClaude(videoText, url, id, apiKey);
+      if (!recipe) {
+        return Response.json({ error: "Could not extract a recipe from this video description." }, { status: 422 });
+      }
+      return finalise(
+        { ...recipe, heroImageUrl: videoData.thumbnailUrl, authorName: recipe.authorName || videoData.channelName },
+        videoText,
+      );
+    } catch {
+      return Response.json({ error: "Could not extract a recipe from this video." }, { status: 422 });
+    }
+  }
+  // --------------------------------------------------------------------------
 
   let html: string;
   try {
@@ -115,13 +162,6 @@ export async function POST(req: Request) {
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Network error";
     return Response.json({ error: friendlyFetchError(msg) }, { status: 422 });
-  }
-
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  const opts = { apiKey, unsplashKey: process.env.UNSPLASH_ACCESS_KEY };
-
-  async function finalise(recipe: import("@/types/recipe").Recipe, pageText: string) {
-    return Response.json(await buildImportResponse(recipe, pageText, opts));
   }
 
   let pageText = stripHtmlToText(html);

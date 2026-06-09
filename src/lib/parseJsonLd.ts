@@ -133,7 +133,8 @@ function stripDualUnit(s: string): string {
 
 function parseIngredients(strs: string[]): Ingredient[] {
   return strs.map((str, i) => {
-    const s = stripDualUnit(cleanText(str));
+    // Normalise space-separated mixed numbers before regex: "1 ½ cups" → "1½ cups"
+    const s = stripDualUnit(cleanText(str)).replace(/(\d)\s+([½¼¾⅓⅔⅛])/g, "$1$2");
     let quantity = 0;
     let unit = "";
     let name = s;
@@ -141,10 +142,7 @@ function parseIngredients(strs: string[]): Ingredient[] {
     const m = s.match(/^([½¼¾⅓⅔⅛\d]+(?:[./][\d]+)?)\s*(\w+)?(?:\s+(.+))?$/);
     if (m) {
       const rawQty = m[1];
-      quantity = FRACTION_MAP[rawQty] ??
-        (rawQty.includes("/")
-          ? parseInt(rawQty) / parseInt(rawQty.split("/")[1])
-          : parseFloat(rawQty) || 0);
+      quantity = parseMixedNumber(rawQty);
       const potentialUnit = (m[2] ?? "").toLowerCase().replace(/[.,]$/, "");
       if (UNIT_WORDS.has(potentialUnit)) {
         unit = UNIT_NORMALISE[potentialUnit] ?? potentialUnit;
@@ -233,6 +231,42 @@ function findRecipeSchema(data: any): any | null {
   return null;
 }
 
+function parseServings(raw: unknown): number {
+  const s = String(Array.isArray(raw) ? raw[0] : raw ?? "");
+  // parseInt stops at the first non-digit, so "8 servings" → 8.
+  // For descriptive strings like "Makes 20" or "Cuts into 10 slices", scan for the first number.
+  const m = s.match(/\d+/);
+  return m ? parseInt(m[0]) : 0;
+}
+
+// Handles plain fractions ("½"), mixed numbers ("1½"), slash fractions ("1/2"), and plain numbers.
+function parseMixedNumber(s: string): number {
+  if (FRACTION_MAP[s] != null) return FRACTION_MAP[s];
+  // Integer immediately followed by a fraction char: "1½", "2¾"
+  const mixed = s.match(/^(\d+)([½¼¾⅓⅔⅛])$/);
+  if (mixed) return parseInt(mixed[1]) + (FRACTION_MAP[mixed[2]] ?? 0);
+  if (s.includes("/")) {
+    const [num, denom] = s.split("/");
+    const d = parseInt(denom);
+    return d ? parseInt(num) / d : 0;
+  }
+  return parseFloat(s) || 0;
+}
+
+// Some sites (e.g. Food Network) return all instructions as one HTML string with
+// numbered steps inline: "1) Preheat...<br><br>2) Mix...". Split into individual steps.
+function splitInstructionString(raw: string): unknown[] {
+  // Convert <br> variants to newlines before stripping all HTML
+  const text = cleanText(raw.replace(/<br\s*\/?>/gi, "\n"));
+  // Split on numbered list patterns: "1. ", "1) ", "Step 1: ", "Step 1 "
+  const byNumber = text.split(/\n?\s*(?:step\s*)?\d+[.):\s]\s*/i).filter(t => t.trim());
+  if (byNumber.length > 1) return byNumber.map(t => t.trim());
+  // Split on double newlines
+  const byPara = text.split(/\n{2,}/).filter(t => t.trim());
+  if (byPara.length > 1) return byPara.map(t => t.trim());
+  return [text].filter(t => t.trim());
+}
+
 function parseNutrient(v: string | undefined): number | undefined {
   if (!v) return undefined;
   const n = parseFloat(v.replace(/[^\d.]/g, ""));
@@ -256,10 +290,7 @@ export function buildRecipeFromSchema(
   const totalFromSchema  = parseDuration(schema.totalTime as string | undefined);
   const totalTimeMinutes = totalFromSchema || (prepTimeMinutes + cookTimeMinutes) || 30;
 
-  const rawYield = schema.recipeYield;
-  const servings = Array.isArray(rawYield)
-    ? (parseInt(String(rawYield[0])) || 0)
-    : (parseInt(String(rawYield ?? "0")) || 0);
+  const servings = parseServings(schema.recipeYield);
 
   const rawIngredients: string[] = Array.isArray(schema.recipeIngredient)
     ? (schema.recipeIngredient as unknown[]).map(s => String(s))
@@ -268,7 +299,11 @@ export function buildRecipeFromSchema(
   const flatIngredients = rawIngredients.flatMap(s => s.split(/\r?\n/)).filter(s => s.trim());
   const ingredients = parseIngredients(flatIngredients);
   const steps = parseSteps(
-    Array.isArray(schema.recipeInstructions) ? (schema.recipeInstructions as unknown[]) : []
+    Array.isArray(schema.recipeInstructions)
+      ? (schema.recipeInstructions as unknown[])
+      : typeof schema.recipeInstructions === "string"
+      ? splitInstructionString(schema.recipeInstructions)
+      : []
   );
 
   const difficulty: Difficulty =

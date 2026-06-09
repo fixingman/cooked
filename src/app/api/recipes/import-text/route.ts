@@ -68,10 +68,30 @@ export async function POST(req: Request) {
   const id = crypto.randomUUID();
   const sourceUrl = url ?? "";
 
+  // Site-specific extraction hints passed to Claude.
+  // Cookidoo: steps contain inline TM notation ("5 min | Varoma | Speed 1") — preserve it so
+  // deferred Thermomix enrichment reads accurate params rather than re-generating them from scratch.
+  // Detected by URL or by TM notation pattern in the text (covers pastes without a source URL).
+  // NYT Cooking: steps are labeled "Step N", ingredients have bullet chars, nutrition at the bottom.
+  let sourceHint: string | undefined;
+  try {
+    const sourceHost = url ? new URL(url).hostname.replace(/^(www\.|m\.)/, "") : "";
+    const looksLikeCookidoo =
+      sourceHost.includes("cookidoo") ||
+      /\|\s*(?:varoma|\d+\s*°?c)\s*\||\|\s*speed\s*\d/i.test(text);
+    if (looksLikeCookidoo) {
+      sourceHint =
+        "If steps contain Thermomix parameters (e.g. '5 min | 100°C | Speed 1', '| Varoma |', '| Reverse |'), preserve this notation exactly at the end of each step — it is used for Thermomix cooking mode.";
+    } else if (sourceHost === "cooking.nytimes.com") {
+      sourceHint =
+        "Steps may be labeled 'Step 1', 'Step 2' etc — include the instruction text but omit the label. Ingredients may begin with bullet characters — ignore them. Skip any nutritional information section at the bottom.";
+    }
+  } catch {}
+
   try {
     // Run Claude extraction and supplementary URL fetch in parallel
     const [recipe, supplementaryImage] = await Promise.all([
-      extractWithClaude(text, sourceUrl, id, apiKey),
+      extractWithClaude(text, sourceUrl, id, apiKey, sourceHint),
       url ? fetchSupplementaryImageUrl(url) : Promise.resolve(null),
     ]);
 

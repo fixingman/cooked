@@ -13,6 +13,7 @@ export async function extractWithClaude(
   sourceUrl: string,
   id: string,
   apiKey: string,
+  sourceHint?: string,
 ): Promise<Recipe | null> {
   const prompt = `Extract a recipe from the text below and return ONLY a valid JSON object with these exact fields (use null for missing values).
 
@@ -21,7 +22,7 @@ The input may be a full recipe page, a structured recipe, or informal cooking no
 - Extract all ingredients, including ones mentioned only within the instructions (e.g. "add 2 onions" → ingredient: "2 onions")
 - Use metric units throughout: g for solids, ml for liquids, L for large volumes. Convert any imperial measures (cups → ml, oz → g, lb → g, tsp → ml, tbsp → ml). Keep "tsp" and "tbsp" as-is for small amounts under 15ml.
 - Write clean step-by-step instructions
-- Translate everything to English if the text is in another language
+- Translate everything to English if the text is in another language${sourceHint ? `\n- ${sourceHint}` : ""}
 
 {
   "name": "recipe title",

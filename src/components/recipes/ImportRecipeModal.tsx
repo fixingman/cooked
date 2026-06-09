@@ -100,6 +100,20 @@ export function ImportRecipeModal({ onClose, initialDraft, generatedDraft, onSav
       setUrlError("That doesn't look like a valid URL. Try pasting the full address including https://");
       return;
     }
+    const parsedUrl = new URL(trimmed);
+    const host = parsedUrl.hostname.replace(/^www\./, "");
+    if (host === "instagram.com" || host === "tiktok.com") {
+      setUrlError("Instagram and TikTok aren't supported yet — try copying the recipe text and using the Paste tab instead.");
+      return;
+    }
+    if (host.includes("cookidoo")) {
+      setUrlError("Cookidoo requires login — open the recipe, select all text (⌘A), copy, then paste it in the Paste tab.");
+      return;
+    }
+    if (host === "cooking.nytimes.com") {
+      setUrlError("NYT Cooking requires login — open the recipe, select all text (⌘A), copy, then paste it in the Paste tab.");
+      return;
+    }
     setUrlError("");
     setStage("loading");
     setError("");
