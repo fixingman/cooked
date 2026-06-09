@@ -145,6 +145,8 @@ Three files must always match:
 - `0.25.3` fix: bump body scale to +2pt
 - `0.26.0` F-12 Ingredient Substitution (AI) — tap an ingredient row's swap icon (AI-gated, hover-revealed on desktop) → `SubstituteSheet` shows 2–3 Haiku substitutes with ratio + note; recipe context always sent, dietary prefs only when set; read-only. `suggestSubstitutes()` in `recipeEnrichment.ts` + thin `/api/recipes/ingredient-substitutes` route + `onSubstitute` prop on `IngredientList`
 - `0.26.1` fix: BBC Food ingredient quantities — dual metric/imperial measures joined by slash (`400ml/14fl oz`, `50g/1¾oz`) broke the quantity regex (qty 0, imperial half leaked into name). `stripDualUnit()` in `parseJsonLd.ts` keeps the metric measure, drops the imperial one · started `RECIPE_SOURCES.md` site-parsing log
+- `0.27.0` feat: U-29 Homepage improvements — cross-carousel dedup (priority-ordered single useMemo); "Ready to Cook" carousel (pantry ≥40% match, ≥2 ingredients); sparse-library empty state `GettingStartedSection` (< 5 recipes, Import + Get Inspired CTAs); contextual FeaturedHero label (Tonight's Pick / Lunchtime Pick / This Morning's Pick); `MealTimeSection` gains optional `pantryNames` + `icon` props
+- `0.27.1` feat: F-13 Branding & Visual Delight — icon gradient bg + filled flame + inner highlight; recipe card image zoom + shadow-card-lg + y:-6 lift; step circles saffron + dashed connector + step hover; ingredient category ◆ ornament + row hover
 
 ---
 

@@ -1,6 +1,7 @@
 "use client";
-import { useMemo, useState, useEffect, Suspense } from "react";
+import { useMemo, useState, useEffect, useRef, Suspense } from "react";
 import { AnimatePresence } from "framer-motion";
+import { CheckCircle } from "lucide-react";
 import { TimeGreeting } from "@/components/home/TimeGreeting";
 import { AIPromptBar } from "@/components/home/AIPromptBar";
 import { PantryWidget } from "@/components/home/PantryWidget";
@@ -8,12 +9,13 @@ import { ForYouSection } from "@/components/home/ForYouSection";
 import { FeaturedHero } from "@/components/home/FeaturedHero";
 import { MealTimeSection } from "@/components/home/MealTimeSection";
 import { ContinueCooking } from "@/components/home/ContinueCooking";
+import { GettingStartedSection } from "@/components/home/GettingStartedSection";
 import { ImportRecipeModal } from "@/components/recipes/ImportRecipeModal";
 import { useUserRecipes } from "@/hooks/useUserRecipes";
 import { useFavourites } from "@/hooks/useFavourites";
 import { useRecipeStates } from "@/hooks/useRecipeStates";
 import { usePantry } from "@/hooks/usePantry";
-import { rankRecipes, hasEnoughSignal } from "@/lib/rankRecipes";
+import { rankRecipes, hasEnoughSignal, pantryMatchCount } from "@/lib/rankRecipes";
 import { normalizeForMatch } from "@/lib/ingredientUtils";
 import type { RankSignals } from "@/lib/rankRecipes";
 import type { MealTime } from "@/types/recipe";
@@ -46,11 +48,11 @@ function ShareHandler({ onOpen }: { onOpen: (url: string) => void }) {
   return null;
 }
 
-function getCurrentMeal(): { mealTime: MealTime; label: string } {
+function getCurrentMeal(): { mealTime: MealTime; label: string; heroLabel: string } {
   const hour = new Date().getHours();
-  if (hour < 11) return { mealTime: "breakfast", label: "For Breakfast" };
-  if (hour < 17) return { mealTime: "lunch",     label: "For Lunch" };
-  return                { mealTime: "dinner",     label: "For Dinner" };
+  if (hour < 11) return { mealTime: "breakfast", label: "For Breakfast", heroLabel: "This Morning's Pick" };
+  if (hour < 17) return { mealTime: "lunch",     label: "For Lunch",     heroLabel: "Lunchtime Pick" };
+  return                { mealTime: "dinner",     label: "For Dinner",    heroLabel: "Tonight's Pick" };
 }
 
 function getSecondaryMeal(primary: MealTime): { mealTime: MealTime; label: string } {
@@ -61,12 +63,16 @@ function getSecondaryMeal(primary: MealTime): { mealTime: MealTime; label: strin
 export default function HomePage() {
   const [bookmarkletImport, setBookmarkletImport] = useState<{ open: boolean; url: string; text?: string }>({ open: false, url: "" });
   const [shareImport, setShareImport] = useState<{ open: boolean; url: string }>({ open: false, url: "" });
+  const [importModalOpen, setImportModalOpen] = useState(false);
+  const aiPromptRef = useRef<HTMLDivElement>(null);
+
   const { recipes: userRecipes } = useUserRecipes();
   const { favouriteIds } = useFavourites();
   const { states, hasCooked } = useRecipeStates();
   const { items: pantryItems } = usePantry();
 
   const allRecipes = useMemo(() => [...userRecipes], [userRecipes]);
+  const isSparse = allRecipes.length < 5;
 
   const primary = getCurrentMeal();
   const secondary = getSecondaryMeal(primary.mealTime);
@@ -81,58 +87,84 @@ export default function HomePage() {
     [pantryNames, favouriteIds, states]
   );
 
-  // Featured hero — top-ranked recipe matching the current meal time;
-  // falls back to top-ranked overall if no meal-time matches exist.
-  const featuredRecipe = useMemo(() => {
-    if (allRecipes.length === 0) return null;
+  // All carousels computed in priority order, each excluding already-placed recipes.
+  // ContinueCooking is history-based and exempt from dedup.
+  const carousels = useMemo(() => {
+    const used = new Set<string>();
+
+    // 1. Featured hero — top-ranked for current meal time, falls back to overall top
     const mealMatches = rankRecipes(
       allRecipes.filter(r => r.mealTimes.includes(primary.mealTime)),
       signals
     );
-    return mealMatches[0] ?? rankRecipes(allRecipes, signals)[0] ?? null;
-  }, [allRecipes, primary.mealTime, signals]);
+    const featured = mealMatches[0] ?? rankRecipes(allRecipes, signals)[0] ?? null;
+    if (featured) used.add(featured.id);
 
-  // Meal-time carousels — ranked within filter, featured excluded to avoid repetition
-  const primaryRecipes = useMemo(
-    () => rankRecipes(
-      allRecipes.filter(r => r.mealTimes.includes(primary.mealTime) && r.id !== featuredRecipe?.id),
+    // 2. Ready to Cook — high pantry match ratio (≥40%, ≥2 ingredients matched)
+    const readyToCook = pantryNames.size >= 3
+      ? rankRecipes(
+          allRecipes.filter(r => {
+            if (used.has(r.id) || r.ingredients.length === 0) return false;
+            const matched = pantryMatchCount(r, pantryNames);
+            return matched >= 2 && matched / r.ingredients.length >= 0.4;
+          }),
+          signals
+        ).slice(0, 8)
+      : [];
+    readyToCook.forEach(r => used.add(r.id));
+
+    // 3. In Your List (wantToCook)
+    const wantToCookIds = new Set(states.filter(s => s.wantToCook).map(s => s.recipeId));
+    const wantToCook = rankRecipes(
+      allRecipes.filter(r => !used.has(r.id) && wantToCookIds.has(r.id)),
       signals
-    ),
-    [allRecipes, primary.mealTime, featuredRecipe, signals]
-  );
-  const secondaryRecipes = useMemo(
-    () => rankRecipes(
-      allRecipes.filter(r => r.mealTimes.includes(secondary.mealTime)),
+    );
+    wantToCook.forEach(r => used.add(r.id));
+
+    // 4. Primary meal-time carousel
+    const primaryRecipes = rankRecipes(
+      allRecipes.filter(r => !used.has(r.id) && r.mealTimes.includes(primary.mealTime)),
       signals
-    ),
-    [allRecipes, secondary.mealTime, signals]
-  );
+    );
+    primaryRecipes.forEach(r => used.add(r.id));
 
-  const wantToCookRecipes = useMemo(() => {
-    const ids = new Set(states.filter(s => s.wantToCook).map(s => s.recipeId));
-    return rankRecipes(allRecipes.filter(r => ids.has(r.id)), signals);
-  }, [allRecipes, states, signals]);
-
-  const untriedFavourites = useMemo(
-    () => rankRecipes(
-      allRecipes.filter(r => favouriteIds.includes(r.id) && !hasCooked(r.id)),
+    // 5. From Your Favourites (untried)
+    const untriedFavourites = rankRecipes(
+      allRecipes.filter(r => !used.has(r.id) && favouriteIds.includes(r.id) && !hasCooked(r.id)),
       signals
-    ),
-    [allRecipes, favouriteIds, hasCooked, signals]
-  );
+    );
+    untriedFavourites.forEach(r => used.add(r.id));
 
-  // "For You" — full ranked list minus recently cooked, shown at bottom
-  const forYouRecipes = useMemo(() => {
-    if (!hasEnoughSignal(signals)) return [];
-    const threeDaysAgo = Date.now() - 3 * 86_400_000;
-    const eligible = allRecipes.filter(r => {
-      const state = signals.states.find(s => s.recipeId === r.id);
-      if (!state?.cookedAt?.length) return true;
-      const mostRecent = new Date(state.cookedAt[state.cookedAt.length - 1]).getTime();
-      return mostRecent < threeDaysAgo;
-    });
-    return rankRecipes(eligible, signals).slice(0, 8);
-  }, [allRecipes, signals]);
+    // 6. Secondary meal-time carousel
+    const secondaryRecipes = rankRecipes(
+      allRecipes.filter(r => !used.has(r.id) && r.mealTimes.includes(secondary.mealTime)),
+      signals
+    );
+    secondaryRecipes.forEach(r => used.add(r.id));
+
+    // 7. For You — ranked leftovers, excluding recently cooked
+    const forYou = hasEnoughSignal(signals)
+      ? (() => {
+          const threeDaysAgo = Date.now() - 3 * 86_400_000;
+          return rankRecipes(
+            allRecipes.filter(r => {
+              if (used.has(r.id)) return false;
+              const state = signals.states.find(s => s.recipeId === r.id);
+              if (!state?.cookedAt?.length) return true;
+              return new Date(state.cookedAt[state.cookedAt.length - 1]).getTime() < threeDaysAgo;
+            }),
+            signals
+          ).slice(0, 8);
+        })()
+      : [];
+
+    return { featured, readyToCook, wantToCook, primaryRecipes, untriedFavourites, secondaryRecipes, forYou };
+  }, [allRecipes, primary.mealTime, secondary.mealTime, signals, pantryNames, favouriteIds, hasCooked, states]);
+
+  function handleInspire() {
+    aiPromptRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    (aiPromptRef.current?.querySelector("input, textarea, button") as HTMLElement | null)?.focus?.();
+  }
 
   return (
     <div className="px-4 py-6 md:px-8 max-w-6xl mx-auto space-y-8">
@@ -141,27 +173,55 @@ export default function HomePage() {
         <ShareHandler onOpen={(url) => setShareImport({ open: true, url })} />
       </Suspense>
       <TimeGreeting />
-      <AIPromptBar />
-      {featuredRecipe && <FeaturedHero recipe={featuredRecipe} />}
-      <PantryWidget />
-      <MealTimeSection
-        recipes={wantToCookRecipes}
-        label="In Your List"
-        seeAllHref="/recipes?category=want-to-cook"
-      />
-      <MealTimeSection recipes={primaryRecipes} label={primary.label} mealTime={primary.mealTime} />
-      <ContinueCooking />
-      <MealTimeSection
-        recipes={untriedFavourites}
-        label="From Your Favourites"
-        seeAllHref="/recipes"
-      />
-      <MealTimeSection recipes={secondaryRecipes} label={secondary.label} mealTime={secondary.mealTime} />
-      {hasEnoughSignal(signals) && forYouRecipes.length >= 2 && (
-        <ForYouSection recipes={forYouRecipes} pantryNames={pantryNames} />
+      <div ref={aiPromptRef}>
+        <AIPromptBar />
+      </div>
+      {isSparse && (
+        <GettingStartedSection
+          onImport={() => setImportModalOpen(true)}
+          onInspire={handleInspire}
+        />
+      )}
+      {carousels.featured && (
+        <FeaturedHero recipe={carousels.featured} label={primary.heroLabel} />
+      )}
+      <div className={carousels.featured ? "-mt-4" : ""}>
+        <PantryWidget />
+      </div>
+      {!isSparse && (
+        <>
+          <MealTimeSection
+            recipes={carousels.readyToCook}
+            label="Ready to Cook"
+            pantryNames={pantryNames}
+            icon={<CheckCircle size={12} className="text-sage-500 shrink-0" />}
+          />
+          <MealTimeSection
+            recipes={carousels.wantToCook}
+            label="In Your List"
+            seeAllHref="/recipes?category=want-to-cook"
+          />
+          <MealTimeSection recipes={carousels.primaryRecipes} label={primary.label} mealTime={primary.mealTime} />
+          <ContinueCooking />
+          <MealTimeSection
+            recipes={carousels.untriedFavourites}
+            label="From Your Favourites"
+            seeAllHref="/recipes"
+          />
+          <MealTimeSection recipes={carousels.secondaryRecipes} label={secondary.label} mealTime={secondary.mealTime} />
+          {carousels.forYou.length >= 2 && (
+            <ForYouSection recipes={carousels.forYou} pantryNames={pantryNames} />
+          )}
+        </>
       )}
       <div className="h-4" />
       <AnimatePresence>
+        {importModalOpen && (
+          <ImportRecipeModal
+            initialMode="url"
+            onClose={() => setImportModalOpen(false)}
+          />
+        )}
         {bookmarkletImport.open && (
           <ImportRecipeModal
             initialMode="text"

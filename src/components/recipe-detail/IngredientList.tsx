@@ -57,7 +57,9 @@ export function IngredientList({ ingredients, scale, units = "metric", pantryNam
       {Array.from(groups.entries()).map(([group, items]) => (
         <div key={group}>
           {group && (
-            <h4 className="text-label uppercase tracking-widest text-ink-400 mb-3">{group}</h4>
+            <h4 className="text-label uppercase tracking-widest text-ink-400 mb-3">
+              <span className="text-saffron-500/50 mr-1.5">◆</span>{group}
+            </h4>
           )}
           <ul className="space-y-2.5">
             {items.map((ing) => {
@@ -86,7 +88,7 @@ export function IngredientList({ ingredients, scale, units = "metric", pantryNam
                 <li
                   key={ing.id}
                   className={cn(
-                    "group flex items-baseline gap-3 py-2 border-b border-parchment-300/60 last:border-0",
+                    "group flex items-baseline gap-3 py-2 border-b border-parchment-300/60 last:border-0 -mx-2 px-2 rounded-lg hover:bg-parchment-200/50 transition-colors duration-150",
                     ing.optional && "opacity-70"
                   )}
                 >

@@ -75,14 +75,14 @@ export const RecipeCard = memo(function RecipeCard({ recipe, viewMode = "grid", 
         transition={{ delay: Math.min(index * 0.04, 0.24), duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
       >
         <Link href={`/recipes/${recipe.slug}`}>
-          <div className="flex gap-4 p-4 bg-parchment-200 rounded-card border border-parchment-300 hover:shadow-card-md transition-shadow duration-300 group">
+          <div className="flex gap-4 p-4 bg-parchment-200 rounded-card border border-parchment-300 hover:shadow-card-lg transition-shadow duration-300 group">
             <div className="relative w-20 h-20 rounded-xl overflow-hidden shrink-0">
               <FoodImage
                 src={imageSrc}
                 alt={recipe.title}
                 fill
                 sizes="80px"
-                containerClassName="absolute inset-0"
+                containerClassName="absolute inset-0 transition-transform duration-500 ease-out group-hover:scale-[1.04]"
               />
             </div>
             <div className="flex-1 min-w-0">
@@ -118,19 +118,21 @@ export const RecipeCard = memo(function RecipeCard({ recipe, viewMode = "grid", 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ delay: Math.min(index * 0.04, 0.24), duration: 0.2 }}
-      whileHover={{ y: -4 }}
+      whileHover={{ y: -6 }}
       className="h-full"
     >
       <Link href={`/recipes/${recipe.slug}`} className="h-full block">
-        <div className="group bg-parchment-200 rounded-card overflow-hidden border border-parchment-300 hover:shadow-card-md transition-shadow duration-300 cursor-pointer h-full flex flex-col">
+        <div className="group bg-parchment-200 rounded-card overflow-hidden border border-parchment-300 hover:shadow-card-lg transition-shadow duration-300 cursor-pointer h-full flex flex-col">
           <div className="relative aspect-[4/3] overflow-hidden">
-            <FoodImage
-              src={imageSrc}
-              alt={recipe.title}
-              fill
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              containerClassName="absolute inset-0"
-            />
+            <div className="absolute inset-0 transition-transform duration-500 ease-out group-hover:scale-[1.04]">
+              <FoodImage
+                src={imageSrc}
+                alt={recipe.title}
+                fill
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                containerClassName="absolute inset-0"
+              />
+            </div>
             <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent transition-opacity duration-300 group-hover:opacity-0" />
             {recipe.dietaryTags.includes("vegetarian") && (
               <div className="absolute top-2.5 right-2.5 bg-sage-500 text-white text-[0.6rem] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">
