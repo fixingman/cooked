@@ -100,7 +100,22 @@ export default function HomePage() {
     const featured = mealMatches[0] ?? rankRecipes(allRecipes, signals)[0] ?? null;
     if (featured) used.add(featured.id);
 
-    // 2. Ready to Cook — high pantry match ratio (≥40%, ≥2 ingredients matched)
+    // 2. In Your List (wantToCook)
+    const wantToCookIds = new Set(states.filter(s => s.wantToCook).map(s => s.recipeId));
+    const wantToCook = rankRecipes(
+      allRecipes.filter(r => !used.has(r.id) && wantToCookIds.has(r.id)),
+      signals
+    );
+    wantToCook.forEach(r => used.add(r.id));
+
+    // 3. Primary meal-time carousel — most contextually relevant, takes priority over pantry
+    const primaryRecipes = rankRecipes(
+      allRecipes.filter(r => !used.has(r.id) && r.mealTimes.includes(primary.mealTime)),
+      signals
+    );
+    primaryRecipes.forEach(r => used.add(r.id));
+
+    // 4. Ready to Cook — high pantry match ratio (≥40%, ≥2 ingredients matched)
     const readyToCook = pantryNames.size >= 3
       ? rankRecipes(
           allRecipes.filter(r => {
@@ -112,21 +127,6 @@ export default function HomePage() {
         ).slice(0, 8)
       : [];
     readyToCook.forEach(r => used.add(r.id));
-
-    // 3. In Your List (wantToCook)
-    const wantToCookIds = new Set(states.filter(s => s.wantToCook).map(s => s.recipeId));
-    const wantToCook = rankRecipes(
-      allRecipes.filter(r => !used.has(r.id) && wantToCookIds.has(r.id)),
-      signals
-    );
-    wantToCook.forEach(r => used.add(r.id));
-
-    // 4. Primary meal-time carousel
-    const primaryRecipes = rankRecipes(
-      allRecipes.filter(r => !used.has(r.id) && r.mealTimes.includes(primary.mealTime)),
-      signals
-    );
-    primaryRecipes.forEach(r => used.add(r.id));
 
     // 5. From Your Favourites (untried)
     const untriedFavourites = rankRecipes(
@@ -191,17 +191,17 @@ export default function HomePage() {
       {!isSparse && (
         <>
           <MealTimeSection
-            recipes={carousels.readyToCook}
-            label="Ready to Cook"
-            pantryNames={pantryNames}
-            icon={<CheckCircle size={12} className="text-sage-500 shrink-0" />}
-          />
-          <MealTimeSection
             recipes={carousels.wantToCook}
             label="In Your List"
             seeAllHref="/recipes?category=want-to-cook"
           />
           <MealTimeSection recipes={carousels.primaryRecipes} label={primary.label} mealTime={primary.mealTime} />
+          <MealTimeSection
+            recipes={carousels.readyToCook}
+            label="Ready to Cook"
+            pantryNames={pantryNames}
+            icon={<CheckCircle size={12} className="text-sage-500 shrink-0" />}
+          />
           <ContinueCooking />
           <MealTimeSection
             recipes={carousels.untriedFavourites}
