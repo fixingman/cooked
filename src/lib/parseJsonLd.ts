@@ -255,16 +255,17 @@ function parseMixedNumber(s: string): number {
 
 // Some sites (e.g. Food Network) return all instructions as one HTML string with
 // numbered steps inline: "1) Preheat...<br><br>2) Mix...". Split into individual steps.
+// Splitting must happen BEFORE cleanText because cleanText collapses \n\n → single space.
+// Regex uses [.):] (not \s) to avoid false splits on numbers inside step text ("30 min").
 function splitInstructionString(raw: string): unknown[] {
-  // Convert <br> variants to newlines before stripping all HTML
-  const text = cleanText(raw.replace(/<br\s*\/?>/gi, "\n"));
-  // Split on numbered list patterns: "1. ", "1) ", "Step 1: ", "Step 1 "
-  const byNumber = text.split(/\n?\s*(?:step\s*)?\d+[.):\s]\s*/i).filter(t => t.trim());
-  if (byNumber.length > 1) return byNumber.map(t => t.trim());
+  const withBreaks = raw.replace(/<br\s*\/?>/gi, "\n");
+  // Split on numbered list patterns: "1) ", "1. ", "Step 1: "
+  const byNumber = withBreaks.split(/\n?\s*(?:step\s*)?\d+[.):\-]\s+/i).filter(t => t.trim());
+  if (byNumber.length > 1) return byNumber.map(t => cleanText(t));
   // Split on double newlines
-  const byPara = text.split(/\n{2,}/).filter(t => t.trim());
-  if (byPara.length > 1) return byPara.map(t => t.trim());
-  return [text].filter(t => t.trim());
+  const byPara = withBreaks.split(/\n{2,}/).filter(t => t.trim());
+  if (byPara.length > 1) return byPara.map(t => cleanText(t));
+  return [cleanText(withBreaks)].filter(t => t.trim());
 }
 
 function parseNutrient(v: string | undefined): number | undefined {
