@@ -141,6 +141,20 @@ export function useDropboxSync<T>({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Broadcast same-tab writes so sibling instances (different React component
+  // trees using the same key — e.g. PantryModal + ShoppingPage) stay in sync.
+  // The native "storage" event only fires in other tabs, not the current one.
+  useEffect(() => {
+    const eventName = `cooked-ls:${localStorageKey}`;
+    const handleExternalWrite = (e: Event) => {
+      const next = (e as CustomEvent<T>).detail;
+      valueRef.current = next;
+      setValueState(next);
+    };
+    window.addEventListener(eventName, handleExternalWrite);
+    return () => window.removeEventListener(eventName, handleExternalWrite);
+  }, [localStorageKey]);
+
   const setValue = useCallback(
     (updater: T | ((prev: T) => T)) => {
       // Compute next synchronously from the ref (always current) so we can
@@ -151,6 +165,9 @@ export function useDropboxSync<T>({
       valueRef.current = next;
 
       try { localStorage.setItem(localStorageKey, JSON.stringify(next)); } catch {}
+
+      // Notify sibling instances on this page before React batches the state update
+      window.dispatchEvent(new CustomEvent(`cooked-ls:${localStorageKey}`, { detail: next }));
 
       setValueState(next);
 
