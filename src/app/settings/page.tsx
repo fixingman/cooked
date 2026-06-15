@@ -11,6 +11,8 @@ import { ThermomixEnrichSection } from "@/components/settings/ThermomixEnrichSec
 import { DropboxConnect } from "@/components/settings/DropboxConnect";
 import { ImageRefreshSection } from "@/components/settings/ImageRefreshSection";
 import { PantryModal } from "@/components/pantry/PantryModal";
+import { WhatsNew } from "@/components/settings/WhatsNew";
+import { changelog } from "@/data/changelog";
 import { useSettings } from "@/hooks/useSettings";
 import { usePantry } from "@/hooks/usePantry";
 
@@ -39,7 +41,7 @@ export default function SettingsPage() {
         <div>
           <h1 className="font-display text-xl font-semibold text-ink-900">Cooked</h1>
 
-          <p className="text-xs text-ink-400">v0.28.3 — Your cooking companion</p>
+          <p className="text-xs text-ink-400">v{changelog[0].version} — Your cooking companion</p>
         </div>
       </div>
 
@@ -125,6 +127,11 @@ export default function SettingsPage() {
         <div className="border-t border-parchment-300">
           <ImageRefreshSection />
         </div>
+      </Section>
+
+      {/* What's New — user-facing release notes */}
+      <Section title="What's New">
+        <WhatsNew />
       </Section>
 
       <p className="text-center text-xs text-ink-300">Made with care.</p>

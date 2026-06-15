@@ -66,6 +66,9 @@ export default function HomePage() {
   const [importModalOpen, setImportModalOpen] = useState(false);
   const aiPromptRef = useRef<HTMLDivElement>(null);
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   const { recipes: userRecipes } = useUserRecipes();
   const { favouriteIds } = useFavourites();
   const { states, hasCooked } = useRecipeStates();
@@ -74,8 +77,12 @@ export default function HomePage() {
   const allRecipes = useMemo(() => [...userRecipes], [userRecipes]);
   const isSparse = allRecipes.length < 5;
 
-  const primary = getCurrentMeal();
-  const secondary = getSecondaryMeal(primary.mealTime);
+  // Deferred to after mount — server and client clocks can differ, causing hydration mismatch.
+  const primary = useMemo(
+    () => mounted ? getCurrentMeal() : { mealTime: "dinner" as MealTime, label: "For Dinner", heroLabel: "Tonight's Pick" },
+    [mounted]
+  );
+  const secondary = useMemo(() => getSecondaryMeal(primary.mealTime), [primary.mealTime]);
 
   const pantryNames = useMemo(
     () => new Set(pantryItems.map(i => normalizeForMatch(i.name))),
@@ -176,19 +183,19 @@ export default function HomePage() {
       <div ref={aiPromptRef}>
         <AIPromptBar />
       </div>
-      {isSparse && (
+      {mounted && isSparse && (
         <GettingStartedSection
           onImport={() => setImportModalOpen(true)}
           onInspire={handleInspire}
         />
       )}
-      {carousels.featured && (
+      {mounted && carousels.featured && (
         <FeaturedHero recipe={carousels.featured} label={primary.heroLabel} />
       )}
-      <div className={carousels.featured ? "-mt-4" : ""}>
+      <div className={mounted && carousels.featured ? "-mt-4" : ""}>
         <PantryWidget />
       </div>
-      {!isSparse && (
+      {mounted && !isSparse && (
         <>
           <MealTimeSection
             recipes={carousels.wantToCook}

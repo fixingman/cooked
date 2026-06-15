@@ -63,6 +63,32 @@ Supabase Postgres. Server-side querying, multi-user, recipe search at scale. **D
 
 ---
 
+## Not Implementing
+
+Explicit rejections — recorded so we don't relitigate them. Reopen only with a new reason.
+
+| Idea | Why not |
+|------|---------|
+| Social — comments, follows, shares, public profiles | Cooked is a *private* cooking journal (Principle 7). No social graph until the personal experience is complete. |
+| Gamification — streaks, points, badges, challenges | Pulls against "the cook is the hero, not the app" (Principle 1). Attention-seeking, not cooking-serving. |
+| Marketplace — premium recipes, subscriptions, ads | Out of scope; would compromise privacy + the personal-tool feel. |
+| Real-time collaboration | Multi-user editing is a different product; Dropbox per-user sync covers the personal multi-device need. |
+| Restaurant / professional kitchen features | Home cook is the audience. Pro workflows are a different product. |
+| Literal paper textures / skeuomorphism — grain, ruled lines, noise overlays, stamp rings | Tried in v0.21.0, reverted as too literal. Warmth comes from type, colour, and motion — not faux materials. |
+
+## Watch Decisions
+
+Choices that need a future check-in once novelty wears off. **Day-14 Wallpaper Test** follow-ups for recently shipped recurring surfaces (see PRODUCT.md → The Wallpaper Test):
+
+| Surface | Decision to revisit | Check |
+|---------|--------------------|-------|
+| Greeting variety (U-25) | 10–12 greetings per slot, daily rotation — does it still feel fresh, or has it become wallpaper? | Day-14: do the greetings still land, or should they pull in real context (what you cooked, what's in the pantry)? |
+| Homepage carousels (U-29) | "For You" / "Ready to Cook" / meal-time rails — do they surface genuinely useful picks or the same recipes every visit? | Re-check ranking signal quality once the library is larger; watch for the same 3 recipes always topping "For You". |
+| AI suggestion prompt (F-3 / F-14) | Prompt bar + example prompts — do users return to it, or ignore after first try? | Watch usage; if ignored, reconsider placement or whether it earns homepage real estate. |
+| Enrichment chips / placeholders | Status chips during deferred enrichment — informative or noise once trusted? | If enrichment is reliable, consider quieting to a single subtle indicator. |
+
+---
+
 ## ✅ Shipped log
 
 | Feature | Version |

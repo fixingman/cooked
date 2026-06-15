@@ -61,6 +61,20 @@ Mobile is the primary kitchen context (one-handed, locked screen, greasy fingers
 
 ---
 
+## The Wallpaper Test
+
+> *Does this recurring surface deliver fresh value **every** time it appears — or is it just present?*
+
+Apply this to any surface the user sees repeatedly: the greeting, the "For You" and meal-time carousels, enrichment chips, AI suggestion prompts, the pantry widget, toasts, badges. A surface becomes wallpaper the moment its output is predictable — same trigger, same shape, same takeaway every time.
+
+The cost isn't cognitive load (a quiet line is cheap to ignore). The cost is that **a surface which doesn't pay rent teaches the user to stop looking at it — and drags its neighbours down too.** Once one panel is reflexively skipped, the eye learns to skip that whole region.
+
+**The bar:** every appearance must deliver something — information the screen doesn't already show, an action worth taking *now*, or a feeling that's genuinely fresh. **Day 1 is not the test. Day 14 is.** A greeting is charming on first launch and invisible by the second week unless it earns its place.
+
+Run this check before shipping any recurring surface, and add a **day-14 follow-up** to BACKLOG.md "Watch Decisions" so we actually re-evaluate it once novelty has worn off.
+
+---
+
 ## Voice & Tone
 
 Warm, unpretentious, knowledgeable. Like a friend who cooks well.
@@ -141,6 +155,7 @@ Before building anything:
 4. Is it personal? No requirement for other users, public content, or social graphs.
 5. Does it fit the visual language? Parchment, ink, saffron, warmth — or does it feel foreign?
 6. Is complexity proportional to value? A complex feature for a rare edge case should wait.
+7. If it's a recurring surface, does it pass the Wallpaper Test? Will it still deliver fresh value on day 14?
 
 ---
 

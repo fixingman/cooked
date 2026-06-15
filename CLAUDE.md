@@ -5,6 +5,9 @@
 - Architecture, design system, hooks, routes: **`MEMORY.md`**
 - Feature backlog and shipped log: **`BACKLOG.md`**
 - Frequently-imported recipe sites + per-site parsing quirks: **`RECIPE_SOURCES.md`**
+- Living test matrix (coverage across core flows, sync, UI states, a11y): **`TEST_MATRIX.md`**
+- Performance & privacy audit (periodic — reinforces Principle #8): **`AUDIT.md`**
+- User-facing release notes (plain language, surfaced in Settings): **`src/data/changelog.ts`**
 - Always update MEMORY.md and BACKLOG.md when shipping a feature or changing architecture.
 
 ---
@@ -26,6 +29,26 @@ Three files must always match:
 | **A** major | Re-architecture, new backend, auth, breaking data model |
 | **B** minor | New user-facing feature, new route, meaningful UX change |
 | **C** patch | Bug fix, polish, copy, build/lint, refactor |
+
+Look up this table before bumping — never increment reflexively.
+
+**Two changelog audiences — write them differently:**
+- **User-facing** → `src/data/changelog.ts` (shown in Settings → What's New). Plain language, warm voice, no function names / CSS / version cross-refs. Add an entry for every user-meaningful release. Say what changed *for the cook*.
+- **Dev-facing** → the **Version history** below. Full technical detail: root cause, function names, rationale. Patch-only build fixes don't need a user-facing line.
+
+**Before every commit (run top to bottom):**
+1. Three version strings match — `package.json`, `src/app/settings/page.tsx`, `src/components/layout/SideNav.tsx`
+2. `npm run check` passes (tsc + lint + vitest)
+3. `npm run smoke` passes (headless boot — catches render/hydration crashes vitest can't)
+4. No stray `console.log`, no hardcoded test values
+5. MEMORY.md / BACKLOG.md / BUGS.md updated if behaviour changed
+6. User-facing release → `src/data/changelog.ts` entry added; dev detail → Version history below
+
+**Behavioural trigger phrases** (user shorthand → action):
+- *"review what I've done"* → run the Before-every-commit checklist top to bottom and report.
+- *"do housekeeping"* → update affected docs + both changelogs; archive BUGS.md / Version history if oversized.
+- *"run the Wallpaper Test"* → evaluate the named recurring surface against PRODUCT.md's day-14 criterion.
+- *"push"* with no branch named → push to `dev`, never `main`.
 
 **Version history:**
 - `0.1.0` Full UI prototype · `0.2.0` Thermomix · `0.3.0` UX polish · `0.4.0` Multi-select filters
@@ -151,6 +174,8 @@ Three files must always match:
 - `0.28.1` fix: JSON-LD parser hardening — `parseServings` extracts first number from descriptive yield strings ("Makes 20", "Cuts into 10 slices" → was 0); `splitInstructionString` handles `recipeInstructions` as HTML string (Food Network); `parseMixedNumber` fixes "1½" → 1.5 (was 1)
 - `0.28.0` feat: YouTube import — `isYouTubeUrl` intercept in import route; extracts `shortDescription` from `ytInitialPlayerResponse`; Claude extracts recipe; thumbnail from `maxresdefault.jpg`/`hqdefault.jpg`; graceful fallback to paste-mode suggestion when no recipe signal found
 - `0.27.2` fix: BUG-013 blurry homepage thumbnails — carousel `sizes` was 160px but desktop grid renders ~270px (browser picked too-small srcset candidate, upscaled → blur; large variant cached after visiting detail explained "sharp on return") · `FoodImage` gains `dropboxPath` prop (resolves Dropbox original via `useDropboxImage`, prefers it over external URL); all home components pass `heroImageDropboxPath` — BUG-008 class fix applied to home
+- `0.29.1` fix: BUG-014 homepage hydration mismatch — three-pronged: (1) `TimeGreeting` renders `" "` until `mounted` (server/client clock differs); (2) `getCurrentMeal()` deferred to `useMemo([mounted])` in `page.tsx`; (3) `isSparse` + all carousel sections gated on `mounted` — root cause was module-level starter-recipe seed in `useUserRecipes.ts` writing localStorage before React's `useState` initializer, so client got 12 recipes / server got 0, causing structural DOM mismatch. `npm run smoke` → 0 hydration warnings.
+- `0.29.0` feat: project standards — Wallpaper Test in PRODUCT.md; BACKLOG "Not Implementing" + "Watch Decisions"; CLAUDE.md pre-commit checklist + trigger phrases + day-boundary note + two-audience changelog rule; new `TEST_MATRIX.md` + `AUDIT.md`; user-facing `src/data/changelog.ts` + `WhatsNew` section in Settings (version line now derives from `changelog[0].version`); headless boot smoke test `scripts/smoke-boot.mjs` (puppeteer-core, system Chrome) wired as `npm run smoke` — filters recoverable React hydration warnings (#418–425), fails on fatal errors. Boot test surfaced BUG-014 (homepage greeting hydration mismatch — server vs client clock)
 
 ---
 
@@ -361,6 +386,8 @@ const hasMacros = ns === "ai" || ns === "json-ld"
 - `useCookingHistory` — synced to Dropbox `/history.json`; shape: `CookingHistoryEntry { recipeId, cookedAt, notes?, rating? }`
 - `unmarkCooked(id)` removes last `cookedAt` entry and clears rating if array becomes empty
 - `deleteLastEntry(id)` on `useCookingHistory` removes the most recent history entry
+
+**Day-boundary gotcha:** `cookedAt` / `addedAt` are stored as full ISO UTC timestamps — correct for *ordering*. But any logic that buckets by *local calendar day* (greeting time-of-day, "cooked today", day grouping) must derive the date from the **local clock** (`new Date().getHours()` / `.getDate()`), never `new Date().toISOString().slice(0,10)` — UTC diverges from local time near midnight and mis-buckets the day. Current code is compliant: `useTimeOfDay` uses `getHours()`/`getDate()`. Keep it that way.
 
 ---
 
