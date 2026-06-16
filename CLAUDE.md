@@ -24,11 +24,13 @@ Three files must always match:
 2. `src/app/settings/page.tsx` → `vA.B.C — Your cooking companion`
 3. `src/components/layout/SideNav.tsx` → `vA.B.C`
 
-| Segment | When |
-|---|---|
-| **A** major | Re-architecture, new backend, auth, breaking data model |
-| **B** minor | New user-facing feature, new route, meaningful UX change |
-| **C** patch | Bug fix, polish, copy, build/lint, refactor |
+| Segment | When | Commit types |
+|---|---|---|
+| **A** major | Re-architecture, new backend, auth, breaking data model | `feat` (breaking) |
+| **B** minor | New user-facing feature, new route, meaningful UX change | `feat` |
+| **C** patch | Bug fix, polish, copy, build/lint, refactor | `fix` · `refactor` · `style` · `chore` · `docs` · `test` |
+
+Mixed commit (feat + fix in one): bump the highest applicable segment. Docs/test-only → C patch.
 
 Look up this table before bumping — never increment reflexively.
 
@@ -49,6 +51,10 @@ Look up this table before bumping — never increment reflexively.
 - *"do housekeeping"* → update affected docs + both changelogs; archive BUGS.md / Version history if oversized.
 - *"run the Wallpaper Test"* → evaluate the named recurring surface against PRODUCT.md's day-14 criterion.
 - *"push"* with no branch named → push to `dev`, never `main`.
+
+Trigger phrases are **shortcuts to invoke a routine on demand** — not preconditions. The pre-commit checklist, doc sync, and correct-branch discipline run automatically on every relevant action without being asked.
+
+**Committing and pushing are human-gated.** Run the checklist and prepare the commit, but wait for the user to say so before `git commit` or `git push`. Exception: if the user explicitly says "commit and push" or equivalent, proceed.
 
 **Version history:**
 - `0.1.0` Full UI prototype · `0.2.0` Thermomix · `0.3.0` UX polish · `0.4.0` Multi-select filters
