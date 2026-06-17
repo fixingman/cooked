@@ -5,6 +5,65 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useShoppingList } from "@/hooks/useShoppingList";
 import { PantryModal } from "@/components/pantry/PantryModal";
 import { summarizeQuantity, sourceTitles } from "@/lib/shoppingList";
+import { inferCategory, CATEGORY_LABELS, CATEGORY_ORDER } from "@/data/ingredientCategories";
+import type { ShoppingItem } from "@/types/shoppingList";
+
+function ShoppingRow({ item, onToggle, onRemove }: {
+  item: ShoppingItem;
+  onToggle: (id: string) => void;
+  onRemove: (id: string) => void;
+}) {
+  const qty = summarizeQuantity(item.sources);
+  const titles = sourceTitles(item.sources);
+  return (
+    <motion.li
+      layout
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+      transition={{ duration: 0.2 }}
+    >
+      <div className={`group flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors ${
+        item.checked ? "bg-parchment-200/50 border-parchment-200" : "bg-parchment-200 border-parchment-300"
+      }`}>
+        <button
+          onClick={() => onToggle(item.id)}
+          className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
+            item.checked ? "bg-sage-500 border-sage-500" : "border-ink-300 hover:border-sage-500"
+          }`}
+          aria-label={item.checked ? "Uncheck" : "Check off"}
+        >
+          {item.checked && <Check size={12} className="text-parchment-100" strokeWidth={3} />}
+        </button>
+
+        <div className="flex-1 min-w-0">
+          <p className={`text-sm transition-colors ${item.checked ? "text-ink-400 line-through" : "text-ink-900"}`}>
+            {item.name}
+          </p>
+          {!item.checked && titles.length > 0 && (
+            <p className="text-xs text-ink-400 mt-0.5 truncate">
+              {titles.map(t => `from ${t}`).join(" · ")}
+            </p>
+          )}
+        </div>
+
+        {qty && (
+          <span className={`text-sm tabular-nums shrink-0 ${item.checked ? "text-ink-300" : "text-ink-500"}`}>
+            {qty}
+          </span>
+        )}
+
+        <button
+          onClick={() => onRemove(item.id)}
+          className="w-6 h-6 flex items-center justify-center rounded-full text-ink-300 hover:text-ink-700 hover:bg-parchment-300 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
+          aria-label="Remove"
+        >
+          <X size={13} />
+        </button>
+      </div>
+    </motion.li>
+  );
+}
 
 export default function ShoppingPage() {
   const { list, addManual, toggleChecked, removeItem, clearChecked, clearAll } = useShoppingList();
@@ -13,14 +72,22 @@ export default function ShoppingPage() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  // Unchecked first (newest first), then checked at the bottom.
-  const sorted = useMemo(() => {
+  // Group unchecked items by inferred category, in CATEGORY_ORDER; checked items at the bottom.
+  const { groups, checked } = useMemo(() => {
     const unchecked = list.filter(i => !i.checked);
-    const checked = list.filter(i => i.checked);
-    return [...unchecked, ...checked];
+    const byCategory = new Map<string, ShoppingItem[]>();
+    for (const item of unchecked) {
+      const cat = inferCategory(item.name);
+      if (!byCategory.has(cat)) byCategory.set(cat, []);
+      byCategory.get(cat)!.push(item);
+    }
+    const groups = CATEGORY_ORDER
+      .filter(cat => byCategory.has(cat))
+      .map(cat => ({ cat, label: CATEGORY_LABELS[cat], items: byCategory.get(cat)! }));
+    return { groups, checked: list.filter(i => i.checked) };
   }, [list]);
 
-  const checkedCount = list.filter(i => i.checked).length;
+  const checkedCount = checked.length;
 
   function handleAdd() {
     const v = draft.trim();
@@ -76,70 +143,25 @@ export default function ShoppingPage() {
       )}
 
       {/* List */}
-      <ul className="space-y-1.5">
-        <AnimatePresence initial={false}>
-          {mounted && sorted.map(item => {
-            const qty = summarizeQuantity(item.sources);
-            const titles = sourceTitles(item.sources);
-            return (
-              <motion.li
-                key={item.id}
-                layout
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <div className={`group flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors ${
-                  item.checked
-                    ? "bg-parchment-200/50 border-parchment-200"
-                    : "bg-parchment-200 border-parchment-300"
-                }`}>
-                  {/* Checkbox */}
-                  <button
-                    onClick={() => toggleChecked(item.id)}
-                    className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
-                      item.checked ? "bg-sage-500 border-sage-500" : "border-ink-300 hover:border-sage-500"
-                    }`}
-                    aria-label={item.checked ? "Uncheck" : "Check off"}
-                  >
-                    {item.checked && <Check size={12} className="text-parchment-100" strokeWidth={3} />}
-                  </button>
+      <AnimatePresence initial={false}>
+        {mounted && groups.map(({ cat, label, items }) => (
+          <div key={cat} className="mb-5">
+            <p className="text-label uppercase tracking-widest text-ink-400 mb-2 px-1">{label}</p>
+            <ul className="space-y-1.5">
+              {items.map(item => <ShoppingRow key={item.id} item={item} onToggle={toggleChecked} onRemove={removeItem} />)}
+            </ul>
+          </div>
+        ))}
 
-                  {/* Name + sources */}
-                  <div className="flex-1 min-w-0">
-                    <p className={`text-sm transition-colors ${item.checked ? "text-ink-400 line-through" : "text-ink-900"}`}>
-                      {item.name}
-                    </p>
-                    {!item.checked && (titles.length > 0 || item.fromPantry) && (
-                      <p className="text-xs text-ink-400 mt-0.5 truncate">
-                        {[item.fromPantry ? "running low" : null, ...titles.map(t => `from ${t}`)]
-                          .filter(Boolean).join(" · ")}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Quantity */}
-                  {qty && (
-                    <span className={`text-sm tabular-nums shrink-0 ${item.checked ? "text-ink-300" : "text-ink-500"}`}>
-                      {qty}
-                    </span>
-                  )}
-
-                  {/* Remove */}
-                  <button
-                    onClick={() => removeItem(item.id)}
-                    className="w-6 h-6 flex items-center justify-center rounded-full text-ink-300 hover:text-ink-700 hover:bg-parchment-300 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
-                    aria-label="Remove"
-                  >
-                    <X size={13} />
-                  </button>
-                </div>
-              </motion.li>
-            );
-          })}
-        </AnimatePresence>
-      </ul>
+        {mounted && checked.length > 0 && (
+          <div className="mt-2">
+            <p className="text-label uppercase tracking-widest text-ink-400 mb-2 px-1">Done</p>
+            <ul className="space-y-1.5">
+              {checked.map(item => <ShoppingRow key={item.id} item={item} onToggle={toggleChecked} onRemove={removeItem} />)}
+            </ul>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Footer actions */}
       {mounted && list.length > 0 && (
