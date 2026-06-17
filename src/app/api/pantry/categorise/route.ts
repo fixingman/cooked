@@ -4,7 +4,7 @@ export const maxDuration = 30;
 
 const VALID: PantryCategory[] = [
   "fruit", "vegetables", "dairy", "meat", "grains", "legumes",
-  "spices", "baking", "pantry", "canned", "dried", "frozen", "other",
+  "spices", "baking", "pantry", "nuts", "canned", "dried", "frozen", "other",
 ];
 
 export async function POST(req: Request) {
@@ -30,7 +30,8 @@ export async function POST(req: Request) {
 - legumes: chickpeas, lentils, beans of all kinds — canned, dried, or fresh (display: Legumes)
 - spices: dry spices, dried herbs, seasoning blends, salt, pepper (display: Spices & Herbs)
 - baking: sugar, chocolate, baking powder, yeast, vanilla, cocoa, cornflour, honey, syrups (display: Baking)
-- pantry: oils, vinegars, condiments, mustard, soy/fish/hot sauces, miso, nuts, seeds, nut butters, wine for cooking (display: Oils & Condiments)
+- pantry: oils, vinegars, condiments, mustard, soy/fish/hot sauces, miso, wine for cooking (display: Oils & Condiments)
+- nuts: all nuts (almonds, walnuts, cashews, pecans, pistachios, hazelnuts, peanuts, etc.), seeds (sesame, pumpkin, sunflower, chia, flaxseed, etc.), nut butters (display: Nuts & Seeds)
 - canned: canned/tinned goods, stocks, broths, coconut milk, tomato paste, passata, jarred peppers/olives/capers/pesto (display: Canned & Jars)
 - dried: dried fruit (raisins, dates, apricots), dried mushrooms, sun-dried tomatoes, dried chilies, coconut flakes (display: Dried)
 - frozen: frozen foods

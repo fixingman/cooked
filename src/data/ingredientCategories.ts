@@ -12,6 +12,7 @@ export const CATEGORY_LABELS: Record<PantryCategory, string> = {
   spices:      "Spices & Herbs",
   baking:      "Baking",
   pantry:      "Oils & Condiments",
+  nuts:        "Nuts & Seeds",
   canned:      "Canned & Jars",
   dried:       "Dried",
   frozen:      "Frozen",
@@ -20,7 +21,7 @@ export const CATEGORY_LABELS: Record<PantryCategory, string> = {
 
 export const CATEGORY_ORDER: PantryCategory[] = [
   "fruit", "vegetables", "dairy", "meat", "grains", "legumes",
-  "spices", "baking", "pantry", "canned", "dried", "frozen", "other",
+  "spices", "baking", "pantry", "nuts", "canned", "dried", "frozen", "other",
 ];
 
 const RAW: Array<[PantryCategory, string[]]> = [
@@ -139,13 +140,16 @@ const RAW: Array<[PantryCategory, string[]]> = [
     "ketchup", "tomato ketchup", "barbecue sauce",
     "miso paste", "miso", "tahini", "oyster sauce", "hoisin sauce",
     "teriyaki sauce", "ponzu",
-    // Nuts & seeds
-    "almonds", "walnuts", "cashews", "pine nuts", "hazelnuts", "peanuts",
-    "pecans", "pistachios", "macadamia",
-    "sesame seeds", "pumpkin seeds", "sunflower seeds", "flaxseed", "chia seeds",
-    "peanut butter", "almond butter", "cashew butter",
     // Wine & cooking liquids
     "white wine", "red wine", "dry sherry", "mirin", "rice wine", "sake",
+  ]],
+  ["nuts", [
+    "almonds", "walnuts", "cashews", "pine nuts", "hazelnuts", "peanuts",
+    "pecans", "pecan nuts", "pistachios", "macadamia", "macadamia nuts",
+    "brazil nuts", "chestnuts", "mixed nuts",
+    "sesame seeds", "pumpkin seeds", "sunflower seeds", "flaxseed", "chia seeds",
+    "hemp seeds", "poppy seeds", "mixed seeds",
+    "peanut butter", "almond butter", "cashew butter",
   ]],
   ["canned", [
     // Canned veg & fruit
@@ -185,6 +189,12 @@ for (const [cat, names] of RAW) {
   for (const n of names) LOOKUP.set(n.toLowerCase(), cat);
 }
 
+const PREP_PREFIX = /^(fresh|dried|ground|whole|frozen|raw|cooked|organic|baby|mini|chopped|sliced|diced|crushed|minced)\s+/i;
+
 export function inferCategory(name: string): PantryCategory {
-  return LOOKUP.get(name.trim().toLowerCase()) ?? "other";
+  const normalised = name.trim().toLowerCase();
+  if (LOOKUP.has(normalised)) return LOOKUP.get(normalised)!;
+  // Strip a single prep/descriptor prefix and try again ("fresh basil" → "basil")
+  const stripped = normalised.replace(PREP_PREFIX, "");
+  return LOOKUP.get(stripped) ?? "other";
 }
