@@ -17,6 +17,13 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.29.3",
+    date: "2026-06-18",
+    notes: [
+      "Fixed the Settings toggles — they now snap cleanly to on/off with proper rounded edges.",
+    ],
+  },
+  {
     version: "0.29.2",
     date: "2026-06-15",
     notes: [
