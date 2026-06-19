@@ -1,6 +1,7 @@
 import { parseRecipeFromHtml, stripHtmlToText } from "@/lib/parseJsonLd";
 import { extractWithClaude, buildImportResponse, RECIPE_SIGNAL_WORDS } from "@/lib/recipeImport";
 import { isYouTubeUrl, extractVideoId, fetchYouTubeVideoData } from "@/lib/youtubeImport";
+import { isNotionUrl, extractNotionPageId, fetchNotionPageText } from "@/lib/notionImport";
 
 export const maxDuration = 30;
 
@@ -115,6 +116,38 @@ export async function POST(req: Request) {
   async function finalise(recipe: import("@/types/recipe").Recipe, pageText: string) {
     return Response.json(await buildImportResponse(recipe, pageText, opts));
   }
+
+  // --- Notion import path ----------------------------------------------------
+  // Notion pages are SPAs — HTML fetch returns an empty JS shell. Instead we
+  // call Notion's internal loadPageChunk API, which works for all public pages,
+  // convert the block tree to plain text, and pass it to Claude for extraction.
+  if (isNotionUrl(parsed)) {
+    if (!apiKey) {
+      return Response.json({ error: "AI extraction is required for Notion pages — no API key configured." }, { status: 422 });
+    }
+    const notionPageId = extractNotionPageId(parsed);
+    if (!notionPageId) {
+      return Response.json({ error: "Could not extract Notion page ID from this URL." }, { status: 422 });
+    }
+    const notionText = await fetchNotionPageText(notionPageId);
+    if (!notionText) {
+      return Response.json({ error: "Could not read this Notion page — make sure it is shared publicly." }, { status: 422 });
+    }
+    const lower = notionText.toLowerCase();
+    if (!RECIPE_SIGNAL_WORDS.some(w => lower.includes(w))) {
+      return Response.json({ error: "This Notion page doesn't appear to contain a recipe." }, { status: 422 });
+    }
+    try {
+      const recipe = await extractWithClaude(notionText, url, id, apiKey);
+      if (!recipe) {
+        return Response.json({ error: "Could not extract a recipe from this Notion page." }, { status: 422 });
+      }
+      return finalise(recipe, notionText);
+    } catch {
+      return Response.json({ error: "Could not extract a recipe from this Notion page." }, { status: 422 });
+    }
+  }
+  // --------------------------------------------------------------------------
 
   // --- YouTube import path ---------------------------------------------------
   if (isYouTubeUrl(parsed)) {

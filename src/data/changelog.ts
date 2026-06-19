@@ -17,6 +17,13 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.29.4",
+    date: "2026-06-19",
+    notes: [
+      "Import recipes directly from Notion — paste a public Notion page URL and it just works.",
+    ],
+  },
+  {
     version: "0.29.3",
     date: "2026-06-18",
     notes: [

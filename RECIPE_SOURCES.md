@@ -39,6 +39,7 @@ Status: ✅ reliable · ⚠️ works with a workaround · ❌ needs work.
 | Jamie Oliver | jamieoliver.com | JSON-LD | ✅ | `recipeYield: "Makes 20"` — was broken (parseInt → NaN → 0 servings); fixed v0.28.1 via `parseServings`. Image array of 4 items, largest taken. |
 | Food Network | foodnetwork.com | JSON-LD | ✅ | `recipeInstructions` is a single HTML string with `1) Step...<br><br>2) Step...` — was broken (0 steps parsed, fell to Claude); fixed v0.28.1 via `splitInstructionString`. |
 | YouTube | youtube.com · youtu.be | YouTube (description) | ✅ | Custom path in import route; bypasses `fetchPage`. Fetches watch page, extracts `shortDescription` from `ytInitialPlayerResponse` via regex. Falls back to `hqdefault.jpg` thumbnail if `maxresdefault.jpg` 404s. Fails gracefully with paste-mode suggestion when description has no recipe signal words. Supports `/watch?v=`, `/shorts/`, and `youtu.be/` URL formats. |
+| Notion | *.notion.site · notion.so | Notion API + Claude | ✅ | SPA — HTML fetch returns empty JS shell. Custom path in import route uses Notion's internal `loadPageChunk` API (works for all public share pages without auth). Ordered block tree traversed by `content` arrays; blocks serialised to markdown-like plain text → Claude extraction. Page ID extracted from last 32 hex chars of URL. Handles `to_do`, `bulleted_list`, `numbered_list`, headings, text. Non-English content handled by existing translate pipeline. |
 
 ---
 

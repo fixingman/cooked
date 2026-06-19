@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, Suspense, useState } from "react";
+import { useMemo, Suspense, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { ChefHat, Plus, ArrowUpDown } from "lucide-react";
 import { motion } from "framer-motion";
@@ -53,6 +53,8 @@ function RecipesContent() {
   const searchParams = useSearchParams();
   const initialCategory = searchParams.get("category") as CategoryFilter | null;
   const [showImport, setShowImport] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
   const { recipes: userRecipes } = useUserRecipes();
   const { states: recipeStates } = useRecipeStates();
@@ -122,7 +124,7 @@ function RecipesContent() {
           </div>
           <div className="flex items-center justify-between gap-3">
             <p className="text-sm text-ink-400">
-              {filtered.length} recipe{filtered.length !== 1 ? "s" : ""}
+              {mounted ? `${filtered.length} recipe${filtered.length !== 1 ? "s" : ""}` : " "}
             </p>
             <div className="relative flex items-center">
               <ArrowUpDown size={12} className="absolute left-2.5 text-ink-400 pointer-events-none" />
@@ -140,7 +142,7 @@ function RecipesContent() {
         </div>
       </div>
 
-      {filtered.length === 0 ? (
+      {mounted && (filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-center">
           <div className="w-16 h-16 bg-parchment-200 rounded-full flex items-center justify-center mb-4">
             <ChefHat size={28} className="text-ink-300" />
@@ -157,7 +159,7 @@ function RecipesContent() {
         </div>
       ) : (
         <RecipeGrid recipes={filtered} viewMode={viewMode} />
-      )}
+      ))}
       <div className="h-6" />
 
       {showImport && <ImportRecipeModal onClose={() => setShowImport(false)} />}
