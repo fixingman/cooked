@@ -25,7 +25,13 @@ interface NotionBlockValue {
   id: string;
   type: string;
   content?: string[];
-  properties?: { title?: NotionRichText };
+  properties?: {
+    title?: NotionRichText;
+    source?: [[string]]; // image blocks store URL here
+  };
+  format?: {
+    display_source?: string; // signed URL for uploaded images
+  };
 }
 
 function getText(richText?: NotionRichText): string {
@@ -33,13 +39,19 @@ function getText(richText?: NotionRichText): string {
   return richText.map(seg => (Array.isArray(seg) ? String(seg[0] ?? "") : "")).join("");
 }
 
+interface RenderResult {
+  text: string;
+  imageUrl: string | null;
+}
+
 function renderBlocks(
   pageId: string,
   blocks: Record<string, { value: { value: NotionBlockValue } }>,
-): string {
+): RenderResult {
   const lines: string[] = [];
   const visited = new Set<string>();
   let numberedCounter = 0;
+  let imageUrl: string | null = null;
 
   function visit(blockId: string) {
     if (visited.has(blockId)) return;
@@ -49,11 +61,10 @@ function renderBlocks(
 
     const text = getText(b.properties?.title);
 
-    // Reset numbered list counter when we hit a non-numbered block with content
     if (b.type !== "numbered_list" && b.type !== "page") numberedCounter = 0;
 
     switch (b.type) {
-      case "page": break; // title added before traversal
+      case "page": break;
       case "header":
       case "heading_1": if (text) lines.push(`\n# ${text}`); break;
       case "sub_header":
@@ -65,8 +76,17 @@ function renderBlocks(
       case "numbered_list":
         if (text) { numberedCounter++; lines.push(`${numberedCounter}. ${text}`); }
         break;
-      case "image":
-      case "button": break; // skip UI/media blocks
+      case "image": {
+        // Capture first image as hero; prefer display_source (signed) over source
+        if (!imageUrl) {
+          imageUrl =
+            b.format?.display_source ??
+            b.properties?.source?.[0]?.[0] ??
+            null;
+        }
+        break;
+      }
+      case "button": break;
       default: if (text) lines.push(text); break;
     }
 
@@ -79,14 +99,18 @@ function renderBlocks(
     if (title) lines.push(title);
     for (const childId of pageBlock.content ?? []) visit(childId);
   } else {
-    // Fallback: iterate dict order (less reliable)
     for (const id of Object.keys(blocks)) visit(id);
   }
 
-  return lines.join("\n");
+  return { text: lines.join("\n"), imageUrl };
 }
 
-export async function fetchNotionPageText(pageId: string): Promise<string | null> {
+export interface NotionPageData {
+  text: string;
+  imageUrl: string | null;
+}
+
+export async function fetchNotionPageData(pageId: string): Promise<NotionPageData | null> {
   let res: Response;
   try {
     res = await fetch(NOTION_API, {
@@ -120,6 +144,6 @@ export async function fetchNotionPageText(pageId: string): Promise<string | null
   const blocks = data.recordMap?.block;
   if (!blocks || Object.keys(blocks).length === 0) return null;
 
-  const text = renderBlocks(pageId, blocks);
-  return text.trim() || null;
+  const { text, imageUrl } = renderBlocks(pageId, blocks);
+  return text.trim() ? { text: text.trim(), imageUrl } : null;
 }

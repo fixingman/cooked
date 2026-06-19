@@ -1,7 +1,7 @@
 import { parseRecipeFromHtml, stripHtmlToText } from "@/lib/parseJsonLd";
 import { extractWithClaude, buildImportResponse, RECIPE_SIGNAL_WORDS } from "@/lib/recipeImport";
 import { isYouTubeUrl, extractVideoId, fetchYouTubeVideoData } from "@/lib/youtubeImport";
-import { isNotionUrl, extractNotionPageId, fetchNotionPageText } from "@/lib/notionImport";
+import { isNotionUrl, extractNotionPageId, fetchNotionPageData } from "@/lib/notionImport";
 
 export const maxDuration = 30;
 
@@ -129,10 +129,11 @@ export async function POST(req: Request) {
     if (!notionPageId) {
       return Response.json({ error: "Could not extract Notion page ID from this URL." }, { status: 422 });
     }
-    const notionText = await fetchNotionPageText(notionPageId);
-    if (!notionText) {
+    const notionData = await fetchNotionPageData(notionPageId);
+    if (!notionData) {
       return Response.json({ error: "Could not read this Notion page — make sure it is shared publicly." }, { status: 422 });
     }
+    const { text: notionText, imageUrl: notionImageUrl } = notionData;
     const lower = notionText.toLowerCase();
     if (!RECIPE_SIGNAL_WORDS.some(w => lower.includes(w))) {
       return Response.json({ error: "This Notion page doesn't appear to contain a recipe." }, { status: 422 });
@@ -141,6 +142,10 @@ export async function POST(req: Request) {
       const recipe = await extractWithClaude(notionText, url, id, apiKey);
       if (!recipe) {
         return Response.json({ error: "Could not extract a recipe from this Notion page." }, { status: 422 });
+      }
+      // Use the page's image as hero if present and the recipe has none
+      if (notionImageUrl && !recipe.heroImageUrl) {
+        recipe.heroImageUrl = notionImageUrl;
       }
       return finalise(recipe, notionText);
     } catch {
