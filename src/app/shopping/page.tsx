@@ -3,10 +3,15 @@ import { useState, useEffect, useMemo } from "react";
 import { Plus, Check, X, Trash2, ShoppingCart, Archive } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useShoppingList } from "@/hooks/useShoppingList";
+import { usePantry } from "@/hooks/usePantry";
 import { PantryModal } from "@/components/pantry/PantryModal";
 import { summarizeQuantity, sourceTitles } from "@/lib/shoppingList";
 import { inferCategory, CATEGORY_LABELS, CATEGORY_ORDER } from "@/data/ingredientCategories";
+import { normalizeForMatch } from "@/lib/ingredientUtils";
+import type { PantryCategory } from "@/data/ingredientCategories";
 import type { ShoppingItem } from "@/types/shoppingList";
+
+const VALID_CATS = new Set<string>(CATEGORY_ORDER);
 
 function ShoppingRow({ item, onToggle, onRemove }: {
   item: ShoppingItem;
@@ -67,17 +72,31 @@ function ShoppingRow({ item, onToggle, onRemove }: {
 
 export default function ShoppingPage() {
   const { list, addManual, toggleChecked, removeItem, clearChecked, clearAll } = useShoppingList();
+  const { items: pantryItems } = usePantry();
   const [draft, setDraft] = useState("");
   const [pantryOpen, setPantryOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  // Group unchecked items by inferred category, in CATEGORY_ORDER; checked items at the bottom.
+  // Live name → category map from the pantry. The pantry is the category
+  // authority: whatever the AI categorise button assigns there wins here too.
+  const pantryCategories = useMemo(() => {
+    const m = new Map<string, PantryCategory>();
+    for (const p of pantryItems) {
+      if (p.category && VALID_CATS.has(p.category)) m.set(normalizeForMatch(p.name), p.category);
+    }
+    return m;
+  }, [pantryItems]);
+
+  // Group unchecked items by category, in CATEGORY_ORDER; checked items at the bottom.
+  // Category resolution: pantry (live) → item's own AI category → static lookup.
   const { groups, checked } = useMemo(() => {
     const unchecked = list.filter(i => !i.checked);
     const byCategory = new Map<string, ShoppingItem[]>();
     for (const item of unchecked) {
-      const cat = inferCategory(item.name);
+      const cat =
+        pantryCategories.get(normalizeForMatch(item.name)) ??
+        (item.category && VALID_CATS.has(item.category) ? item.category : inferCategory(item.name));
       if (!byCategory.has(cat)) byCategory.set(cat, []);
       byCategory.get(cat)!.push(item);
     }
@@ -85,7 +104,7 @@ export default function ShoppingPage() {
       .filter(cat => byCategory.has(cat))
       .map(cat => ({ cat, label: CATEGORY_LABELS[cat], items: byCategory.get(cat)! }));
     return { groups, checked: list.filter(i => i.checked) };
-  }, [list]);
+  }, [list, pantryCategories]);
 
   const checkedCount = checked.length;
 

@@ -17,6 +17,13 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.30.0",
+    date: "2026-07-03",
+    notes: [
+      "The shopping list now uses the same categories as your pantry — and the pantry's AI categorise button sorts both at once.",
+    ],
+  },
+  {
     version: "0.29.5",
     date: "2026-06-19",
     notes: [

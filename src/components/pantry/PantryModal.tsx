@@ -18,13 +18,13 @@ const EXIT_EASE: [number, number, number, number] = [0.4, 0, 1, 1];
 
 export function PantryModal({ onClose }: PantryModalProps) {
   const { items, addItem, removeItem, toggleLow, updateCategory, importItems } = usePantry();
-  const { addFromPantry, removeFromPantry } = useShoppingList();
+  const { list: shoppingList, addFromPantry, removeFromPantry, updateCategory: updateShoppingCategory } = useShoppingList();
 
   // Toggle low on the SAME pantry instance that renders the list (so the UI
   // updates), and mirror it onto the shopping list: low → add, un-low → remove.
   function handleToggleLow(item: PantryItem) {
     toggleLow(item.id);
-    if (!item.low) addFromPantry(item.name);
+    if (!item.low) addFromPantry(item.name, item.category);
     else removeFromPantry(item.name);
   }
   const [categorising, setCategorising] = useState(false);
@@ -115,21 +115,29 @@ export function PantryModal({ onClose }: PantryModalProps) {
     reader.readAsText(file);
   }
 
-  // AI categorisation — runs on all items so categories stay accurate after edits
+  // AI categorisation — runs on pantry AND shopping list in one call, so both
+  // surfaces group identically after every run.
   async function handleCategorise() {
-    if (items.length === 0 || categorising) return;
+    if ((items.length === 0 && shoppingList.length === 0) || categorising) return;
     setCategorising(true);
     try {
+      const names = Array.from(new Map(
+        [...items.map(i => i.name), ...shoppingList.map(i => i.name)]
+          .map(n => [n.toLowerCase(), n])
+      ).values());
       const res = await fetch("/api/pantry/categorise", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ names: items.map(i => i.name) }),
+        body: JSON.stringify({ names }),
       });
       if (!res.ok) return;
       const { results } = await res.json() as { results: { name: string; category: PantryItem["category"] }[] };
       for (const r of results) {
-        const item = items.find(i => i.name.toLowerCase() === r.name.toLowerCase());
-        if (item && r.category) updateCategory(item.id, r.category);
+        if (!r.category) continue;
+        const pantryItem = items.find(i => i.name.toLowerCase() === r.name.toLowerCase());
+        if (pantryItem) updateCategory(pantryItem.id, r.category);
+        const shoppingItem = shoppingList.find(i => i.name.toLowerCase() === r.name.toLowerCase());
+        if (shoppingItem) updateShoppingCategory(shoppingItem.id, r.category);
       }
     } finally {
       setCategorising(false);
@@ -194,7 +202,10 @@ export function PantryModal({ onClose }: PantryModalProps) {
           <div className="flex items-center gap-1">
             <button
               onClick={handleCategorise}
-              disabled={categorising || items.filter(i => !i.category || i.category === "other" || !(CATEGORY_ORDER as string[]).includes(i.category)).length === 0}
+              disabled={categorising || (
+                items.filter(i => !i.category || i.category === "other" || !(CATEGORY_ORDER as string[]).includes(i.category)).length === 0 &&
+                shoppingList.filter(i => !i.category || i.category === "other" || !(CATEGORY_ORDER as string[]).includes(i.category)).length === 0
+              )}
               title="Auto-categorise with AI"
               className="p-1.5 rounded-lg text-ink-400 hover:text-saffron-500 disabled:opacity-30 transition-colors"
             >

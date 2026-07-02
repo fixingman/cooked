@@ -37,7 +37,7 @@ export function usePantry() {
     ));
   }, [items, setValue]);
 
-  const addItem = useCallback((name: string) => {
+  const addItem = useCallback((name: string, category?: PantryItem["category"]) => {
     const normalised = name.trim();
     if (!normalised) return;
     setValue(prev => {
@@ -51,7 +51,7 @@ export function usePantry() {
         id: crypto.randomUUID(),
         name: normalised,
         addedAt: new Date().toISOString(),
-        category: inferCategory(normalised),
+        category: category && VALID_CATS.has(category) ? category : inferCategory(normalised),
       };
       return [item, ...prev];
     });

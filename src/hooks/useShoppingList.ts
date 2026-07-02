@@ -89,17 +89,18 @@ export function useShoppingList() {
   }, [setValue]);
 
   // Tick / untick. Ticking moves the item into the pantry (idempotent — addItem
-  // dedupes by name), completing the shop → pantry loop.
+  // dedupes by name), completing the shop → pantry loop. Category travels with it.
   const toggleChecked = useCallback((id: string) => {
     const item = list.find(i => i.id === id);
     const willCheck = item ? !item.checked : false;
     setValue(prev => prev.map(i => i.id === id ? { ...i, checked: !i.checked } : i));
-    if (item && willCheck) addToPantry(item.name);
+    if (item && willCheck) addToPantry(item.name, item.category);
   }, [list, setValue, addToPantry]);
 
   // Pantry → shopping: a pantry item ran low. Add it (deduped by name); if it's
   // already on the list from a recipe, just flag it as also-low and un-check it.
-  const addFromPantry = useCallback((name: string) => {
+  // The pantry item's category is carried over so grouping matches the pantry.
+  const addFromPantry = useCallback((name: string, category?: ShoppingItem["category"]) => {
     const clean = name.trim();
     if (!clean) return;
     const key = normalizeForMatch(clean);
@@ -107,7 +108,9 @@ export function useShoppingList() {
     setValue(prev => {
       const existing = prev.find(i => normalizeForMatch(i.name) === key);
       if (existing) {
-        return prev.map(i => i === existing ? { ...i, fromPantry: true, checked: false } : i);
+        return prev.map(i => i === existing
+          ? { ...i, fromPantry: true, checked: false, ...(category ? { category } : {}) }
+          : i);
       }
       const item: ShoppingItem = {
         id: crypto.randomUUID(),
@@ -116,9 +119,15 @@ export function useShoppingList() {
         addedAt: new Date().toISOString(),
         sources: [],
         fromPantry: true,
+        ...(category ? { category } : {}),
       };
       return [item, ...prev];
     });
+  }, [setValue]);
+
+  // AI categorise (pantry modal button) writes shopping categories through this.
+  const updateCategory = useCallback((id: string, category: ShoppingItem["category"]) => {
+    setValue(prev => prev.map(i => i.id === id ? { ...i, category } : i));
   }, [setValue]);
 
   // Un-marking low removes the line only if it's a pure pantry item still unbought
@@ -142,5 +151,5 @@ export function useShoppingList() {
     setValue([]);
   }, [setValue]);
 
-  return { list, addManual, addFromRecipe, addFromPantry, removeFromPantry, toggleChecked, removeItem, clearChecked, clearAll };
+  return { list, addManual, addFromRecipe, addFromPantry, removeFromPantry, toggleChecked, removeItem, clearChecked, clearAll, updateCategory };
 }
