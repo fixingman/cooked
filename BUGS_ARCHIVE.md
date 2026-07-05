@@ -4,6 +4,25 @@ Resolved bugs moved here from `BUGS.md`. Ordered newest fix first.
 
 ---
 
+### BUG-014 ✅ v0.29.1 — Homepage greeting hydration mismatch (server time ≠ client time)
+
+**Symptom:** React errors #425 + #422 (recoverable text-content hydration mismatch) on `/`. Greeting could visibly flip on first paint.
+
+**Root cause (surface):** `TimeGreeting` reads `new Date()` at render time. Server renders with UTC clock (Netlify), client hydrates with local clock → different hour bucket → text mismatch.
+
+**Root cause (deeper):** Module-level seed in `useUserRecipes.ts` runs synchronously before React's `useState` initializer, writing 12 starters to localStorage. Server → 0 recipes → `GettingStartedSection`; client initial render → 12 recipes → `FeaturedHero`. React compared adjacent `<p>` elements positionally and reported structural mismatch.
+
+**Fix:** Three-pronged:
+1. `TimeGreeting` — render `" "` until `mounted` (no SSR clock read)
+2. `page.tsx` — `getCurrentMeal()` deferred to `useMemo([mounted])`
+3. `page.tsx` — `isSparse`, `carousels.featured`, `FeaturedHero`, and all carousel sections gated on `mounted`
+
+**Verified:** `npm run smoke` → 0 hydration warnings on `/`.
+
+**Files:** `src/components/home/TimeGreeting.tsx`, `src/app/page.tsx`
+
+---
+
 ### BUG-013 ✅ v0.27.2 — Homepage carousel thumbnails appear blurry / low-res on load
 
 **Symptom:** Recipe card thumbnails on the homepage carousels appeared blurry on initial load. After tapping through to a recipe and navigating back, that card's thumbnail became sharp.

@@ -25,27 +25,6 @@ Active bugs only. See `BUGS_ARCHIVE.md` for full details on resolved bugs.
 
 ## Open
 
-### BUG-014 — Homepage greeting hydration mismatch
-
-**Status:** Open — found by the new boot smoke test (`npm run smoke`), v0.29.0
-
-**Symptom:** Brief flash / possible console hydration warnings on homepage load. React errors #425 + #422 (recoverable text-content hydration mismatch) fire on `/`.
-
-**Root cause:** `TimeGreeting` renders text from `useTimeOfDay()`, which reads `new Date()` (hour + day-rotation index) at render time. Server renders with the *server's* clock (UTC on Netlify), client hydrates with the *user's local* clock — different hour bucket and/or different rotated greeting → text mismatch. React recovers by re-rendering client-side, so it's non-fatal, but the greeting can visibly flip on first paint.
-
-**Where to look:** `src/components/home/TimeGreeting.tsx`, `src/hooks/useTimeOfDay.ts`.
-
-**Likely fix:** render nothing (or a neutral placeholder) until mounted — gate the greeting on a `useEffect`-set `mounted` flag so the time-dependent text is only produced client-side. Avoids SSR/CSR divergence entirely.
-
-**Root cause (updated):** Deeper than the time mismatch. The module-level seed in `useUserRecipes.ts` runs synchronously before React's `useState` initializer on the client (seeding 12 starter recipes into localStorage). So: server → 0 recipes, `isSparse=true`, renders `GettingStartedSection` ("Your cookbook is waiting."); client initial render → 12 recipes, `isSparse=false`, renders `FeaturedHero` label ("Tonight's Pick"). React compares adjacent `<p>` elements positionally and reports mismatch.
-
-**Fix (v0.29.1):** Three-pronged:
-1. `TimeGreeting` — suppress SSR rendering until `mounted` (greeting uses local clock, differs server/client)
-2. `page.tsx primary/secondary` — derive from `getCurrentMeal()` only after mount (deferred via `useMemo([mounted])`)
-3. `page.tsx carousels` — `isSparse`, `carousels.featured`, `FeaturedHero`, and the `!isSparse` block all gated on `mounted`. Server and client initial renders both produce no carousel content; real content appears after hydration.
-
-**Verified fixed:** ✅ `npm run smoke` reports 0 warnings on `/`.
-
 ### BUG-012 — Some recipes appear doubled in the library
 
 **Status:** Open — needs repro + investigation

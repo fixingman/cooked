@@ -39,11 +39,6 @@ Group recipes into named collections ("Sunday roasts", "Quick weeknight"). A rec
 **Why later:** High value, high effort. Mobile drag-and-drop is hard. Builds on F-9 Shopping List infrastructure.
 **Decisions needed:** 7-day vs rolling week · integration with the shopping list · Dropbox sync shape.
 
-### 🔴 F-13 — Branding, App Icon & Visual Delight
-**Branding & Icon:** Custom app icon (PWA + apple-touch-icon + favicon), wordmark, custom flame illustration. Current icons are programmatic SVG placeholders. Design at 192×192 and 512×512 PNG; update `public/icons/*` + manifest.
-**Visual Delight:** Enhance the well-worn-cookbook feel without skeuomorphism. (A v0.21.0 attempt — grain, ruled lines, inset shadow, stamp ring — was reverted as too literal.) Explore subtle depth and material quality that reads as craft, not chrome: warm amber-tinted shadows, typographic ornaments, contextual micro-illustrations, richer card hover states.
-**Constraint:** No literal paper textures, no skeuomorphic UI, no noise overlays.
-
 ### 🔴 F-6 — Auth & User Profiles
 Supabase Auth (magic link or Google). Needed for social features, multi-device without Dropbox, public collection sharing. Not urgent while Dropbox covers persistence.
 
@@ -57,7 +52,6 @@ Supabase Postgres. Server-side querying, multi-user, recipe search at scale. **D
 | # | Description | Area | Notes |
 |---|-------------|------|-------|
 | U-28 | Unified AI + recipe search bar | Homepage | Merge AI prompt bar and recipe search into one input. Short query = filter library; natural-language sentence = AI suggest/generate. Needs clear mode-switch UX. |
-| U-29 | Homepage improvements | Homepage | Carousel logic, section ordering, empty states, first-impression quality. Decisions: what signals drive each carousel · sparse-library handling (< 5 recipes) · surface pantry-matched recipes more prominently. |
 | U-24 | Wire mic & camera permission toggles | Settings | Toggles are dead UI. Call `navigator.mediaDevices.getUserMedia` / `navigator.permissions.query`, reflect live browser state. Effectively a bug. |
 | U-23 | Quick-bookmark from recipe card | Recipe list | Long-press / hover bookmark action. Bookmark currently only on detail page. (Note: card hover already has "add to shopping" as of 0.25.0.) |
 
@@ -137,3 +131,14 @@ Choices that need a future check-in once novelty wears off. **Day-14 Wallpaper T
 | F-12 Ingredient Substitution (AI) — tap ingredient → Haiku swaps with ratio notes, dietary-aware, read-only sheet | 0.26.0 |
 | U-29 Homepage improvements — cross-carousel dedup, "Ready to Cook" pantry carousel, sparse-library empty state, contextual hero label | 0.27.0 |
 | F-13 Branding & Visual Delight — gradient icon + filled flame; card image zoom + deeper shadow; saffron step circles + dashed connector; ingredient ◆ ornament | 0.27.1 |
+| BUG-013 fix: blurry homepage thumbnails — correct `sizes`, Dropbox image resolution on all home carousels | 0.27.2 |
+| YouTube import — paste video URL, Claude extracts recipe from description, thumbnail auto-fetched | 0.28.0 |
+| Cookidoo + NYT Cooking import — paste-mode guidance, TM notation preserved via `sourceHint`, NYT step cleanup | 0.28.2 |
+| JSON-LD parser hardening — `parseServings` from descriptive strings, HTML `recipeInstructions`, mixed-number fractions | 0.28.1 |
+| Project standards — TEST_MATRIX.md, AUDIT.md, pre-commit checklist, trigger phrases, smoke boot test | 0.29.0 |
+| What's New in Settings — `src/data/changelog.ts` user-facing changelog; version line derives from `changelog[0].version` | 0.29.0 |
+| BUG-014 fix: homepage hydration mismatch — `mounted` gate on greeting, carousels, recipe count | 0.29.1 |
+| Shopping list grouped by category (`inferCategory` reuse); "running low" per-item label removed | 0.29.2 |
+| Settings toggles visual fix — `overflow-hidden` on track clips thumb within rounded corners | 0.29.3 |
+| Notion page import — `loadPageChunk` internal API, block tree traversal, hero image from first image block | 0.29.4–0.29.5 |
+| Pantry ⇄ Shopping category sync — AI categorise covers both lists, category travels on low-mark and check-off | 0.30.0 |
