@@ -7,11 +7,38 @@ import { normalizeForMatch, cleanForPantry } from "@/lib/ingredientUtils";
 import type { ShoppingItem, ShoppingSource } from "@/types/shoppingList";
 import type { Ingredient } from "@/types/recipe";
 
-// Union by id — local-only items (added offline) survive a remote overwrite.
 function mergeItems(local: ShoppingItem[], remote: ShoppingItem[]): ShoppingItem[] {
+  // Step 1: union by id — offline additions on any device survive a remote overwrite.
   const byId = new Map(remote.map(i => [i.id, i]));
   for (const l of local) if (!byId.has(l.id)) byId.set(l.id, l);
-  return Array.from(byId.values());
+
+  // Step 2: dedupe by normalised name — same ingredient added on two devices gets
+  // two UUIDs and both survive step 1, producing visible duplicates. Merge them:
+  // combine sources (deduped by recipeId+unit), OR boolean flags, prefer unchecked,
+  // keep whichever has a category, take the newer addedAt.
+  const byName = new Map<string, ShoppingItem>();
+  for (const item of Array.from(byId.values())) {
+    const key = normalizeForMatch(item.name);
+    const existing = byName.get(key);
+    if (!existing) {
+      byName.set(key, item);
+    } else {
+      const sources = [...existing.sources];
+      for (const s of item.sources) {
+        if (!sources.some(e => e.recipeId === s.recipeId && e.unit === s.unit)) sources.push(s);
+      }
+      byName.set(key, {
+        ...existing,
+        sources,
+        checked:    existing.checked && item.checked,
+        fromPantry: existing.fromPantry || item.fromPantry,
+        manual:     existing.manual     || item.manual,
+        category:   existing.category   ?? item.category,
+        addedAt:    existing.addedAt > item.addedAt ? existing.addedAt : item.addedAt,
+      });
+    }
+  }
+  return Array.from(byName.values());
 }
 
 export function useShoppingList() {

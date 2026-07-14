@@ -17,6 +17,13 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.30.1",
+    date: "2026-07-14",
+    notes: [
+      "Fixed duplicate items appearing in the shopping list after adding the same ingredient on two devices.",
+    ],
+  },
+  {
     version: "0.30.0",
     date: "2026-07-03",
     notes: [
