@@ -62,17 +62,14 @@ export function SubstituteSheet({ ingredient, recipeTitle, cuisine, dietaryPrefe
       />
       <motion.div
         key="sheet"
-        initial={{ opacity: 0, y: "100%" }}
-        animate={{ opacity: 1, y: 0, transition: { type: "spring", stiffness: 340, damping: 38 } }}
-        exit={{ opacity: 0, y: "100%", transition: { duration: 0.2 } }}
-        className="fixed bottom-0 left-0 right-0 z-50 bg-parchment-100 rounded-t-[1.5rem] shadow-card-lg flex flex-col max-h-[85dvh] md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-card md:w-full md:max-w-md md:max-h-[80vh]"
+        initial={{ x: "100%" }}
+        animate={{ x: 0, transition: { type: "spring", stiffness: 340, damping: 38 } }}
+        exit={{ x: "100%", transition: { duration: 0.22, ease: [0.4, 0, 1, 1] } }}
+        className="fixed top-0 right-0 bottom-0 z-50 w-full max-w-sm bg-parchment-100 flex flex-col shadow-[-8px_0_48px_rgba(0,0,0,0.14)] rounded-tl-[1.5rem] rounded-bl-[1.5rem]"
         onClick={e => e.stopPropagation()}
       >
         {/* Header — never scrolls */}
         <div className="shrink-0 px-5 pt-5 pb-3">
-          <div className="flex justify-center mb-4 md:hidden">
-            <div className="w-10 h-1 bg-parchment-300 rounded-full" />
-          </div>
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-label uppercase tracking-widest text-ink-400 flex items-center gap-1.5">
