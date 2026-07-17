@@ -285,23 +285,23 @@ export function AIPromptBar() {
               })}
               <button
                 onClick={() => handleGenerateConcepts(prompt)}
-                className="flex items-center gap-1.5 text-xs text-saffron-600 hover:text-saffron-700 transition-colors px-1 pt-1"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-saffron-200 bg-saffron-50 text-sm font-medium text-saffron-700 hover:bg-saffron-100 hover:border-saffron-300 transition-colors mt-1"
               >
-                <WandSparkles size={12} />
-                Generate a new recipe instead →
+                <WandSparkles size={13} />
+                Generate a new recipe instead
               </button>
             </motion.div>
           )}
 
           {state === "suggest" && results.length === 0 && (
-            <motion.div key="no-results" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center justify-between px-1">
-              <p className="text-xs text-ink-400">Nothing in your library matched.</p>
+            <motion.div key="no-results" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-2 pt-1">
+              <p className="text-xs text-ink-400 px-1">Nothing in your library matched.</p>
               <button
                 onClick={() => handleGenerateConcepts(prompt)}
-                className="flex items-center gap-1.5 text-xs text-saffron-600 hover:text-saffron-700 transition-colors"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-saffron-200 bg-saffron-50 text-sm font-medium text-saffron-700 hover:bg-saffron-100 hover:border-saffron-300 transition-colors"
               >
-                <WandSparkles size={12} />
-                Generate new recipe →
+                <WandSparkles size={13} />
+                Generate a new recipe instead
               </button>
             </motion.div>
           )}
