@@ -17,10 +17,10 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
-    version: "0.31.0",
+    version: "0.31.1",
     date: "2026-07-18",
     notes: [
-      "When creating a new AI recipe, you now pick from three different ideas first — then Cooked builds the one you choose.",
+      "When creating a new AI recipe, you now pick from four different ideas first — then Cooked builds the one you choose.",
       "Regenerate now takes you back to the idea picker, so you can try a different direction.",
     ],
   },

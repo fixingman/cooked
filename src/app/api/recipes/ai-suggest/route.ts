@@ -32,7 +32,7 @@ export async function POST(req: Request) {
 
   if (!prompt?.trim()) return Response.json({ error: "Prompt required" }, { status: 400 });
 
-  // Fast concept picker — Haiku generates 3 recipe ideas to choose from before
+  // Fast concept picker — Haiku generates 4 recipe ideas to choose from before
   // committing to a full Sonnet generation.
   if (conceptsOnly) {
     try {
@@ -41,15 +41,15 @@ export async function POST(req: Request) {
         headers: { "x-api-key": apiKey, "anthropic-version": "2023-06-01", "content-type": "application/json" },
         body: JSON.stringify({
           model: "claude-haiku-4-5-20251001",
-          max_tokens: 300,
+          max_tokens: 400,
           messages: [{
             role: "user",
             content: `You are a recipe assistant. The user wants to cook: "${prompt.trim()}"
 
-Generate 3 distinct recipe concepts. Make them genuinely different — vary the style, main ingredient, or technique.
+Generate 4 distinct recipe concepts. Make them genuinely different — vary the style, main ingredient, or technique.
 
 Return ONLY valid JSON (no markdown fences):
-{"mode":"concepts","concepts":[{"title":"...","description":"one sentence, 12 words max"},{"title":"...","description":"..."},{"title":"...","description":"..."}]}`,
+{"mode":"concepts","concepts":[{"title":"...","description":"one sentence, 12 words max"},{"title":"...","description":"..."},{"title":"...","description":"..."},{"title":"...","description":"..."}]}`,
           }],
         }),
         signal: AbortSignal.timeout(10_000),
