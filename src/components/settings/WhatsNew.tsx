@@ -26,7 +26,8 @@ function Entry({ version, date, notes }: { version: string; date: string; notes:
 
 export function WhatsNew() {
   const [expanded, setExpanded] = useState(false);
-  const [latest, ...earlier] = changelog;
+  const [latest, ...rest] = changelog;
+  const earlier = rest.slice(0, 3);
 
   return (
     <div className="py-2">
