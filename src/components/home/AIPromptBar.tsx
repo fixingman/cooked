@@ -12,11 +12,16 @@ import { normalizeForMatch } from "@/lib/ingredientUtils";
 import { GeneratedRecipeModal } from "@/components/home/GeneratedRecipeModal";
 import type { Recipe } from "@/types/recipe";
 
-type State = "idle" | "loading" | "suggest" | "pairing" | "error";
+type State = "idle" | "loading" | "suggest" | "pairing" | "concepts" | "error";
 
 interface SuggestResult {
   id: string;
   reason: string;
+}
+
+interface Concept {
+  title: string;
+  description: string;
 }
 
 interface Pairing {
@@ -41,6 +46,7 @@ export function AIPromptBar() {
   const [results, setResults] = useState<SuggestResult[]>([]);
   const [pairings, setPairings] = useState<Pairing[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [concepts, setConcepts] = useState<Concept[]>([]);
   const [generatedRecipe, setGeneratedRecipe] = useState<Recipe | null>(null);
   const [error, setError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -89,6 +95,40 @@ export function AIPromptBar() {
     } catch {
       setError("Network error — check your connection."); setState("error");
     }
+  }
+
+  // ── Concept picker — fast Haiku call to show 3 options before full generation
+  async function handleGenerateConcepts(overridePrompt?: string) {
+    const q = (overridePrompt ?? prompt).trim();
+    if (!q || state === "loading") return;
+    setState("loading");
+    setError("");
+    setConcepts([]);
+    try {
+      const res = await fetch("/api/recipes/ai-suggest", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: q, recipes: [], conceptsOnly: true }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error ?? "Something went wrong."); setState("error"); return; }
+      if (data.mode === "concepts" && Array.isArray(data.concepts)) {
+        setConcepts(data.concepts);
+        setState("concepts");
+      } else {
+        setError("Unexpected response — try again."); setState("error");
+      }
+    } catch {
+      setError("Network error — check your connection."); setState("error");
+    }
+  }
+
+  async function handleSelectConcept(concept: Concept) {
+    setState("loading");
+    setConcepts([]);
+    // Enrich the prompt with the chosen concept so generation stays on target.
+    const enriched = `${prompt.trim()} — make specifically: ${concept.title}. ${concept.description}`;
+    await handleSubmit(enriched, undefined, true);
   }
 
   // ── "Use what I have" — load pairings, show pairing panel ─────────────────
@@ -141,13 +181,13 @@ export function AIPromptBar() {
   }
 
   function clear() {
-    setPrompt(""); setResults([]); setPairings([]); setSelected(new Set());
+    setPrompt(""); setResults([]); setPairings([]); setSelected(new Set()); setConcepts([]);
     setState("idle"); setError("");
     inputRef.current?.focus();
   }
 
   const showExamples = state === "idle" && !prompt && !results.length;
-  const showClear = (prompt || results.length > 0 || state === "error" || state === "pairing") && !isBusy;
+  const showClear = (prompt || results.length > 0 || state === "error" || state === "pairing" || state === "concepts") && !isBusy;
 
   return (
     <>
@@ -203,7 +243,7 @@ export function AIPromptBar() {
                 onClick={() => {
                   const q = prompt.trim() || "Surprise me with something delicious";
                   setPrompt(q);
-                  handleSubmit(q, undefined, true);
+                  handleGenerateConcepts(q);
                 }}
                 className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border border-saffron-300 bg-saffron-50 text-saffron-700 hover:bg-saffron-100 transition-colors"
               >
@@ -244,7 +284,7 @@ export function AIPromptBar() {
                 );
               })}
               <button
-                onClick={() => handleSubmit(prompt, undefined, true)}
+                onClick={() => handleGenerateConcepts(prompt)}
                 className="flex items-center gap-1.5 text-xs text-saffron-600 hover:text-saffron-700 transition-colors px-1 pt-1"
               >
                 <WandSparkles size={12} />
@@ -257,12 +297,29 @@ export function AIPromptBar() {
             <motion.div key="no-results" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center justify-between px-1">
               <p className="text-xs text-ink-400">Nothing in your library matched.</p>
               <button
-                onClick={() => handleSubmit(prompt, undefined, true)}
+                onClick={() => handleGenerateConcepts(prompt)}
                 className="flex items-center gap-1.5 text-xs text-saffron-600 hover:text-saffron-700 transition-colors"
               >
                 <WandSparkles size={12} />
                 Generate new recipe →
               </button>
+            </motion.div>
+          )}
+
+          {/* Concept picker */}
+          {state === "concepts" && concepts.length > 0 && (
+            <motion.div key="concepts" initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.2 }} className="space-y-2 pt-1">
+              <p className="text-xs text-ink-400 px-1">Pick one to make →</p>
+              {concepts.map((c, i) => (
+                <button
+                  key={i}
+                  onClick={() => handleSelectConcept(c)}
+                  className="w-full text-left bg-parchment-200 border border-parchment-300 rounded-xl px-4 py-3 hover:bg-parchment-300 hover:border-saffron-300 transition-colors group"
+                >
+                  <p className="text-sm font-medium text-ink-900 group-hover:text-ink-900">{c.title}</p>
+                  <p className="text-xs text-ink-500 mt-0.5 leading-relaxed">{c.description}</p>
+                </button>
+              ))}
             </motion.div>
           )}
 
@@ -317,7 +374,7 @@ export function AIPromptBar() {
             onSave={saved => { setGeneratedRecipe(null); setPrompt(""); router.push(`/recipes/${saved.slug}`); }}
             onRegenerate={() => {
               setGeneratedRecipe(null);
-              handleSubmit(prompt);
+              handleGenerateConcepts(prompt);
             }}
           />
         )}

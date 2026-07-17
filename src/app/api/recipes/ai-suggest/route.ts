@@ -23,13 +23,51 @@ export async function POST(req: Request) {
   let pantryItems: string[] | undefined;
   let flavorHints: Record<string, string[]> | undefined;
   let forceGenerate: boolean | undefined;
+  let conceptsOnly: boolean | undefined;
   try {
-    ({ prompt, recipes, pantryItems, flavorHints, forceGenerate } = await req.json());
+    ({ prompt, recipes, pantryItems, flavorHints, forceGenerate, conceptsOnly } = await req.json());
   } catch {
     return Response.json({ error: "Invalid request" }, { status: 400 });
   }
 
   if (!prompt?.trim()) return Response.json({ error: "Prompt required" }, { status: 400 });
+
+  // Fast concept picker — Haiku generates 3 recipe ideas to choose from before
+  // committing to a full Sonnet generation.
+  if (conceptsOnly) {
+    try {
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "x-api-key": apiKey, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: 300,
+          messages: [{
+            role: "user",
+            content: `You are a recipe assistant. The user wants to cook: "${prompt.trim()}"
+
+Generate 3 distinct recipe concepts. Make them genuinely different — vary the style, main ingredient, or technique.
+
+Return ONLY valid JSON (no markdown fences):
+{"mode":"concepts","concepts":[{"title":"...","description":"one sentence, 12 words max"},{"title":"...","description":"..."},{"title":"...","description":"..."}]}`,
+          }],
+        }),
+        signal: AbortSignal.timeout(10_000),
+      });
+      if (!res.ok) return Response.json({ error: "AI request failed" }, { status: 502 });
+      const data = await res.json();
+      const text = data?.content?.[0]?.text as string | undefined;
+      if (!text) return Response.json({ error: "Empty AI response" }, { status: 502 });
+      const raw = text.match(/\{[\s\S]+\}/)?.[0] ?? text.trim();
+      const json = JSON.parse(raw);
+      if (json.mode === "concepts" && Array.isArray(json.concepts)) {
+        return Response.json({ mode: "concepts", concepts: json.concepts });
+      }
+      return Response.json({ error: "Unexpected concepts format" }, { status: 422 });
+    } catch {
+      return Response.json({ error: "Request failed — try again." }, { status: 500 });
+    }
+  }
 
   const hasLibrary = recipes?.length > 0;
   const librarySection = hasLibrary
