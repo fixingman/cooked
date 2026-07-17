@@ -23,8 +23,8 @@
 | F-14 | AI recipe creation — FlavorGraph pairings, GeneratedRecipeModal | ✅ Shipped | 0.22.0 |
 | U-23 | Quick-bookmark from recipe card (long-press / hover) | 🔴 Not started | — |
 | U-24 | Wire mic & camera permission toggles in Settings | 🔴 Not started | — |
+| U-30 | Cooking tip of the day — homepage section | 🔴 Not started | — |
 | U-25 | Richer greeting variety — 10–12 per time slot, daily rotation | ✅ Shipped | 0.18.0 |
-| U-28 | Unified AI + recipe search bar | 🔴 Not started | — |
 | U-29 | Homepage improvements — carousels, empty states, sparse-library | ✅ Shipped | 0.27.0 |
 
 ---
@@ -51,7 +51,7 @@ Supabase Postgres. Server-side querying, multi-user, recipe search at scale. **D
 
 | # | Description | Area | Notes |
 |---|-------------|------|-------|
-| U-28 | Unified AI + recipe search bar | Homepage | Merge AI prompt bar and recipe search into one input. Short query = filter library; natural-language sentence = AI suggest/generate. Needs clear mode-switch UX. |
+| U-30 | Cooking tip of the day | Homepage | Small daily tip section on the homepage — technique, substitution, or pantry trick. Rotates daily. Decisions needed: static curated list vs AI-generated; placement (below greeting or bottom of page); Wallpaper Test applies. |
 | U-24 | Wire mic & camera permission toggles | Settings | Toggles are dead UI. Call `navigator.mediaDevices.getUserMedia` / `navigator.permissions.query`, reflect live browser state. Effectively a bug. |
 | U-23 | Quick-bookmark from recipe card | Recipe list | Long-press / hover bookmark action. Bookmark currently only on detail page. (Note: card hover already has "add to shopping" as of 0.25.0.) |
 

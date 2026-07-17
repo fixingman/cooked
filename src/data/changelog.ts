@@ -17,7 +17,7 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
-    version: "0.31.2",
+    version: "0.31.3",
     date: "2026-07-18",
     notes: [
       "When creating a new AI recipe, you now pick from four different ideas first — then Cooked builds the one you choose.",
