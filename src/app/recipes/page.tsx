@@ -11,6 +11,7 @@ import { ImportRecipeModal } from "@/components/recipes/ImportRecipeModal";
 import { useRecipeFilter } from "@/hooks/useRecipeFilter";
 import { useUserRecipes } from "@/hooks/useUserRecipes";
 import { useRecipeStates } from "@/hooks/useRecipeStates";
+import { useSettings } from "@/hooks/useSettings";
 import type { CategoryFilter, SortOption } from "@/hooks/useRecipeFilter";
 import type { MealTime, DietaryTag, Recipe } from "@/types/recipe"; // DietaryTag used in matchesCategory casts
 
@@ -58,11 +59,18 @@ function RecipesContent() {
 
   const { recipes: userRecipes } = useUserRecipes();
   const { states: recipeStates } = useRecipeStates();
+  const { settings } = useSettings();
 
   const { query, categories, viewMode, sort, setQuery, toggleCategory, clearCategories, setViewMode, setSort } =
     useRecipeFilter({ categories: initialCategory ? [initialCategory] : [] });
 
-  const allRecipes = useMemo(() => [...userRecipes], [userRecipes]);
+  // Silent dietary filter — always active, independent of chip state.
+  const allRecipes = useMemo(() => {
+    const prefs = settings.dietaryPreferences;
+    const base = [...userRecipes];
+    if (!prefs.length) return base;
+    return base.filter(r => prefs.every(d => r.dietaryTags.includes(d)));
+  }, [userRecipes, settings.dietaryPreferences]);
 
   const wantToCookIds = useMemo(
     () => new Set(recipeStates.filter(s => s.wantToCook).map(s => s.recipeId)),

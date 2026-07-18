@@ -15,6 +15,7 @@ import { useUserRecipes } from "@/hooks/useUserRecipes";
 import { useFavourites } from "@/hooks/useFavourites";
 import { useRecipeStates } from "@/hooks/useRecipeStates";
 import { usePantry } from "@/hooks/usePantry";
+import { useSettings } from "@/hooks/useSettings";
 import { rankRecipes, hasEnoughSignal, pantryMatchCount } from "@/lib/rankRecipes";
 import { normalizeForMatch } from "@/lib/ingredientUtils";
 import type { RankSignals } from "@/lib/rankRecipes";
@@ -73,8 +74,15 @@ export default function HomePage() {
   const { favouriteIds } = useFavourites();
   const { states, hasCooked } = useRecipeStates();
   const { items: pantryItems } = usePantry();
+  const { settings } = useSettings();
 
-  const allRecipes = useMemo(() => [...userRecipes], [userRecipes]);
+  // Silent dietary filter — applied before any carousel sees the recipe list.
+  const allRecipes = useMemo(() => {
+    const prefs = settings.dietaryPreferences;
+    const base = [...userRecipes];
+    if (!prefs.length) return base;
+    return base.filter(r => prefs.every(d => r.dietaryTags.includes(d)));
+  }, [userRecipes, settings.dietaryPreferences]);
   const isSparse = allRecipes.length < 5;
 
   // Deferred to after mount — server and client clocks can differ, causing hydration mismatch.
