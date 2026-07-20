@@ -17,6 +17,14 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.31.8",
+    date: "2026-07-20",
+    notes: [
+      "Fixed layout on iPad — content no longer hides behind the status bar or home indicator in portrait and landscape.",
+      "Sidebar icon updated to match the navigation icon style.",
+    ],
+  },
+  {
     version: "0.31.7",
     date: "2026-07-18",
     notes: [

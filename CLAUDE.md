@@ -2,6 +2,7 @@
 
 ## Reference docs
 - Product principles, design guidelines, voice & tone: **`PRODUCT.md`** — read this before proposing any new feature or UI change; flag misalignments
+- Product philosophy, closed decisions, design principles, recurring surface test, decision log: **`ProductThinking.md`** — read alongside PRODUCT.md when evaluating any new feature or direction change
 - Architecture, design system, hooks, routes: **`MEMORY.md`**
 - Feature backlog and shipped log: **`BACKLOG.md`**
 - Frequently-imported recipe sites + per-site parsing quirks: **`RECIPE_SOURCES.md`**
