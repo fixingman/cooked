@@ -28,42 +28,59 @@ function ShoppingRow({ item, onToggle, onRemove }: {
       exit={{ opacity: 0, height: 0, marginBottom: 0 }}
       transition={{ duration: 0.2 }}
     >
-      <div className={`group flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors ${
+      <div className={`flex items-center rounded-xl border transition-colors ${
         item.checked ? "bg-parchment-200/50 border-parchment-200" : "bg-parchment-200 border-parchment-300"
       }`}>
-        <button
+        {/* Full-width tap target: checkbox + name + qty */}
+        <motion.button
           onClick={() => onToggle(item.id)}
-          className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
-            item.checked ? "bg-sage-500 border-sage-500" : "border-ink-300 hover:border-sage-500"
-          }`}
+          whileTap={{ scale: 0.97 }}
+          className="flex-1 flex items-center gap-3 px-4 py-3.5 min-h-[3rem] text-left"
           aria-label={item.checked ? "Uncheck" : "Check off"}
         >
-          {item.checked && <Check size={12} className="text-parchment-100" strokeWidth={3} />}
-        </button>
+          <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
+            item.checked ? "bg-sage-500 border-sage-500" : "border-ink-300"
+          }`}>
+            <AnimatePresence>
+              {item.checked && (
+                <motion.span
+                  key="check"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  exit={{ scale: 0 }}
+                  transition={{ type: "spring", stiffness: 420, damping: 22 }}
+                >
+                  <Check size={12} className="text-parchment-100" strokeWidth={3} />
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </div>
 
-        <div className="flex-1 min-w-0">
-          <p className={`text-sm transition-colors ${item.checked ? "text-ink-400 line-through" : "text-ink-900"}`}>
-            {item.name}
-          </p>
-          {!item.checked && titles.length > 0 && (
-            <p className="text-xs text-ink-400 mt-0.5 truncate">
-              {titles.map(t => `from ${t}`).join(" · ")}
+          <div className="flex-1 min-w-0">
+            <p className={`text-sm transition-colors ${item.checked ? "text-ink-400 line-through" : "text-ink-900"}`}>
+              {item.name}
             </p>
+            {!item.checked && titles.length > 0 && (
+              <p className="text-xs text-ink-400 mt-0.5 truncate">
+                {titles.map(t => `from ${t}`).join(" · ")}
+              </p>
+            )}
+          </div>
+
+          {qty && (
+            <span className={`text-sm tabular-nums shrink-0 ${item.checked ? "text-ink-300" : "text-ink-500"}`}>
+              {qty}
+            </span>
           )}
-        </div>
+        </motion.button>
 
-        {qty && (
-          <span className={`text-sm tabular-nums shrink-0 ${item.checked ? "text-ink-300" : "text-ink-500"}`}>
-            {qty}
-          </span>
-        )}
-
+        {/* Remove — always visible, 44px hit area */}
         <button
           onClick={() => onRemove(item.id)}
-          className="w-6 h-6 flex items-center justify-center rounded-full text-ink-300 hover:text-ink-700 hover:bg-parchment-300 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
+          className="w-11 h-11 flex items-center justify-center text-ink-300 hover:text-ink-700 active:text-ink-700 transition-colors shrink-0 mr-1"
           aria-label="Remove"
         >
-          <X size={13} />
+          <X size={14} />
         </button>
       </div>
     </motion.li>

@@ -17,6 +17,15 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.31.9",
+    date: "2026-07-28",
+    notes: [
+      "Shopping list: tapping anywhere on a row now checks it off — no more hunting for the small checkbox.",
+      "Shopping list: satisfying spring animation when you check something off.",
+      "Pantry: pecan nuts, fresh herbs, and ramslök now sort into the right categories automatically.",
+    ],
+  },
+  {
     version: "0.31.8",
     date: "2026-07-20",
     notes: [

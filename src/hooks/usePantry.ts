@@ -12,6 +12,7 @@ function mergeItems(local: PantryItem[], remote: PantryItem[]): PantryItem[] {
 }
 
 const VALID_CATS = new Set<string>(CATEGORY_ORDER);
+const FRESH_PREFIX = /^(fresh|baby|young)\s+/i;
 
 export function usePantry() {
   const { getValidAccessToken } = useDropboxAuth();
@@ -23,18 +24,27 @@ export function usePantry() {
     merge: mergeItems,
   });
 
-  // Migrate items whose stored category was removed in a previous version (e.g. "produce")
+  // Migrate stale categories on load:
+  // 1. Removed category keys (e.g. old "produce") → re-infer
+  // 2. Catch-all "other"/"pantry" where inference now gives something specific → re-infer
+  // 3. Fresh herbs stored as "spices" (pre-vegetables split) → re-infer
   const migratedRef = useRef(false);
   useEffect(() => {
     if (migratedRef.current) return;
     migratedRef.current = true;
-    const hasStale = items.some(i => i.category && !VALID_CATS.has(i.category));
-    if (!hasStale) return;
-    setValue(prev => prev.map(i =>
-      i.category && !VALID_CATS.has(i.category)
-        ? { ...i, category: inferCategory(i.name) }
-        : i
-    ));
+    function needsMigration(i: PantryItem): boolean {
+      if (i.category && !VALID_CATS.has(i.category)) return true;
+      if (i.category === "other" || i.category === "pantry") {
+        const inf = inferCategory(i.name);
+        return inf !== "other" && inf !== "pantry";
+      }
+      if (i.category === "spices" && FRESH_PREFIX.test(i.name)) {
+        return inferCategory(i.name) !== "spices";
+      }
+      return false;
+    }
+    if (!items.some(needsMigration)) return;
+    setValue(prev => prev.map(i => needsMigration(i) ? { ...i, category: inferCategory(i.name) } : i));
   }, [items, setValue]);
 
   const addItem = useCallback((name: string, category?: PantryItem["category"]) => {

@@ -57,6 +57,7 @@ const RAW: Array<[PantryCategory, string[]]> = [
     // Fresh herbs
     "basil", "parsley", "coriander", "mint", "thyme", "rosemary",
     "dill", "chives", "tarragon", "sage", "oregano", "bay leaves", "bay leaf",
+    "ramslök", "ramsons", "wild garlic",
     // Aromatics
     "ginger", "fresh ginger", "lemongrass", "galangal",
   ]],
