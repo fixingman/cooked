@@ -199,7 +199,7 @@ export function PantryModal({ onClose }: PantryModalProps) {
         {/* Header */}
         <div className="flex items-center justify-between px-5 pt-4 pb-3 shrink-0">
           <div className="flex items-center gap-2">
-            <img src="/illustrations/jar.svg" alt="" className="h-10 w-auto shrink-0" />
+            <img src="/illustrations/jar.svg" alt="" className="h-10 w-auto shrink-0 mix-blend-multiply" />
             <h2 className="font-serif text-lg font-semibold text-ink-900">Pantry</h2>
           </div>
           <div className="flex items-center gap-1">
@@ -303,8 +303,8 @@ export function PantryModal({ onClose }: PantryModalProps) {
           {items.length === 0 ? (
             <div className="flex flex-col items-center text-center py-10 gap-3">
               <div className="flex items-end gap-3">
-                <img src="/illustrations/garlic_2.svg" alt="" className="h-28 w-auto" />
-                <img src="/illustrations/rolling_pin.svg" alt="" className="h-20 w-auto opacity-70" />
+                <img src="/illustrations/garlic_2.svg" alt="" className="h-28 w-auto mix-blend-multiply" />
+                <img src="/illustrations/rolling_pin.svg" alt="" className="h-20 w-auto opacity-70 mix-blend-multiply" />
               </div>
               <p className="text-sm text-ink-400 max-w-[220px] leading-relaxed">
                 Your pantry is empty — add ingredients you have on hand.

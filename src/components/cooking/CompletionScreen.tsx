@@ -49,7 +49,7 @@ export function CompletionScreen({ recipe }: CompletionScreenProps) {
         transition={{ delay: 0.2, type: "spring", stiffness: 200, damping: 18 }}
         className="mb-6"
       >
-        <img src="/illustrations/bowl_4.svg" alt="" className="h-32 w-auto" />
+        <img src="/illustrations/bowl_4.svg" alt="" className="h-32 w-auto mix-blend-multiply" />
       </motion.div>
 
       <motion.h2

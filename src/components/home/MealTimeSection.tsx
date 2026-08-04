@@ -32,7 +32,7 @@ export function MealTimeSection({ recipes, label, mealTime, seeAllHref, pantryNa
       <div className="flex items-center justify-between mb-3.5">
         <div className="flex items-center gap-2">
           {illustration ? (
-            <img src={illustration} alt="" className="h-10 w-auto shrink-0" />
+            <img src={illustration} alt="" className="h-10 w-auto shrink-0 mix-blend-multiply" />
           ) : icon ? (
             <span className="flex items-center justify-center w-5 h-5 rounded-md bg-sage-100 shrink-0">
               {icon}
