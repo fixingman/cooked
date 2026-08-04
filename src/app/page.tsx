@@ -224,7 +224,7 @@ export default function HomePage() {
             seeAllHref="/recipes"
             illustration="/illustrations/fork_spoon.svg"
           />
-          <MealTimeSection recipes={carousels.secondaryRecipes} label={secondary.label} mealTime={secondary.mealTime} illustration="/illustrations/herb_sprig.svg" />
+          <MealTimeSection recipes={carousels.secondaryRecipes} label={secondary.label} mealTime={secondary.mealTime} illustration="/illustrations/mortar.svg" />
           {carousels.forYou.length >= 2 && (
             <ForYouSection recipes={carousels.forYou} pantryNames={pantryNames} />
           )}
