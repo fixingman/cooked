@@ -17,6 +17,15 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.32.0",
+    date: "2026-08-04",
+    notes: [
+      "The app now has hand-drawn illustrations throughout — section headers, empty states, and key moments like finishing a recipe.",
+      "Each part of the app has its own little drawing: a whisk for your list, a garlic bulb for pantry-ready recipes, a lemon for your personal picks, and more.",
+      "Empty states (no recipes found, empty shopping list, empty pantry) now show an illustration instead of a blank space.",
+    ],
+  },
+  {
     version: "0.31.9",
     date: "2026-07-28",
     notes: [

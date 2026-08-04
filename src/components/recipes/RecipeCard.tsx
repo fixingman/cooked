@@ -146,23 +146,24 @@ export const RecipeCard = memo(function RecipeCard({ recipe, viewMode = "grid", 
               <AddToShoppingButton recipe={recipe} onAddToShopping={onAddToShopping} />
             </div>
           </div>
-          <div className="p-3.5 flex flex-col flex-1">
+          <div className="pt-3 px-3.5 flex flex-col flex-1">
             <h3 className={cn(
-              "font-serif font-medium text-ink-900 leading-snug group-hover:text-saffron-600 transition-colors duration-200 line-clamp-2 mb-2 text-balance",
+              "font-serif font-medium text-ink-900 leading-snug group-hover:text-saffron-600 transition-colors duration-200 line-clamp-2 mb-auto pb-2.5 text-balance",
               "text-[1rem]"
             )}>
               {recipe.title}
             </h3>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <span className="flex items-center gap-1 text-xs text-ink-500">
-                  <Clock size={11} />
-                  {formatMinutes(recipe.totalTimeMinutes)}
-                </span>
-                <Badge label={recipe.difficulty} variant="difficulty" />
-              </div>
-              <RecipeRating rating={recipe.rating} size={11} className="gap-0.5" />
+          </div>
+          {/* Meta row — tinted footer strip */}
+          <div className="flex items-center justify-between px-3.5 py-2 bg-parchment-300/50 border-t border-parchment-300/70">
+            <div className="flex items-center gap-2.5">
+              <span className="flex items-center gap-1 text-xs text-ink-500">
+                <Clock size={11} />
+                {formatMinutes(recipe.totalTimeMinutes)}
+              </span>
+              <Badge label={recipe.difficulty} variant="difficulty" />
             </div>
+            <RecipeRating rating={recipe.rating} size={11} className="gap-0.5" />
           </div>
         </div>
       </Link>

@@ -198,7 +198,10 @@ export function PantryModal({ onClose }: PantryModalProps) {
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 pt-4 pb-3 shrink-0">
-          <h2 className="font-serif text-lg font-semibold text-ink-900">Pantry</h2>
+          <div className="flex items-center gap-2">
+            <img src="/illustrations/jar.svg" alt="" className="h-7 w-auto shrink-0" />
+            <h2 className="font-serif text-lg font-semibold text-ink-900">Pantry</h2>
+          </div>
           <div className="flex items-center gap-1">
             <button
               onClick={handleCategorise}
@@ -298,9 +301,15 @@ export function PantryModal({ onClose }: PantryModalProps) {
         {/* Item list — grouped by category */}
         <div className="flex-1 overflow-y-auto px-5 pb-6 min-h-0" onClick={() => setShowSuggestions(false)}>
           {items.length === 0 ? (
-            <p className="text-sm text-ink-400 text-center py-10">
-              Your pantry is empty — add ingredients you have on hand.
-            </p>
+            <div className="flex flex-col items-center text-center py-10 gap-3">
+              <div className="flex items-end gap-3">
+                <img src="/illustrations/garlic_2.svg" alt="" className="h-20 w-auto" />
+                <img src="/illustrations/rolling_pin.svg" alt="" className="h-14 w-auto opacity-70" />
+              </div>
+              <p className="text-sm text-ink-400 max-w-[220px] leading-relaxed">
+                Your pantry is empty — add ingredients you have on hand.
+              </p>
+            </div>
           ) : (
             <div className="space-y-5">
               {categoryKeys.map(cat => (

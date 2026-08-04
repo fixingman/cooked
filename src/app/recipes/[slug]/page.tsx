@@ -153,6 +153,8 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
     return () => clearTimeout(t);
   }, [enriching, initialRecipe.id]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState(false);
+  const deleteTimerRef = useRef<ReturnType<typeof setTimeout>>();
   const { removeRecipe } = useUserRecipes();
   const { addEntry, deleteLastEntry, deleteRecipeHistory } = useCookingHistory();
   const { deleteState, markCooked, unmarkCooked, hasCooked, getState } = useRecipeStates();
@@ -183,11 +185,22 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
   }
 
   function handleDelete() {
-    removeRecipe(recipe.id);
-    deleteRecipeHistory(recipe.id);
-    deleteState(recipe.id);
-    router.push("/recipes");
+    setShowDeleteConfirm(false);
+    setPendingDelete(true);
+    deleteTimerRef.current = setTimeout(() => {
+      removeRecipe(recipe.id);
+      deleteRecipeHistory(recipe.id);
+      deleteState(recipe.id);
+      router.push("/recipes");
+    }, 5000);
   }
+
+  function handleUndoDelete() {
+    clearTimeout(deleteTimerRef.current);
+    setPendingDelete(false);
+  }
+
+  useEffect(() => () => clearTimeout(deleteTimerRef.current), []);
 
   return (
     <div className="relative">
@@ -421,6 +434,27 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
             dietaryPreferences={settings.dietaryPreferences}
             onClose={() => setSubIngredient(null)}
           />
+        )}
+      </AnimatePresence>
+
+      {/* Undo delete toast */}
+      <AnimatePresence>
+        {pendingDelete && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ duration: 0.2 }}
+            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-ink-900 text-parchment-100 text-sm px-4 py-2.5 rounded-xl shadow-card-md whitespace-nowrap"
+          >
+            <span>Recipe deleted</span>
+            <button
+              onClick={handleUndoDelete}
+              className="text-saffron-400 font-semibold hover:text-saffron-300 transition-colors"
+            >
+              Undo
+            </button>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

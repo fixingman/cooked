@@ -37,11 +37,11 @@ export function RecipeGrid({ recipes, viewMode = "grid" }: RecipeGridProps) {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="flex flex-col items-center justify-center py-24 text-center"
+        className="flex flex-col items-center justify-center py-20 text-center"
       >
-        <div className="text-5xl mb-4">🍽️</div>
-        <h3 className="font-serif text-xl text-ink-700 mb-2">No recipes found</h3>
-        <p className="text-ink-500 text-sm">Try adjusting your search or filters</p>
+        <img src="/illustrations/bowl_3.svg" alt="" className="h-24 w-auto mb-5 opacity-90" />
+        <h3 className="font-display text-lg text-ink-700 tracking-tight mb-1.5">No recipes found</h3>
+        <p className="text-ink-400 text-sm max-w-xs leading-relaxed">Try adjusting your search or filters</p>
       </motion.div>
     );
   }

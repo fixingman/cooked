@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Sparkles, Clock } from "lucide-react";
+import { Clock } from "lucide-react";
 import { FoodImage } from "@/components/ui/FoodImage";
 import { Badge } from "@/components/ui/Badge";
 import { formatMinutes } from "@/lib/formatTime";
@@ -22,8 +22,8 @@ export function ForYouSection({ recipes, pantryNames }: ForYouSectionProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.15, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
     >
-      <div className="flex items-center gap-1.5 mb-3">
-        <Sparkles size={12} className="text-saffron-500 shrink-0" />
+      <div className="flex items-center gap-2 mb-3">
+        <img src="/illustrations/lemon.svg" alt="" className="h-7 w-auto shrink-0" />
         <p className="font-display text-label uppercase tracking-widest text-ink-400">For You</p>
       </div>
 

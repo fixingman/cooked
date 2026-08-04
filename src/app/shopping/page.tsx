@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
-import { Plus, Check, X, Trash2, ShoppingCart, Archive } from "lucide-react";
+import { Plus, Check, X, Trash2, Archive } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useShoppingList } from "@/hooks/useShoppingList";
 import { usePantry } from "@/hooks/usePantry";
@@ -167,12 +167,10 @@ export default function ShoppingPage() {
 
       {/* Empty state */}
       {mounted && list.length === 0 && (
-        <div className="flex flex-col items-center text-center py-20">
-          <div className="w-16 h-16 rounded-full bg-parchment-200 flex items-center justify-center mb-4">
-            <ShoppingCart size={26} className="text-ink-300" />
-          </div>
-          <p className="font-serif text-lg text-ink-700">Your list is empty</p>
-          <p className="text-sm text-ink-400 mt-1 max-w-xs">
+        <div className="flex flex-col items-center text-center py-16">
+          <img src="/illustrations/grocery_bag.svg" alt="" className="h-24 w-auto mb-5 opacity-90" />
+          <p className="font-display text-lg text-ink-700 tracking-tight">Nothing on the list yet</p>
+          <p className="text-sm text-ink-400 mt-1.5 max-w-xs leading-relaxed">
             Add ingredients from any recipe, or type something above.
           </p>
         </div>

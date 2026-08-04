@@ -1,7 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { Star, ChefHat } from "lucide-react";
+import { Star } from "lucide-react";
 import { useState, useEffect } from "react";
 import type { Recipe } from "@/types/recipe";
 import { useCookingHistory } from "@/hooks/useCookingHistory";
@@ -47,9 +47,9 @@ export function CompletionScreen({ recipe }: CompletionScreenProps) {
         initial={{ scale: 0, rotate: -20 }}
         animate={{ scale: 1, rotate: 0 }}
         transition={{ delay: 0.2, type: "spring", stiffness: 200, damping: 18 }}
-        className="w-20 h-20 bg-sage-100 rounded-full flex items-center justify-center mb-6"
+        className="mb-6"
       >
-        <ChefHat size={36} className="text-sage-600" />
+        <img src="/illustrations/bowl_4.svg" alt="" className="h-24 w-auto" />
       </motion.div>
 
       <motion.h2

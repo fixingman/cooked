@@ -15,9 +15,10 @@ interface MealTimeSectionProps {
   seeAllHref?: string;
   pantryNames?: Set<string>;
   icon?: React.ReactNode;
+  illustration?: string;
 }
 
-export function MealTimeSection({ recipes, label, mealTime, seeAllHref, pantryNames, icon }: MealTimeSectionProps) {
+export function MealTimeSection({ recipes, label, mealTime, seeAllHref, pantryNames, icon, illustration }: MealTimeSectionProps) {
   if (recipes.length === 0) return null;
 
   const href = seeAllHref ?? (mealTime ? `/recipes?category=${mealTime}` : null);
@@ -28,10 +29,16 @@ export function MealTimeSection({ recipes, label, mealTime, seeAllHref, pantryNa
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.25, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
     >
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-1.5">
-          {icon}
-          <p className="font-display text-label uppercase tracking-widest text-ink-400">{label}</p>
+      <div className="flex items-center justify-between mb-3.5">
+        <div className="flex items-center gap-2">
+          {illustration ? (
+            <img src={illustration} alt="" className="h-7 w-auto shrink-0" />
+          ) : icon ? (
+            <span className="flex items-center justify-center w-5 h-5 rounded-md bg-sage-100 shrink-0">
+              {icon}
+            </span>
+          ) : null}
+          <p className="font-display text-[0.7rem] uppercase tracking-[0.12em] font-semibold text-ink-500">{label}</p>
         </div>
         {href && (
           <Link href={href} className="text-xs text-saffron-500 font-medium hover:text-saffron-600 transition-colors">

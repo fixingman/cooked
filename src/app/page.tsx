@@ -1,7 +1,6 @@
 "use client";
 import { useMemo, useState, useEffect, useRef, Suspense } from "react";
 import { AnimatePresence } from "framer-motion";
-import { CheckCircle } from "lucide-react";
 import { TimeGreeting } from "@/components/home/TimeGreeting";
 import { AIPromptBar } from "@/components/home/AIPromptBar";
 import { PantryWidget } from "@/components/home/PantryWidget";
@@ -209,21 +208,23 @@ export default function HomePage() {
             recipes={carousels.wantToCook}
             label="In Your List"
             seeAllHref="/recipes?category=want-to-cook"
+            illustration="/illustrations/whisk.svg"
           />
-          <MealTimeSection recipes={carousels.primaryRecipes} label={primary.label} mealTime={primary.mealTime} />
+          <MealTimeSection recipes={carousels.primaryRecipes} label={primary.label} mealTime={primary.mealTime} illustration="/illustrations/frying_pan.svg" />
           <MealTimeSection
             recipes={carousels.readyToCook}
             label="Ready to Cook"
             pantryNames={pantryNames}
-            icon={<CheckCircle size={12} className="text-sage-500 shrink-0" />}
+            illustration="/illustrations/garlic.svg"
           />
           <ContinueCooking />
           <MealTimeSection
             recipes={carousels.untriedFavourites}
             label="From Your Favourites"
             seeAllHref="/recipes"
+            illustration="/illustrations/fork_spoon.svg"
           />
-          <MealTimeSection recipes={carousels.secondaryRecipes} label={secondary.label} mealTime={secondary.mealTime} />
+          <MealTimeSection recipes={carousels.secondaryRecipes} label={secondary.label} mealTime={secondary.mealTime} illustration="/illustrations/herb_sprig.svg" />
           {carousels.forYou.length >= 2 && (
             <ForYouSection recipes={carousels.forYou} pantryNames={pantryNames} />
           )}

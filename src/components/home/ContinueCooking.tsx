@@ -34,7 +34,10 @@ export function ContinueCooking() {
       transition={{ delay: 0.35, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
     >
       <div className="flex items-center justify-between mb-3">
-        <p className="font-display text-label uppercase tracking-widest text-ink-400">Recently Cooked</p>
+        <div className="flex items-center gap-2">
+          <img src="/illustrations/herb_sprig.svg" alt="" className="h-7 w-auto shrink-0" />
+          <p className="font-display text-label uppercase tracking-widest text-ink-400">Recently Cooked</p>
+        </div>
         {hasMore && (
           <Link href="/recipes?category=cooked" className="text-xs text-saffron-500 font-medium hover:text-saffron-600 transition-colors">
             See all →
