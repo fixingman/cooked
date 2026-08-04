@@ -135,7 +135,7 @@ export default function SettingsPage() {
       </Section>
 
       <div className="flex flex-col items-center gap-1 pt-2 pb-4">
-        <img src="/illustrations/rolling_pin.svg" alt="" className="h-20 w-auto opacity-60 mix-blend-multiply" />
+        <img src="/illustrations/rolling_pin.svg?v=2" alt="" className="h-20 w-auto opacity-60" />
         <p className="text-center text-xs text-ink-300">Made with care.</p>
       </div>
 

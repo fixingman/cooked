@@ -35,7 +35,7 @@ export function ContinueCooking() {
     >
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <img src="/illustrations/herb_sprig.svg" alt="" className="h-10 w-auto shrink-0 mix-blend-multiply" />
+          <img src="/illustrations/herb_sprig.svg?v=2" alt="" className="h-10 w-auto shrink-0" />
           <p className="font-display text-label uppercase tracking-widest text-ink-400">Recently Cooked</p>
         </div>
         {hasMore && (

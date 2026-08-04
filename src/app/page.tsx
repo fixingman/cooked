@@ -208,23 +208,23 @@ export default function HomePage() {
             recipes={carousels.wantToCook}
             label="In Your List"
             seeAllHref="/recipes?category=want-to-cook"
-            illustration="/illustrations/whisk.svg"
+            illustration="/illustrations/whisk.svg?v=2"
           />
-          <MealTimeSection recipes={carousels.primaryRecipes} label={primary.label} mealTime={primary.mealTime} illustration="/illustrations/frying_pan.svg" />
+          <MealTimeSection recipes={carousels.primaryRecipes} label={primary.label} mealTime={primary.mealTime} illustration="/illustrations/frying_pan.svg?v=2" />
           <MealTimeSection
             recipes={carousels.readyToCook}
             label="Ready to Cook"
             pantryNames={pantryNames}
-            illustration="/illustrations/garlic.svg"
+            illustration="/illustrations/garlic.svg?v=2"
           />
           <ContinueCooking />
           <MealTimeSection
             recipes={carousels.untriedFavourites}
             label="From Your Favourites"
             seeAllHref="/recipes"
-            illustration="/illustrations/fork_spoon.svg"
+            illustration="/illustrations/fork_spoon.svg?v=2"
           />
-          <MealTimeSection recipes={carousels.secondaryRecipes} label={secondary.label} mealTime={secondary.mealTime} illustration="/illustrations/mortar.svg" />
+          <MealTimeSection recipes={carousels.secondaryRecipes} label={secondary.label} mealTime={secondary.mealTime} illustration="/illustrations/mortar.svg?v=2" />
           {carousels.forYou.length >= 2 && (
             <ForYouSection recipes={carousels.forYou} pantryNames={pantryNames} />
           )}

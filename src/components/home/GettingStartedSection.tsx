@@ -16,7 +16,7 @@ export function GettingStartedSection({ onImport, onInspire }: GettingStartedSec
       className="rounded-2xl border border-parchment-300 bg-parchment-100 overflow-hidden"
     >
       <div className="flex items-center justify-center bg-parchment-200/60 border-b border-parchment-300/70 py-8">
-        <img src="/illustrations/cutting_board.svg" alt="" className="h-32 w-auto mix-blend-multiply" />
+        <img src="/illustrations/cutting_board.svg?v=2" alt="" className="h-32 w-auto" />
       </div>
 
       <div className="px-5 pt-5 pb-6">
