@@ -17,6 +17,13 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.32.1",
+    date: "2026-08-04",
+    notes: [
+      "Fixed the illustrations — they now appear with transparent backgrounds as intended.",
+    ],
+  },
+  {
     version: "0.32.0",
     date: "2026-08-04",
     notes: [
