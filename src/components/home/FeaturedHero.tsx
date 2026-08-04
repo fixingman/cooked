@@ -21,7 +21,7 @@ export function FeaturedHero({ recipe, label = "Featured Today" }: FeaturedHeroP
       transition={{ delay: 0.15, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
     >
       <div className="flex items-center gap-2 mb-3">
-        <img src="/illustrations/flame.svg" alt="" className="h-7 w-auto shrink-0" />
+        <img src="/illustrations/flame.svg" alt="" className="h-10 w-auto shrink-0" />
         <p className="font-display text-label uppercase tracking-widest text-ink-400">{label}</p>
       </div>
       <Link href={`/recipes/${recipe.slug}`}>
