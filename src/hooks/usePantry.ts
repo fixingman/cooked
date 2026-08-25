@@ -67,6 +67,25 @@ export function usePantry() {
     });
   }, [setValue]);
 
+  // Add to pantry marked low — used when an item lands on the shopping list but
+  // wasn't already in the pantry. No-op if the item is already there (don't
+  // disturb an existing entry or clear a low flag that was already set).
+  const addItemLow = useCallback((name: string, category?: PantryItem["category"]) => {
+    const normalised = name.trim();
+    if (!normalised) return;
+    setValue(prev => {
+      if (prev.some(i => i.name.toLowerCase() === normalised.toLowerCase())) return prev;
+      const item: PantryItem = {
+        id: crypto.randomUUID(),
+        name: normalised,
+        addedAt: new Date().toISOString(),
+        low: true,
+        category: category && VALID_CATS.has(category) ? category : inferCategory(normalised),
+      };
+      return [item, ...prev];
+    });
+  }, [setValue]);
+
   const removeItem = useCallback((id: string) => {
     setValue(prev => prev.filter(i => i.id !== id));
   }, [setValue]);
@@ -95,5 +114,5 @@ export function usePantry() {
     });
   }, [setValue]);
 
-  return { items, addItem, removeItem, toggleLow, updateCategory, importItems };
+  return { items, addItem, addItemLow, removeItem, toggleLow, updateCategory, importItems };
 }

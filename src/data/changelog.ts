@@ -17,6 +17,13 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.32.3",
+    date: "2026-08-25",
+    notes: [
+      "Checking off a shopping list item now removes it instantly — it moves straight to your pantry and disappears from the list.",
+    ],
+  },
+  {
     version: "0.32.2",
     date: "2026-08-04",
     notes: [

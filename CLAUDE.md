@@ -187,6 +187,7 @@ Trigger phrases are **shortcuts to invoke a routine on demand** — not precondi
 - `0.29.3` fix: toggles — `overflow-hidden` on track clips thumb within rounded corners; explicit `left-0` on thumb; `shadow-card` → `shadow-sm`
 - `0.29.4` fix: Notion import — `isNotionUrl` intercept in import route; `loadPageChunk` internal API (public pages, no auth); block tree → plain text → Claude · `/recipes` hydration mismatch fixed (mounted gate on count + grid, same class as BUG-014)
 - `0.29.5` fix: Notion import hero image — first `image` block's `display_source`/`source` URL used when Claude returns none
+- `0.32.3` fix: shopping list check-off removes item immediately (add to pantry + filter from list); remove "Clear all" button; simplify ShoppingRow (no checked-state styling)
 - `0.30.0` feat: pantry ⇄ shopping category sync — `ShoppingItem.category` added; AI categorise button (PantryModal) sends pantry + shopping names in one `/api/pantry/categorise` call and writes both stores; shopping page resolves category as pantry (live `usePantry` map keyed by `normalizeForMatch`) → item's stored category → `inferCategory` fallback; category travels both ways (`addFromPantry` copies pantry category, check-off passes it to `usePantry.addItem`)
 
 ---

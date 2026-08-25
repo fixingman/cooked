@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
-import { Plus, Check, X, Trash2, Archive } from "lucide-react";
+import { Plus, X, Archive } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useShoppingList } from "@/hooks/useShoppingList";
 import { usePantry } from "@/hooks/usePantry";
@@ -28,39 +28,19 @@ function ShoppingRow({ item, onToggle, onRemove }: {
       exit={{ opacity: 0, height: 0, marginBottom: 0 }}
       transition={{ duration: 0.2 }}
     >
-      <div className={`flex items-center rounded-xl border transition-colors ${
-        item.checked ? "bg-parchment-200/50 border-parchment-200" : "bg-parchment-200 border-parchment-300"
-      }`}>
+      <div className="flex items-center rounded-xl border bg-parchment-200 border-parchment-300 transition-colors">
         {/* Full-width tap target: checkbox + name + qty */}
         <motion.button
           onClick={() => onToggle(item.id)}
           whileTap={{ scale: 0.97 }}
           className="flex-1 flex items-center gap-3 px-4 py-3.5 min-h-[3rem] text-left"
-          aria-label={item.checked ? "Uncheck" : "Check off"}
+          aria-label="Check off"
         >
-          <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
-            item.checked ? "bg-sage-500 border-sage-500" : "border-ink-300"
-          }`}>
-            <AnimatePresence>
-              {item.checked && (
-                <motion.span
-                  key="check"
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  exit={{ scale: 0 }}
-                  transition={{ type: "spring", stiffness: 420, damping: 22 }}
-                >
-                  <Check size={12} className="text-parchment-100" strokeWidth={3} />
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </div>
+          <div className="w-5 h-5 rounded-md border-2 border-ink-300 flex items-center justify-center shrink-0" />
 
           <div className="flex-1 min-w-0">
-            <p className={`text-sm transition-colors ${item.checked ? "text-ink-400 line-through" : "text-ink-900"}`}>
-              {item.name}
-            </p>
-            {!item.checked && titles.length > 0 && (
+            <p className="text-sm text-ink-900">{item.name}</p>
+            {titles.length > 0 && (
               <p className="text-xs text-ink-400 mt-0.5 truncate">
                 {titles.map(t => `from ${t}`).join(" · ")}
               </p>
@@ -68,9 +48,7 @@ function ShoppingRow({ item, onToggle, onRemove }: {
           </div>
 
           {qty && (
-            <span className={`text-sm tabular-nums shrink-0 ${item.checked ? "text-ink-300" : "text-ink-500"}`}>
-              {qty}
-            </span>
+            <span className="text-sm tabular-nums shrink-0 text-ink-500">{qty}</span>
           )}
         </motion.button>
 
@@ -88,7 +66,7 @@ function ShoppingRow({ item, onToggle, onRemove }: {
 }
 
 export default function ShoppingPage() {
-  const { list, addManual, toggleChecked, removeItem, clearChecked, clearAll } = useShoppingList();
+  const { list, addManual, toggleChecked, removeItem } = useShoppingList();
   const { items: pantryItems } = usePantry();
   const [draft, setDraft] = useState("");
   const [pantryOpen, setPantryOpen] = useState(false);
@@ -105,25 +83,21 @@ export default function ShoppingPage() {
     return m;
   }, [pantryItems]);
 
-  // Group unchecked items by category, in CATEGORY_ORDER; checked items at the bottom.
+  // Group items by category in CATEGORY_ORDER.
   // Category resolution: pantry (live) → item's own AI category → static lookup.
-  const { groups, checked } = useMemo(() => {
-    const unchecked = list.filter(i => !i.checked);
+  const groups = useMemo(() => {
     const byCategory = new Map<string, ShoppingItem[]>();
-    for (const item of unchecked) {
+    for (const item of list) {
       const cat =
         pantryCategories.get(normalizeForMatch(item.name)) ??
         (item.category && VALID_CATS.has(item.category) ? item.category : inferCategory(item.name));
       if (!byCategory.has(cat)) byCategory.set(cat, []);
       byCategory.get(cat)!.push(item);
     }
-    const groups = CATEGORY_ORDER
+    return CATEGORY_ORDER
       .filter(cat => byCategory.has(cat))
       .map(cat => ({ cat, label: CATEGORY_LABELS[cat], items: byCategory.get(cat)! }));
-    return { groups, checked: list.filter(i => i.checked) };
   }, [list, pantryCategories]);
-
-  const checkedCount = checked.length;
 
   function handleAdd() {
     const v = draft.trim();
@@ -187,37 +161,7 @@ export default function ShoppingPage() {
           </div>
         ))}
 
-        {mounted && checked.length > 0 && (
-          <div className="mt-2">
-            <p className="text-label uppercase tracking-widest text-ink-400 mb-2 px-1">Done</p>
-            <ul className="space-y-1.5">
-              {checked.map(item => <ShoppingRow key={item.id} item={item} onToggle={toggleChecked} onRemove={removeItem} />)}
-            </ul>
-          </div>
-        )}
       </AnimatePresence>
-
-      {/* Footer actions */}
-      {mounted && list.length > 0 && (
-        <div className="flex items-center gap-3 mt-6 pt-4 border-t border-parchment-300">
-          {checkedCount > 0 && (
-            <button
-              onClick={clearChecked}
-              className="flex items-center gap-1.5 text-xs font-medium text-ink-600 hover:text-ink-900 transition-colors"
-            >
-              <Check size={13} />
-              Clear {checkedCount} checked
-            </button>
-          )}
-          <button
-            onClick={clearAll}
-            className="flex items-center gap-1.5 text-xs font-medium text-ink-400 hover:text-red-500 transition-colors ml-auto"
-          >
-            <Trash2 size={13} />
-            Clear all
-          </button>
-        </div>
-      )}
 
       <AnimatePresence>
         {pantryOpen && <PantryModal onClose={() => setPantryOpen(false)} />}

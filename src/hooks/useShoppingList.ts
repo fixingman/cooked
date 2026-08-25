@@ -43,7 +43,7 @@ function mergeItems(local: ShoppingItem[], remote: ShoppingItem[]): ShoppingItem
 
 export function useShoppingList() {
   const { getValidAccessToken } = useDropboxAuth();
-  const { addItem: addToPantry } = usePantry();
+  const { addItem: addToPantry, addItemLow: addToPantryLow } = usePantry();
   const { value: list, setValue } = useDropboxSync<ShoppingItem[]>({
     dropboxPath:     "/shopping-list.json",
     localStorageKey: "cooked-shopping-list",
@@ -57,6 +57,7 @@ export function useShoppingList() {
     const clean = name.trim();
     if (!clean) return;
     const key = normalizeForMatch(clean);
+    const isNew = !list.some(i => normalizeForMatch(i.name) === key);
     setValue(prev => {
       if (prev.some(i => normalizeForMatch(i.name) === key)) return prev;
       const item: ShoppingItem = {
@@ -69,7 +70,8 @@ export function useShoppingList() {
       };
       return [item, ...prev];
     });
-  }, [setValue]);
+    if (isNew) addToPantryLow(clean);
+  }, [list, setValue, addToPantryLow]);
 
   // Add selected ingredients from a recipe. An ingredient used more than once in
   // the same recipe (e.g. garam masala in marinade + sauce) is summed into a
@@ -90,9 +92,10 @@ export function useShoppingList() {
       }
     }
 
+    const entries = Array.from(perKey.values());
     setValue(prev => {
       const next = prev.map(i => ({ ...i, sources: [...i.sources] }));
-      for (const { name, source } of Array.from(perKey.values())) {
+      for (const { name, source } of entries) {
         const norm = normalizeForMatch(name);
         const existing = next.find(i => normalizeForMatch(i.name) === norm);
         if (existing) {
@@ -113,15 +116,18 @@ export function useShoppingList() {
       }
       return next;
     });
-  }, [setValue]);
+    // Mirror ingredients to pantry as low — no-op if already in pantry.
+    for (const { name } of entries) {
+      addToPantryLow(cleanForPantry(name));
+    }
+  }, [setValue, addToPantryLow]);
 
-  // Tick / untick. Ticking moves the item into the pantry (idempotent — addItem
-  // dedupes by name), completing the shop → pantry loop. Category travels with it.
+  // Check off: add to pantry and remove from the list immediately.
   const toggleChecked = useCallback((id: string) => {
     const item = list.find(i => i.id === id);
-    const willCheck = item ? !item.checked : false;
-    setValue(prev => prev.map(i => i.id === id ? { ...i, checked: !i.checked } : i));
-    if (item && willCheck) addToPantry(item.name, item.category);
+    if (!item) return;
+    addToPantry(item.name, item.category);
+    setValue(prev => prev.filter(i => i.id !== id));
   }, [list, setValue, addToPantry]);
 
   // Pantry → shopping: a pantry item ran low. Add it (deduped by name); if it's
