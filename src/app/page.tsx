@@ -208,23 +208,23 @@ export default function HomePage() {
             recipes={carousels.wantToCook}
             label="In Your List"
             seeAllHref="/recipes?category=want-to-cook"
-            illustration="/illustrations/whisk.svg?v=2"
+            illustration={{ src: "/illustrations/whisk.svg?v=2", width: 472, height: 300 }}
           />
-          <MealTimeSection recipes={carousels.primaryRecipes} label={primary.label} mealTime={primary.mealTime} illustration="/illustrations/frying_pan.svg?v=2" />
+          <MealTimeSection recipes={carousels.primaryRecipes} label={primary.label} mealTime={primary.mealTime} illustration={{ src: "/illustrations/frying_pan.svg?v=2", width: 482, height: 325 }} />
           <MealTimeSection
             recipes={carousels.readyToCook}
             label="Ready to Cook"
             pantryNames={pantryNames}
-            illustration="/illustrations/garlic.svg?v=2"
+            illustration={{ src: "/illustrations/garlic.svg?v=2", width: 375, height: 435 }}
           />
           <ContinueCooking />
           <MealTimeSection
             recipes={carousels.untriedFavourites}
             label="From Your Favourites"
             seeAllHref="/recipes"
-            illustration="/illustrations/fork_spoon.svg?v=2"
+            illustration={{ src: "/illustrations/fork_spoon.svg?v=2", width: 279, height: 430 }}
           />
-          <MealTimeSection recipes={carousels.secondaryRecipes} label={secondary.label} mealTime={secondary.mealTime} illustration="/illustrations/mortar.svg?v=2" />
+          <MealTimeSection recipes={carousels.secondaryRecipes} label={secondary.label} mealTime={secondary.mealTime} illustration={{ src: "/illustrations/mortar.svg?v=2", width: 452, height: 551 }} />
           {carousels.forYou.length >= 2 && (
             <ForYouSection recipes={carousels.forYou} pantryNames={pantryNames} />
           )}

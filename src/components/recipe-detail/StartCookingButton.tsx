@@ -8,6 +8,7 @@ import { useSettings } from "@/hooks/useSettings";
 interface StartCookingButtonProps {
   slug: string;
   thermomixAvailable?: boolean;
+  servings?: number;
 }
 
 const TmIcon = () => (
@@ -18,9 +19,18 @@ const TmIcon = () => (
   </svg>
 );
 
-export function StartCookingButton({ slug, thermomixAvailable }: StartCookingButtonProps) {
+export function StartCookingButton({ slug, thermomixAvailable, servings }: StartCookingButtonProps) {
   const { settings } = useSettings();
   const showTm = settings.thermomixEnabled && thermomixAvailable;
+  const cookUrl = (thermomix = false) => {
+    const params = new URLSearchParams();
+    if (thermomix) params.set("tm", "1");
+    if (servings !== undefined && Number.isFinite(servings) && servings > 0) {
+      params.set("servings", String(servings));
+    }
+    const query = params.toString();
+    return `/recipes/${slug}/cook${query ? `?${query}` : ""}`;
+  };
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -43,7 +53,7 @@ export function StartCookingButton({ slug, thermomixAvailable }: StartCookingBut
         >
           {showTm ? (
             <div className="flex gap-2.5">
-              <Link href={`/recipes/${slug}/cook`} className="flex-1" title="Start cooking without Thermomix">
+              <Link href={cookUrl()} className="flex-1" title="Start cooking without Thermomix">
                 <motion.div
                   whileTap={{ scale: 0.97 }}
                   className="w-full bg-parchment-200 border border-parchment-300 text-ink-700 rounded-2xl py-3.5 px-4 flex items-center justify-center gap-2 font-medium text-sm hover:bg-parchment-300 transition-colors"
@@ -52,7 +62,7 @@ export function StartCookingButton({ slug, thermomixAvailable }: StartCookingBut
                   Standard
                 </motion.div>
               </Link>
-              <Link href={`/recipes/${slug}/cook?tm=1`} className="flex-[1.6]" title="Start cooking with Thermomix">
+              <Link href={cookUrl(true)} className="flex-[1.6]" title="Start cooking with Thermomix">
                 <motion.div
                   whileTap={{ scale: 0.97 }}
                   className="w-full bg-sage-500 text-white rounded-2xl py-3.5 px-4 flex items-center justify-center gap-2 font-semibold text-sm hover:bg-sage-600 transition-colors shadow-sage-cta"
@@ -63,7 +73,7 @@ export function StartCookingButton({ slug, thermomixAvailable }: StartCookingBut
               </Link>
             </div>
           ) : (
-            <Link href={`/recipes/${slug}/cook`} className="block" title="Start step-by-step cooking mode">
+            <Link href={cookUrl()} className="block" title="Start step-by-step cooking mode">
               <motion.div
                 whileTap={{ scale: 0.97 }}
                 className="w-full bg-sage-500 text-white rounded-2xl py-4 px-6 flex items-center justify-center gap-3 font-semibold text-base shadow-sage-cta-lg"

@@ -15,6 +15,7 @@
 | Photo import (Claude vision) | manual | ⚠️ | |
 | YouTube import | unit (`isYouTubeUrl`, `extractVideoId`) | ✅ | Route itself manual |
 | Cook mode — step nav, timer, swipe | manual | ⚠️ | |
+| Cook mode — adjusted servings | unit + browser verification | ✅ | v0.32.4: standard and Thermomix entry links, refresh, fractional/doubled amounts, invalid URL fallback, 20→1 reduction, unknown yield. Browser check: `.context/check-cooking-servings.mjs` (local, gitignored). |
 | Mark as cooked + rating + notes | manual | ⚠️ | |
 | Undo mark as cooked | manual | ⚠️ | |
 | Edit / delete user recipe | manual | ⚠️ | `user-*` slugs only |
@@ -30,6 +31,8 @@
 | flatMap `\n`-delimited single-string ingredients | ✅ |
 | `mapDietaryTags` — schema.org URL + plain + array | ✅ |
 
+Serving-scale regression tests in `src/__tests__/servings.test.ts` cover missing/malformed/non-positive/non-finite overrides, invalid recipe yields, ratio overflow/underflow, reductions below 0.1, and fractional quantity formatting.
+
 ## Sync edge cases (`useDropboxSync` + per-hook merge)
 
 | Case | Status | Notes |
@@ -37,11 +40,13 @@
 | Offline create → localStorage persists | ⚠️ | |
 | Reconnect flushes `pendingRef` (`window.online`) | ⚠️ | |
 | Token refresh: network error keeps tokens (only 400/401 clears) | ⚠️ | |
-| Merge — recipes union-by-id (local-only prepended) | ⚠️ | |
+| Merge — recipes by ID | ❌ | BUG-012 reproduced: independent imports survive as two IDs; repeated remote IDs also survive. Same-ID starters reconcile to 12 correctly. |
 | Merge — recipe-states union `cookedAt`, OR `wantToCook`, first non-null rating | ⚠️ | |
 | Merge — history union by `cookedAt` ISO, sorted | ⚠️ | |
 | Merge — favourites set-union | ⚠️ | |
-| Two-device race / stale-data-on-restore | ⚠️ | Highest-risk path; needs deliberate two-device test |
+| Recipe import during delayed Dropbox download | ❌ | BUG-012: review stays saveable after matching remote recipe arrives; synthetic browser reproduction, 2026-09-23. |
+| Fresh-device seed after starter deletion/replacement | ❌ | BUG-012: deleted starter reappears next to imported variation, 12 → 13. |
+| Other two-device races / stale-data-on-restore | ⚠️ | Remaining flows untested; BUG-012 transport is mocked, not live Dropbox. |
 
 ## UI states
 

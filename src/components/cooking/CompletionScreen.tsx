@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Star } from "lucide-react";
@@ -49,7 +50,7 @@ export function CompletionScreen({ recipe }: CompletionScreenProps) {
         transition={{ delay: 0.2, type: "spring", stiffness: 200, damping: 18 }}
         className="mb-6"
       >
-        <img src="/illustrations/bowl_4.svg?v=2" alt="" className="h-32 w-auto bg-white rounded-2xl" />
+        <Image src="/illustrations/bowl_4.svg?v=2" width={457} height={411} unoptimized alt="" className="h-32 w-auto bg-white rounded-2xl" />
       </motion.div>
 
       <motion.h2

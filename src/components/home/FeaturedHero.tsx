@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Clock } from "lucide-react";
@@ -21,7 +22,7 @@ export function FeaturedHero({ recipe, label = "Featured Today" }: FeaturedHeroP
       transition={{ delay: 0.15, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
     >
       <div className="flex items-center gap-2 mb-3">
-        <img src="/illustrations/flame.svg?v=2" alt="" className="h-10 w-auto shrink-0 bg-white rounded-xl" />
+        <Image src="/illustrations/flame.svg?v=2" width={332} height={446} unoptimized alt="" className="h-10 w-auto shrink-0 bg-white rounded-xl" />
         <p className="font-display text-label uppercase tracking-widest text-ink-400">{label}</p>
       </div>
       <Link href={`/recipes/${recipe.slug}`}>

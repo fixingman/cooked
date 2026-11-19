@@ -15,9 +15,10 @@ import { CompletionScreen } from "./CompletionScreen";
 interface CookingShellProps {
   recipe: Recipe;
   thermomixMode?: boolean;
+  scale?: number;
 }
 
-export function CookingShell({ recipe, thermomixMode = false }: CookingShellProps) {
+export function CookingShell({ recipe, thermomixMode = false, scale = 1 }: CookingShellProps) {
   const router = useRouter();
   const [stepIndex, setStepIndex] = useState(0);
   const [direction, setDirection] = useState(1);
@@ -115,6 +116,7 @@ export function CookingShell({ recipe, thermomixMode = false }: CookingShellProp
             stepInstruction={step.instruction}
             stepId={step.id}
             direction={direction}
+            scale={scale}
           />
           {!hasTmStep && step.durationSeconds && step.durationSeconds > 0 && (
             <TimerBlock remaining={timer.remaining} label={step.timerLabel} />

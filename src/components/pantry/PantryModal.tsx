@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { X, AlertTriangle, Search, Download, Upload, Sparkles, Loader2 } from "lucide-react";
@@ -199,7 +200,7 @@ export function PantryModal({ onClose }: PantryModalProps) {
         {/* Header */}
         <div className="flex items-center justify-between px-5 pt-4 pb-3 shrink-0">
           <div className="flex items-center gap-2">
-            <img src="/illustrations/jar.svg?v=2" alt="" className="h-10 w-auto shrink-0 bg-white rounded-xl" />
+            <Image src="/illustrations/jar.svg?v=2" width={319} height={370} unoptimized alt="" className="h-10 w-auto shrink-0 bg-white rounded-xl" />
             <h2 className="font-serif text-lg font-semibold text-ink-900">Pantry</h2>
           </div>
           <div className="flex items-center gap-1">
@@ -303,8 +304,8 @@ export function PantryModal({ onClose }: PantryModalProps) {
           {items.length === 0 ? (
             <div className="flex flex-col items-center text-center py-10 gap-3">
               <div className="flex items-end gap-3">
-                <img src="/illustrations/garlic_2.svg?v=2" alt="" className="h-28 w-auto bg-white rounded-2xl" />
-                <img src="/illustrations/rolling_pin.svg?v=2" alt="" className="h-20 w-auto bg-white rounded-2xl opacity-70" />
+                <Image src="/illustrations/garlic_2.svg?v=2" width={405} height={460} unoptimized alt="" className="h-28 w-auto bg-white rounded-2xl" />
+                <Image src="/illustrations/rolling_pin.svg?v=2" width={616} height={246} unoptimized alt="" className="h-20 w-auto bg-white rounded-2xl opacity-70" />
               </div>
               <p className="text-sm text-ink-400 max-w-[220px] leading-relaxed">
                 Your pantry is empty — add ingredients you have on hand.

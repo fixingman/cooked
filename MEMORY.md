@@ -24,7 +24,7 @@ Next.js 14 App Router · TypeScript · Tailwind CSS · Framer Motion · Lucide R
 | `/` | Server | Homepage: greeting, featured hero, meal rails, history |
 | `/recipes` | Client | Grid/list, search, filter chips, sort |
 | `/recipes/[slug]` | Client | Hero, meta, servings adjuster, ingredients, steps, attribution |
-| `/recipes/[slug]/cook` | Server | Full-screen cooking mode — no nav shell |
+| `/recipes/[slug]/cook` | Client | Full-screen cooking mode — no nav shell; `?servings=N` persists ingredient scaling on refresh, alongside `tm=1`. Invalid overrides/unknown yields use original quantities via `getServingScale`. |
 | `/shopping` | Client | Shopping list — add from recipe, dedupe + sum qty, check→pantry |
 | `/settings` | Client | Units, dietary, AI toggle, Dropbox connect |
 | `/share` | Server | Web Share Target — redirects to `/?share_url=…` for native share sheet |

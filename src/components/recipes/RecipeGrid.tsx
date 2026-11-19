@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useCallback, useMemo } from "react";
 import { RecipeCard } from "./RecipeCard";
 import { useRecipeStates } from "@/hooks/useRecipeStates";
@@ -39,7 +40,7 @@ export function RecipeGrid({ recipes, viewMode = "grid" }: RecipeGridProps) {
         animate={{ opacity: 1 }}
         className="flex flex-col items-center justify-center py-20 text-center"
       >
-        <img src="/illustrations/bowl_3.svg?v=2" alt="" className="h-32 w-auto mb-5 bg-white rounded-2xl" />
+        <Image src="/illustrations/bowl_3.svg?v=2" width={437} height={422} unoptimized alt="" className="h-32 w-auto mb-5 bg-white rounded-2xl" />
         <h3 className="font-display text-lg text-ink-700 tracking-tight mb-1.5">No recipes found</h3>
         <p className="text-ink-400 text-sm max-w-xs leading-relaxed">Try adjusting your search or filters</p>
       </motion.div>

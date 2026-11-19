@@ -1,5 +1,6 @@
 "use client";
 import { useState, useCallback } from "react";
+import { getServingScale } from "@/lib/scaleIngredient";
 
 export interface ServingsScale {
   servings: number;
@@ -10,7 +11,7 @@ export interface ServingsScale {
 
 export function useServingsScale(base: number): ServingsScale {
   const [servings, setServings] = useState(base);
-  const scale = servings / base;
+  const scale = getServingScale(base, servings);
   const increment = useCallback(() => setServings((s) => s + 1), []);
   const decrement = useCallback(() => setServings((s) => Math.max(1, s - 1)), []);
   return { servings, scale, increment, decrement };

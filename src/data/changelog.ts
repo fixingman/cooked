@@ -17,6 +17,13 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.32.4",
+    date: "2026-09-22",
+    notes: [
+      "Adjusting the servings now carries your ingredient amounts into cooking mode, including Thermomix, even after a refresh.",
+    ],
+  },
+  {
     version: "0.32.3",
     date: "2026-08-25",
     notes: [

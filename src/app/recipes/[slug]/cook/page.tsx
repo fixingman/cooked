@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { notFound, useSearchParams } from "next/navigation";
 import { getRecipe } from "@/lib/recipes";
+import { getServingScale } from "@/lib/scaleIngredient";
 import { CookingShell } from "@/components/cooking/CookingShell";
 import type { Recipe } from "@/types/recipe";
 
@@ -40,6 +41,7 @@ export default function CookingPage({ params }: PageProps) {
   if (!recipe) notFound();
 
   const thermomixMode = searchParams.get("tm") === "1" && !!recipe.thermomixAvailable;
+  const scale = getServingScale(recipe.servings, Number(searchParams.get("servings")));
 
-  return <CookingShell recipe={recipe} thermomixMode={thermomixMode} />;
+  return <CookingShell recipe={recipe} thermomixMode={thermomixMode} scale={scale} />;
 }

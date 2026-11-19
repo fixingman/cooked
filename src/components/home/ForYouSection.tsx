@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Clock } from "lucide-react";
@@ -23,7 +24,7 @@ export function ForYouSection({ recipes, pantryNames }: ForYouSectionProps) {
       transition={{ delay: 0.15, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
     >
       <div className="flex items-center gap-2 mb-3">
-        <img src="/illustrations/lemon.svg?v=2" alt="" className="h-10 w-auto shrink-0 bg-white rounded-xl" />
+        <Image src="/illustrations/lemon.svg?v=2" width={347} height={483} unoptimized alt="" className="h-10 w-auto shrink-0 bg-white rounded-xl" />
         <p className="font-display text-label uppercase tracking-widest text-ink-400">For You</p>
       </div>
 

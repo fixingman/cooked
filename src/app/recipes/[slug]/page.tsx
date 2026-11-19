@@ -394,7 +394,7 @@ function RecipeDetailClient({ recipe: initialRecipe, isUserRecipe }: { recipe: R
 
         <CookedStatus recipeId={recipe.id} />
 
-        <StartCookingButton slug={recipe.slug} thermomixAvailable={recipe.thermomixAvailable} />
+        <StartCookingButton slug={recipe.slug} thermomixAvailable={recipe.thermomixAvailable} servings={servings} />
       </div>
 
       {showEdit && (

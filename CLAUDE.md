@@ -58,6 +58,7 @@ Trigger phrases are **shortcuts to invoke a routine on demand** — not precondi
 **Committing and pushing are human-gated.** Run the checklist and prepare the commit, but wait for the user to say so before `git commit` or `git push`. Exception: if the user explicitly says "commit and push" or equivalent, proceed.
 
 **Version history:**
+- `0.32.4` fix: carry servings into standard/Thermomix cook URLs; validate finite positive serving ratios, preserve reductions below 0.1, reuse detail-page quantity formatting; unknown yields keep original quantities. Illustration lint cleanup: use `next/image` with SVG intrinsic dimensions and `unoptimized`, preserving current sizing and direct SVG delivery.
 - `0.1.0` Full UI prototype · `0.2.0` Thermomix · `0.3.0` UX polish · `0.4.0` Multi-select filters
 - `0.4.1` Timer/nav fixes · `0.5.0` Dropbox sync · `0.6.0` URL import + sharing · `0.6.1` Upload fix
 - `0.7.0` Edit/delete recipes · `0.7.1` Sync throttle · `0.8.0` Attribution + image hosting

@@ -109,6 +109,10 @@ Choices that need a future check-in once novelty wears off. **Day-14 Wallpaper T
 
 ---
 
+## Prepared for next release
+
+- **0.32.4:** Cooking-mode ingredient quantities follow adjusted servings in both standard and Thermomix mode, survive refresh, and fall back safely for invalid URL values or unknown recipe yields.
+
 ## ✅ Shipped log
 
 | Feature | Version |

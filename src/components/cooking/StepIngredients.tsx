@@ -1,6 +1,7 @@
 "use client";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Ingredient } from "@/types/recipe";
+import { scaleQuantity } from "@/lib/scaleIngredient";
 
 interface StepIngredientsProps {
   allIngredients: Ingredient[];
@@ -8,6 +9,7 @@ interface StepIngredientsProps {
   stepInstruction?: string;
   stepId: string;
   direction: number;
+  scale?: number;
 }
 
 // Adjectives and prep words that aren't useful for matching
@@ -28,31 +30,28 @@ function matchByText(instruction: string, ingredients: Ingredient[]): Ingredient
   });
 }
 
+const UNIT_ABBREV: Record<string, string> = {
+  tablespoon: "tbsp", tablespoons: "tbsp",
+  teaspoon: "tsp",   teaspoons: "tsp",
+};
+
 const variants = {
   enter: (dir: number) => ({ x: dir > 0 ? 40 : -40, opacity: 0 }),
   center: { x: 0, opacity: 1 },
   exit: (dir: number) => ({ x: dir > 0 ? -40 : 40, opacity: 0 }),
 };
 
-function formatQuantity(qty: number): string {
-  if (qty === Math.floor(qty)) return String(qty);
-  const fractions: Record<number, string> = {
-    0.25: "¼", 0.5: "½", 0.75: "¾",
-    0.33: "⅓", 0.67: "⅔",
-  };
-  const decimal = Math.round((qty % 1) * 100) / 100;
-  const whole = Math.floor(qty);
-  const frac = fractions[decimal] ?? qty.toFixed(1).replace(/\.0$/, "");
-  return whole > 0 ? `${whole}${fractions[decimal] ?? ""}` : String(frac);
-}
-
-function IngredientRow({ ing }: { ing: Ingredient }) {
+function IngredientRow({ ing, scale }: { ing: Ingredient; scale: number }) {
+  const qty = ing.quantity > 0 ? scaleQuantity(ing.quantity, scale) : "";
+  const unit = ing.unit && ing.unit !== "whole"
+    ? (UNIT_ABBREV[ing.unit.toLowerCase()] ?? ing.unit)
+    : "";
   return (
     <div className="flex items-baseline justify-between gap-3 bg-parchment-200 border border-parchment-300 rounded-xl px-3.5 py-2.5">
       <span className="font-serif text-ink-900 text-sm leading-snug flex-1">{ing.name}</span>
-      {ing.quantity > 0 && (
+      {qty && (
         <span className="text-xs font-medium text-ink-500 shrink-0 tabular-nums">
-          {formatQuantity(ing.quantity)}{ing.unit !== "whole" ? ` ${({ tablespoon: "tbsp", tablespoons: "tbsp", teaspoon: "tsp", teaspoons: "tsp" } as Record<string,string>)[ing.unit?.toLowerCase()] ?? ing.unit}` : ""}
+          {qty}{unit ? ` ${unit}` : ""}
         </span>
       )}
     </div>
@@ -65,6 +64,7 @@ export function StepIngredients({
   stepInstruction,
   stepId,
   direction,
+  scale = 1,
 }: StepIngredientsProps) {
   // Priority: explicit IDs (built-in recipes) → text match → nothing
   const rawIngredients = stepIngredientIds?.length
@@ -94,7 +94,7 @@ export function StepIngredients({
         </p>
         <div className="flex flex-col gap-2 overflow-y-auto max-h-[40vh]">
           {ingredients.map((ing) => (
-            <IngredientRow key={ing.id} ing={ing} />
+            <IngredientRow key={ing.id} ing={ing} scale={scale} />
           ))}
         </div>
       </motion.div>

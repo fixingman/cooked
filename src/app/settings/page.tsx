@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useState } from "react";
 import { Mic, Camera, Flame, Archive } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
@@ -135,7 +136,7 @@ export default function SettingsPage() {
       </Section>
 
       <div className="flex flex-col items-center gap-1 pt-2 pb-4">
-        <img src="/illustrations/rolling_pin.svg?v=2" alt="" className="h-20 w-auto bg-white rounded-2xl opacity-60" />
+        <Image src="/illustrations/rolling_pin.svg?v=2" width={616} height={246} unoptimized alt="" className="h-20 w-auto bg-white rounded-2xl opacity-60" />
         <p className="text-center text-xs text-ink-300">Made with care.</p>
       </div>
 

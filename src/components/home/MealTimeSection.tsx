@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Clock } from "lucide-react";
@@ -15,7 +16,7 @@ interface MealTimeSectionProps {
   seeAllHref?: string;
   pantryNames?: Set<string>;
   icon?: React.ReactNode;
-  illustration?: string;
+  illustration?: { src: string; width: number; height: number };
 }
 
 export function MealTimeSection({ recipes, label, mealTime, seeAllHref, pantryNames, icon, illustration }: MealTimeSectionProps) {
@@ -32,7 +33,7 @@ export function MealTimeSection({ recipes, label, mealTime, seeAllHref, pantryNa
       <div className="flex items-center justify-between mb-3.5">
         <div className="flex items-center gap-2">
           {illustration ? (
-            <img src={illustration} alt="" className="h-10 w-auto shrink-0 bg-white rounded-xl" />
+            <Image {...illustration} unoptimized alt="" className="h-10 w-auto shrink-0 bg-white rounded-xl" />
           ) : icon ? (
             <span className="flex items-center justify-center w-5 h-5 rounded-md bg-sage-100 shrink-0">
               {icon}

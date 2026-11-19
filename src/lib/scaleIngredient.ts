@@ -1,3 +1,12 @@
+// Unknown yields and invalid serving overrides keep the original quantities.
+export function getServingScale(baseServings: number, servings: number): number {
+  if (!Number.isFinite(baseServings) || baseServings <= 0 ||
+      !Number.isFinite(servings) || servings <= 0) return 1;
+
+  const scale = servings / baseServings;
+  return Number.isFinite(scale) && scale > 0 ? scale : 1;
+}
+
 export function scaleQuantity(quantity: number, scale: number): string {
   const scaled = quantity * scale;
   if (scaled === 0) return "";
