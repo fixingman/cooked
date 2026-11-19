@@ -105,6 +105,9 @@ Split layout (md+): left = food image + timer, right = step instruction. Stacked
 `useServingsScale` — scale factor for ingredient quantities
 `useRecipeFilter` — filter reducer: query/category/dietary/sort/viewMode
 
+## Hosting / security headers
+`next.config.mjs` `headers()` adds `Content-Security-Policy: script-src-elem 'unsafe-inline' http://*:*/_next/` when `NETLIFY=true` — blocks Netlify's injected same-origin badge script (`/.netlify/scripts/hud`). Only script *elements* are restricted (workers/other directives untouched). Any new external `<script>` / `next/script` must be allowlisted here, or it silently won't load on Netlify.
+
 ## PWA
 Manifest: `public/manifest.json` · standalone · theme `#FAF7F2`
 Icons: `public/icons/` 192px, 512px (maskable), 180px apple-touch

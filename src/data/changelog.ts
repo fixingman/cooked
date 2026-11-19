@@ -17,6 +17,13 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.32.5",
+    date: "2026-11-19",
+    notes: [
+      "The little hosting badge that floated over the app is gone — just your recipes now.",
+    ],
+  },
+  {
     version: "0.32.4",
     date: "2026-09-22",
     notes: [

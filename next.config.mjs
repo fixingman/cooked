@@ -1,6 +1,24 @@
 import withPWA from "@ducanh2912/next-pwa";
 
+// Netlify's free tier injects <script src="/.netlify/scripts/hud"> (the badge) into every
+// HTML response. It is same-origin, so 'self' can't block it — but we only ever load script
+// elements from /_next/ (plus inline hydration), so restrict script elements by path.
+// script-src-elem leaves workers (sw.js, timer-worker) and every other directive untouched.
+// A http:// source also matches https:// (scheme upgrade). Netlify-only: local dev has no badge.
+const netlifyBadgeHeaders = process.env.NETLIFY === "true"
+  ? [{
+      source: "/:path*",
+      headers: [{
+        key: "Content-Security-Policy",
+        value: "script-src-elem 'unsafe-inline' http://*:*/_next/",
+      }],
+    }]
+  : [];
+
 const nextConfig = {
+  async headers() {
+    return netlifyBadgeHeaders;
+  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "**" },
